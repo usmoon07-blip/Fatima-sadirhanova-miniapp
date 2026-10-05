@@ -4,19 +4,20 @@ import Img from './Img';
 import { useStore } from '../store/StoreContext';
 import { storage } from '../lib/storage';
 import { haptic } from '../lib/telegram';
+import { loc } from '../lib/i18n';
 
 const DURATION = 5000;
 
 export function StoriesRow() {
-  const { catalog, setStoryIndex } = useStore();
+  const { catalog, setStoryIndex, lang } = useStore();
   const seen = storage.get('seenStories', []);
   if (!catalog.stories.length) return null;
   return (
     <div className="stories h-scroll">
       {catalog.stories.map((s, i) => (
         <button key={s.id} type="button" className={`story ${seen.includes(s.id) ? 'seen' : ''}`} onClick={() => setStoryIndex(i)}>
-          <span className="story-ring"><Img src={s.imageUrl} alt={s.title} /></span>
-          <span className="story-title">{s.title}</span>
+          <span className="story-ring"><Img src={s.imageUrl} alt="" /></span>
+          <span className="story-title">{loc(s, 'title', lang)}</span>
         </button>
       ))}
     </div>
@@ -24,7 +25,7 @@ export function StoriesRow() {
 }
 
 export function StoryViewer() {
-  const { catalog, storyIndex, setStoryIndex, goTo } = useStore();
+  const { catalog, storyIndex, setStoryIndex, goTo, lang, t } = useStore();
   const stories = catalog.stories;
   const [progress, setProgress] = useState(0);
   const paused = useRef(false);
@@ -80,10 +81,10 @@ export function StoryViewer() {
       <button type="button" className="story-tap left" aria-label="Oldingi" onClick={() => go(-1)} />
       <button type="button" className="story-tap right" aria-label="Keyingi" onClick={() => go(1)} />
       <div className="story-content">
-        <h2>{story.title}</h2>
-        {story.text && <p>{story.text}</p>}
-        <button type="button" className="btn btn-light" onClick={() => { setStoryIndex(null); goTo('catalog'); }}>
-          Menyuni ko'rish
+        <h2>{loc(story, 'title', lang)}</h2>
+        {story.text && <p>{loc(story, 'text', lang)}</p>}
+        <button type="button" className="btn btn-light" onClick={() => { setStoryIndex(null); goTo('menu', { category: 'all' }); }}>
+          {t.viewMenu}
         </button>
       </div>
     </div>

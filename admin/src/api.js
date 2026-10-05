@@ -1,14 +1,24 @@
 const TOKEN_KEY = 'admin_token';
+const ROLE_KEY = 'admin_role';
 
 export const auth = {
   get token() {
     try { return localStorage.getItem(TOKEN_KEY); } catch { return null; }
   },
-  set(token) {
-    try { localStorage.setItem(TOKEN_KEY, token); } catch { /* */ }
+  get role() {
+    try { return localStorage.getItem(ROLE_KEY) || 'admin'; } catch { return 'admin'; }
+  },
+  set(token, role) {
+    try {
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(ROLE_KEY, role);
+    } catch { /* */ }
   },
   clear() {
-    try { localStorage.removeItem(TOKEN_KEY); } catch { /* */ }
+    try {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(ROLE_KEY);
+    } catch { /* */ }
   },
 };
 
@@ -44,13 +54,17 @@ const resource = (name) => ({
 });
 
 export const api = {
-  login: (username, password) => request('/login', { method: 'POST', body: { username, password } }),
+  login: (password) => request('/login', { method: 'POST', body: { password } }),
   stats: () => request('/stats'),
+  report: (period) => request(`/report?period=${period}`),
+  kitchen: () => request('/kitchen'),
+  deleteOrder: (id) => request(`/orders/${id}`, { method: 'DELETE' }),
   orders: (params = {}) => request(`/orders?${new URLSearchParams(params)}`),
   setOrderStatus: (id, status) => request(`/orders/${id}/status`, { method: 'PATCH', body: { status } }),
   products: resource('products'),
   categories: resource('categories'),
   stories: resource('stories'),
+  promos: resource('promos'),
   upload: (file) => {
     const form = new FormData();
     form.append('file', file);

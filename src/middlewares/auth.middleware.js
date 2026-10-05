@@ -56,22 +56,51 @@ async function telegramAuth(req, res, next) {
   }
 }
 
-function signAdminToken(username) {
-  return jwt.sign({ sub: username, role: 'admin' }, config.admin.jwtSecret, { expiresIn: config.admin.tokenTtl });
+/** role: 'admin' (hamma bo'limlar) | 'kitchen' (faqat oshxona ekrani) */
+function signAdminToken(role) {
+  return jwt.sign({ role }, config.admin.jwtSecret, { expiresIn: config.admin.tokenTtl });
 }
 
-function adminAuth(req, res, next) {
-  const header = req.get('Authorization') || '';
-  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
-  if (!token) return res.status(401).json({ message: 'Avtorizatsiya talab qilinadi' });
-  try {
-    const payload = jwt.verify(token, config.admin.jwtSecret);
-    if (payload.role !== 'admin') throw new Error('role');
+/** Panel uchun avtorizatsiya. roles — ruxsat etilgan rollar */
+function adminAuth(roles = ['admin']) {
+  return (req, res, next) => {
+    const header = req.get('Authorization') || '';
+    const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+    if (!token) return res.status(401).json({ message: 'Avtorizatsiya talab qilinadi' });
+    let payload;
+    try {
+      payload = jwt.verify(token, config.admin.jwtSecret);
+    } catch {
+      return res.status(401).json({ message: 'Sessiya tugagan. Qaytadan kiring.' });
+    }
+    if (!roles.includes(payload.role)) return res.status(403).json({ message: "Bu bo'limga ruxsat yo'q" });
     req.admin = payload;
     return next();
-  } catch {
-    return res.status(401).json({ message: 'Sessiya tugagan. Qaytadan kiring.' });
+  };
+}
+
+// Parolni ko'p marta noto'g'ri kiritganda bloklash (IP bo'yicha)
+const loginAttempts = new Map();
+
+function loginGuard(req, res, next) {
+  const key = req.ip;
+  const entry = loginAttempts.get(key);
+  if (entry?.lockedUntil && entry.lockedUntil > Date.now()) {
+    const minutes = Math.ceil((entry.lockedUntil - Date.now()) / 60000);
+    return res.status(429).json({ message: `Parol ko'p marta noto'g'ri kiritildi. ${minutes} daqiqadan keyin urinib ko'ring.` });
   }
+  req.loginFailed = () => {
+    const e = loginAttempts.get(key) || { fails: 0 };
+    e.fails += 1;
+    if (e.fails >= config.admin.maxLoginAttempts) {
+      e.lockedUntil = Date.now() + config.admin.lockMinutes * 60 * 1000;
+      e.fails = 0;
+    }
+    loginAttempts.set(key, e);
+    return config.admin.maxLoginAttempts - e.fails;
+  };
+  req.loginSucceeded = () => loginAttempts.delete(key);
+  return next();
 }
 
 /** Zod sxemasi bo'yicha req.body ni tekshiradi */
@@ -96,4 +125,6 @@ function safeEqual(a, b) {
   return crypto.timingSafeEqual(ha, hb);
 }
 
-module.exports = { telegramAuth, adminAuth, validate, signAdminToken, verifyInitData, safeEqual };
+module.exports = {
+  telegramAuth, adminAuth, loginGuard, validate, signAdminToken, verifyInitData, safeEqual,
+};

@@ -73,11 +73,11 @@ Qo'shimcha (ixtiyoriy, chiroyli ko'rinish uchun) BotFather'da:
    DATABASE_URL="1-qadamdagi Neon manzili"
    BOT_TOKEN="2-qadamdagi token"
    WEBAPP_URL=""            # 6-qadamda ngrok manzilini qo'yasiz
-   ADMIN_USERNAME="admin"
-   ADMIN_PASSWORD="o'zingizning kuchli parolingiz"
+   ADMIN_PASSWORD="egasi/menejer paroli"      # Admin Panel — hamma bo'limlar
+   KITCHEN_PASSWORD="oshpaz paroli"           # faqat Oshxona ekrani
    JWT_SECRET="istalgan uzun tasodifiy matn"
    ```
-   Do'kon nomi, telefon, manzil, karta raqami, yetkazib berish narxi ham shu faylda o'zgartiriladi.
+   Do'kon nomi, telefon, manzil, "Biz haqimizda" matni, karta raqami, yetkazib berish narxi va taxminiy vaqt (`DELIVERY_ETA_MIN`, `PICKUP_ETA_MIN`) ham shu faylda o'zgartiriladi.
 
 ---
 
@@ -92,7 +92,7 @@ npm run setup
 Bu buyruq avtomatik ravishda:
 1. Backend, Mini App va Admin Panel paketlarini o'rnatadi (`npm install`);
 2. Prisma migratsiyasini bazaga qo'llaydi — jadvallarni yaratadi (`prisma migrate deploy`);
-3. Seed skriptini ishga tushiradi — 6 ta kategoriya, 12 ta mahsulot va 5 ta story qo'shadi.
+3. Seed skriptini ishga tushiradi — 6 ta kategoriya, 12 ta mahsulot (3 tilda), 5 ta story va 3 ta promokod (`SHIRIN5`, `YANGI20`, `FATIMA10`) qo'shadi.
 
 Agar qadamlarni alohida bajarmoqchi bo'lsangiz:
 ```bash
@@ -118,7 +118,11 @@ Bu bitta buyruq 3 ta qismni birga ishga tushiradi:
 - 🔵 `MINIAPP` — http://localhost:5173
 - 🟡 `ADMIN` — http://localhost:5174 (brauzerda avtomatik ochiladi)
 
-**Admin Panel'ga kirish:** http://localhost:5174 → `.env` dagi login va parol.
+**Admin Panel'ga kirish:** http://localhost:5174 → faqat parol:
+- `ADMIN_PASSWORD` — egasi va menejer (hamma bo'limlar);
+- `KITCHEN_PASSWORD` — oshpaz (faqat Oshxona ekrani; oshxonadagi planshet/televizorda oching).
+
+Parol 5 marta noto'g'ri kiritilsa, kirish 15 daqiqaga bloklanadi.
 
 **Mini App'ni brauzerda sinash:** http://localhost:5173 (`.env` da `DEV_ALLOW_BROWSER=true` bo'lsa, Telegram'siz ham ochiladi).
 
@@ -163,21 +167,38 @@ Telegram Mini App faqat **https** manzilda ishlaydi. ngrok kompyuteringizdagi `l
 
 ---
 
+## Imkoniyatlar
+
+### Mijoz uchun (Mini App + Bot)
+- **3 til: o'zbek, rus, ingliz.** Bot `/start` da tilni so'raydi; Mini App ham birinchi ochilishda so'raydi. Menyu, taom nomlari, tarkibi va bot xabarlari tarjima qilingan. Til profil yoki botdagi `/lang` orqali istalgan payt almashtiriladi.
+- **Bosh sahifa:** qidiruv, saqlangan manzil ("60 daqiqada yetkazamiz"), stories, tezkor tugmalar (Biz haqimizda, Aksiyalar, Promokodlar, Buyurtmalar), aksiya bannerlari, kategoriyalar, mashhurlar.
+- **Menyu:** kategoriyalar bo'yicha bo'limlar; kategoriya paneli tepada yopishib turadi va skroll qilganda joriy bo'lim o'zi belgilanadi. Qidiruv taom nomi, tarkibi yoki kategoriya bo'yicha (3 tilda).
+- **Taom kartochkasi:** katta surat, nomi ikki tilda, tarkibi ro'yxat bo'lib, o'lcham, miqdor va doim ko'rinib turadigan narx tugmasi.
+- **Savat:** qo'shimcha taklif (bir tugma bilan kofe qo'shiladi), **promokod**, "yana X so'm qo'shsangiz yetkazish bepul", jami summa har o'zgarishda qayta hisoblanadi.
+- **Rasmiylashtirish:** yetkazib berish (~60 daq) yoki olib ketish (~20 daq), joylashuvni bir bosishda aniqlash, telefon, vaqt, naqd yoki karta, izoh. **Manzil va telefon eslab qolinadi.**
+- **Buyurtmalar:** rangli holat belgisi; **"Bekor qilish"** oshxona qabul qilmaguncha ishlaydi, keyin yo'qoladi; **"Yana buyurtma qilish"** bir bosishda.
+- **Aksiyalar:** promokodlar nusxalash tugmasi bilan, chegirmadagi shirinliklar.
+- **Profil:** telefon, saqlangan manzil, buyurtmalar soni, jami xarid, til, aloqa, ish vaqti.
+- **Bot** buyurtma qabul qilinganda va har bir holat o'zgarganda mijozga uning tilida o'zi xabar yozadi.
+
+### Restoran uchun (Admin Panel)
+- **Oshxona ekrani:** 3 ustun (Yangi → Tayyorlanmoqda → Yo'lda / Olib ketishga tayyor). Yangi buyurtmada **tovushli signal**. Har kartochkada taymer: 15 daqiqadan keyin sariq, 25 daqiqadan keyin qizil. "Qabul qildim", "Tayyorlashni boshladim", "Tayyor — kuryerga berildi" tugmalari — har bosishda bot mijozga xabar yuboradi.
+- **Buyurtmalar jadvali:** holat bo'yicha filtr, qidiruv, telefon bosilsa qo'ng'iroq, manzil xaritada ochiladi, holatni o'zgartirish va o'chirish.
+- **Hisobot:** bugun / 7 / 30 / 90 kun / hammasi. Tushum, qo'lga tekkan pul, o'rtacha chek, bekor qilinganlar ulushi, yangi va qayta kelgan mijozlar, chegirmalar, naqd/karta va yetkazish/olib ketish ulushi, kunlik tushum grafigi, soatlar bo'yicha yuklama, eng ko'p sotilgan taomlar, eng qadrli mijozlar.
+- **Mahsulotlar, kategoriyalar, stories** — 3 tilda, surat yuklash bilan, dasturchisiz.
+- **Promokodlar:** foizli yoki summali, maksimal chegirma, eng kam buyurtma, amal qilish muddati, foydalanish limiti, "faqat birinchi buyurtma". Chegirma **serverda qayta hisoblanadi**.
+
 ## Ish jarayoni (qanday ishlaydi)
 
-1. Mijoz botda `/start` bosadi → telefon raqamini yuboradi → Mini App'ni ochadi.
-2. Mini App: onboarding (bir marta) → bosh sahifa (stories, hero, kategoriyalar, mashhurlar) → katalog → mahsulot oynasi → savatcha (kofe taklifi) → rasmiylashtirish.
-3. Rasmiylashtirishda mijoz tanlaydi:
-   - 🚚 **Yetkazib berish** (lokatsiya + manzil) yoki 🏪 **Olib ketish**
-   - 💵 **Naqd** yoki 💳 **Karta** orqali to'lov
-   - Telefon raqami, vaqt (tezroq yoki aniq sana/soat), izoh
-4. "Buyurtmani tasdiqlash" → buyurtma bazaga yoziladi, Mini App yopiladi, bot mijozga "Buyurtmangiz muvaffaqiyatli qabul qilindi!" deb yozadi.
-5. Buyurtma Admin Panel'da darhol ko'rinadi (har 5 soniyada yangilanadi, ovozli signal bilan).
-6. Admin holatni o'zgartiradi (Tasdiqlandi → Tayyorlanmoqda → Kuryerga berildi → Yetkazildi) — **har bir o'zgarishda mijozga bot orqali xabar boradi**.
-7. (Ixtiyoriy) `.env` da `COURIER_CHAT_ID` ko'rsatilsa, "Kuryerga berildi" holatida buyurtma ma'lumotlari va mijoz lokatsiyasi kuryerlar guruhiga yuboriladi.
+1. Mijoz botda `/start` bosadi → tilni tanlaydi → telefon raqamini yuboradi → Mini App'ni ochadi.
+2. Menyudan tanlaydi, savatga soladi, kerak bo'lsa promokod kiritadi, rasmiylashtiradi.
+3. Buyurtma bazaga tushadi, bot mijozga "Buyurtmangiz qabul qilindi!" deb yozadi, Mini App yopiladi.
+4. Buyurtma darhol Oshxona ekranida signal bilan paydo bo'ladi.
+5. Oshpaz/menejer tugmalarni bosib holatni o'zgartiradi — har safar mijozga bot orqali xabar boradi.
+6. (Ixtiyoriy) `.env` da `COURIER_CHAT_ID` ko'rsatilsa, "Kuryerga berildi" bosilganda buyurtma va mijoz lokatsiyasi kuryerlar guruhiga yuboriladi.
    - Guruh ID sini bilish: botni guruhga qo'shing, guruhga biror xabar yozing va brauzerda `https://api.telegram.org/bot<TOKEN>/getUpdates` ni oching — `"chat":{"id":-100...}` qiymati kerakli ID.
 
----
+> Onlayn to'lov (Payme, Click, Uzum) — keyingi bosqich: buning uchun to'lov tizimi bilan shartnoma va merchant kalitlari kerak.
 
 ## Loyiha tuzilishi
 
@@ -186,11 +207,11 @@ Telegram Mini App faqat **https** manzilda ishlaydi. ngrok kompyuteringizdagi `l
 │   ├── config/default.js
 │   ├── core/bot.js
 │   ├── database/connection.js
-│   ├── models/               # User, Product, Category, Story, Order
+│   ├── models/               # User, Product, Category, Story, Order, PromoCode
 │   ├── controllers/          # botController, cartController, adminController
 │   ├── routes/               # bot.routes, client.routes, admin.routes
 │   ├── middlewares/auth.middleware.js
-│   ├── utils/format.js
+│   ├── utils/                # format.js, i18n.js (bot tarjimalari)
 │   └── index.js
 ├── prisma/
 │   ├── schema.prisma

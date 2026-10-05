@@ -182,3 +182,82 @@ select { height: 38px; padding: 0 10px; }
   .form-grid { grid-template-columns: 1fr; }
   .span-2 { grid-column: auto; }
 }
+
+/* =================== v2 =================== */
+.center { text-align: center; }
+.mono { font-family: ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: 0.04em; }
+.btn-dark { background: #2b211d; color: #fff; }
+.btn-dark:hover:not(:disabled) { background: #000; }
+.btn-danger-ghost { background: #fdecea; color: var(--red); }
+.notice { background: #fff8e1; border: 1px solid #f6e3a8; color: #6b5310; border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; }
+.login-logo { font-size: 40px; }
+.addr-link { display: flex; align-items: center; gap: 3px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lang-tabs { display: flex; gap: 4px; background: var(--bg); border-radius: 10px; padding: 3px; }
+.lang-tabs button { flex: 1; border: 0; background: none; padding: 7px 10px; border-radius: 8px; font-weight: 600; color: #55555f; }
+.lang-tabs button.active { background: #fff; color: var(--text); box-shadow: var(--shadow); }
+
+/* Oshxona ekrani */
+.kitchen { max-width: none; }
+.k-board { display: grid; grid-template-columns: repeat(3, minmax(280px, 1fr)); gap: 14px; align-items: start; }
+.k-col { background: #efeff2; border-radius: 16px; padding: 10px; min-height: 60vh; }
+.k-col-head { display: flex; justify-content: space-between; align-items: center; padding: 4px 6px 10px; font-weight: 700; }
+.k-col-head b { background: #2b211d; color: #fff; min-width: 26px; height: 26px; border-radius: 13px; display: grid; place-items: center; font-size: 13px; padding: 0 8px; }
+.k-col.new .k-col-head b { background: var(--red); }
+.k-list { display: grid; gap: 10px; }
+.k-empty { text-align: center; color: var(--muted); padding: 30px 10px; }
+.k-card { background: #fff; border-radius: 14px; padding: 12px 14px; border-left: 5px solid #3fae6a; box-shadow: var(--shadow); display: grid; gap: 8px; }
+.k-card.warn { border-left-color: #f0b429; }
+.k-card.late { border-left-color: var(--red); }
+.k-card.fresh { animation: kflash 1s ease 6; }
+@keyframes kflash { 50% { box-shadow: 0 0 0 4px rgba(224, 87, 74, 0.45); } }
+.k-head { display: flex; justify-content: space-between; align-items: center; }
+.k-head b { font-size: 20px; }
+.k-timer { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #e3f5ea; color: #1f8a4c; }
+.k-timer.warn { background: #fff3dc; color: #b26b00; }
+.k-timer.late { background: #fdeceb; color: #c8392c; }
+.k-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.k-tags span { font-size: 11.5px; background: var(--bg); border-radius: 6px; padding: 2px 7px; color: #55555f; }
+.k-tags .k-time { background: #fff3dc; color: #8a5300; font-weight: 600; }
+.k-items { list-style: none; margin: 0; padding: 8px 0; display: grid; gap: 4px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 15px; }
+.k-comment { background: #fff8e1; border-radius: 8px; padding: 6px 9px; font-size: 13px; display: flex; gap: 6px; align-items: flex-start; }
+.k-customer { display: flex; justify-content: space-between; gap: 6px; font-size: 13px; }
+.k-customer a { color: var(--accent-dark); font-weight: 600; }
+.k-total { font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+.k-total small { font-weight: 500; color: var(--muted); }
+.k-actions { display: flex; gap: 6px; }
+.k-actions .btn { flex: 1; height: 40px; }
+.k-actions .btn-danger-ghost { flex: 0 0 auto; }
+
+/* Hisobot */
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.kpi { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 2px; }
+.kpi span { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 600; }
+.kpi b { font-size: 21px; letter-spacing: -0.02em; }
+.kpi small { color: var(--muted); font-size: 12px; }
+.two-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 14px; }
+.two-cols .panel { margin-bottom: 0; }
+.panel-head { display: flex; flex-direction: column; margin-bottom: 14px; }
+.panel-head h3 { font-size: 15px; }
+.split-row { display: grid; gap: 4px; margin-bottom: 12px; }
+.split-top { display: flex; justify-content: space-between; font-size: 14px; }
+.split-bar { height: 8px; background: #f1ece9; border-radius: 4px; overflow: hidden; }
+.split-bar i { display: block; height: 100%; background: #8c6b5d; border-radius: 4px; }
+.chart { position: relative; padding: 18px 0 22px; }
+.chart-grid { position: absolute; inset: 18px 0 22px; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
+.chart-grid span { border-top: 1px dashed #ececef; }
+.chart-bars { position: relative; height: 100%; display: flex; align-items: flex-end; gap: 2px; border-bottom: 1px solid #dcdce2; }
+.bar-slot { position: relative; flex: 1; height: 100%; display: flex; align-items: flex-end; justify-content: center; outline: none; cursor: default; }
+.bar { width: 100%; max-width: 34px; min-height: 2px; background: #8c6b5d; border-radius: 4px 4px 0 0; transition: background 0.15s; }
+.bar-slot:hover .bar, .bar-slot:focus .bar { background: #5d4136; }
+.bar-label { position: absolute; bottom: -20px; font-size: 10.5px; color: var(--muted); white-space: nowrap; }
+.bar-peak { position: absolute; top: -16px; font-size: 11px; font-weight: 600; color: #44444c; white-space: nowrap; }
+.bar-tip { display: none; position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); background: #1d1d22; color: #fff; padding: 6px 9px; border-radius: 8px; font-size: 12px; white-space: nowrap; z-index: 5; flex-direction: column; align-items: center; pointer-events: none; }
+.bar-tip span { opacity: 0.7; }
+.bar-slot:hover .bar-tip, .bar-slot:focus .bar-tip { display: flex; top: -30px; bottom: auto; }
+
+@media (max-width: 1100px) {
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .two-cols { grid-template-columns: 1fr; }
+  .k-board { grid-template-columns: 1fr; }
+}

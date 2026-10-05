@@ -19,6 +19,8 @@ async function request(path, { method = 'GET', body } = {}) {
   if (!res.ok) {
     const err = new Error(data?.message || "Server bilan bog'lanib bo'lmadi");
     err.field = data?.field;
+    err.reason = data?.reason;
+    err.minOrder = data?.minOrder;
     throw err;
   }
   return data;
@@ -29,6 +31,10 @@ export const api = {
   catalog: () => request('/catalog'),
   me: () => request('/me'),
   updatePhone: (phone) => request('/me/phone', { method: 'PUT', body: { phone } }),
+  updateLanguage: (language) => request('/me/language', { method: 'PUT', body: { language } }),
+  saveAddress: (data) => request('/me/address', { method: 'PUT', body: data }),
+  checkPromo: (code, subtotal) => request('/promo/check', { method: 'POST', body: { code, subtotal } }),
+  cancelOrder: (id) => request(`/orders/${id}/cancel`, { method: 'POST' }),
   myOrders: () => request('/orders'),
   createOrder: (payload) => request('/orders', { method: 'POST', body: payload }),
 };

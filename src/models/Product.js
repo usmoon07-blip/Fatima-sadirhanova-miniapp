@@ -12,8 +12,8 @@ function sanitizeSizes(sizes) {
 function toData(input) {
   const data = { ...input };
   if ('sizes' in data) data.sizes = sanitizeSizes(data.sizes);
-  if ('ingredients' in data) {
-    data.ingredients = (data.ingredients || []).map((i) => String(i).trim()).filter(Boolean);
+  for (const key of ['ingredients', 'ingredientsRu', 'ingredientsEn']) {
+    if (key in data) data[key] = (data[key] || []).map((i) => String(i).trim()).filter(Boolean);
   }
   if ('categoryId' in data) data.categoryId = data.categoryId ? Number(data.categoryId) : null;
   return data;

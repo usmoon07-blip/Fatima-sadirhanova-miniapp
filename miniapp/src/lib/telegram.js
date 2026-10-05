@@ -73,10 +73,10 @@ export function requestContact() {
 /** Foydalanuvchi joylashuvini oladi: avval Telegram LocationManager, keyin brauzer geolokatsiyasi */
 export function getLocation() {
   const viaBrowser = () => new Promise((resolve, reject) => {
-    if (!navigator.geolocation) return reject(new Error('Qurilmangiz joylashuvni aniqlay olmaydi'));
+    if (!navigator.geolocation) return reject(Object.assign(new Error('no geolocation'), { code: 'nogeo' }));
     navigator.geolocation.getCurrentPosition(
       (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
-      () => reject(new Error("Joylashuvga ruxsat berilmadi. Manzilni qo'lda yozing.")),
+      () => reject(Object.assign(new Error('denied'), { code: 'denied' })),
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
     );
     return undefined;
@@ -91,7 +91,7 @@ export function getLocation() {
       lm.getLocation((loc) => {
         if (loc) return resolve({ latitude: loc.latitude, longitude: loc.longitude });
         if (lm.isAccessRequested && !lm.isAccessGranted) {
-          return reject(new Error("Joylashuvga ruxsat berilmagan. Telegram sozlamalaridan ruxsat bering yoki manzilni yozing."));
+          return reject(Object.assign(new Error('denied'), { code: 'denied' }));
         }
         return viaBrowser().then(resolve, reject);
       });

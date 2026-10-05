@@ -19,8 +19,11 @@ const config = {
   },
 
   admin: {
-    username: process.env.ADMIN_USERNAME || 'admin',
     password: process.env.ADMIN_PASSWORD || 'admin',
+    // Oshpaz faqat "Oshxona ekrani"ni ko'radi (bo'sh bo'lsa o'chirilgan)
+    kitchenPassword: process.env.KITCHEN_PASSWORD || '',
+    maxLoginAttempts: 5,
+    lockMinutes: 15,
     jwtSecret: process.env.JWT_SECRET || 'change-me-please',
     tokenTtl: '7d',
   },
@@ -35,12 +38,15 @@ const config = {
     workingHours: process.env.SHOP_WORKING_HOURS || '',
     cardNumber: process.env.CARD_NUMBER || '',
     cardHolder: process.env.CARD_HOLDER || '',
+    about: process.env.SHOP_ABOUT || '',
   },
 
   delivery: {
     fee: num(process.env.DELIVERY_FEE, 25000),
     freeFrom: num(process.env.FREE_DELIVERY_FROM, 0),
     minOrder: num(process.env.MIN_ORDER_AMOUNT, 0),
+    etaDelivery: num(process.env.DELIVERY_ETA_MIN, 60),
+    etaPickup: num(process.env.PICKUP_ETA_MIN, 20),
   },
 };
 

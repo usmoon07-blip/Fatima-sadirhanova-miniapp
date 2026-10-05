@@ -2,52 +2,78 @@ const config = require('../config/default');
 const { bot } = require('../core/bot');
 const User = require('../models/User');
 const Order = require('../models/Order');
-const {
-  money, dateTime, escapeHtml, normalizePhone, STATUS_LABELS, DELIVERY_LABELS, PAYMENT_LABELS,
-} = require('../utils/format');
+const { money, dateTime, escapeHtml, normalizePhone } = require('../utils/format');
+const { t, pickLang, allLabels, LANG_BUTTONS } = require('../utils/i18n');
 
-const BTN_ORDERS = '📦 Buyurtmalarim';
-const BTN_CONTACT = "📞 Biz bilan bog'lanish";
-
-const mainKeyboard = {
-  keyboard: [[{ text: BTN_ORDERS }, { text: BTN_CONTACT }]],
-  resize_keyboard: true,
-  is_persistent: true,
-};
-
-const phoneKeyboard = {
-  keyboard: [[{ text: '📱 Telefon raqamni yuborish', request_contact: true }]],
-  resize_keyboard: true,
-  one_time_keyboard: true,
-};
-
-function openAppMarkup(text = '🧁 Menyuni ochish') {
-  if (!config.webAppIsHttps) return undefined;
-  return { inline_keyboard: [[{ text, web_app: { url: config.bot.webAppUrl } }]] };
+function langOf(user) {
+  return pickLang(user?.language);
 }
 
-function itemsText(items) {
+function mainKeyboard(lang) {
+  const tr = t(lang);
+  return {
+    keyboard: [[{ text: tr.btnOrders }, { text: tr.btnContact }], [{ text: tr.btnLang }]],
+    resize_keyboard: true,
+    is_persistent: true,
+  };
+}
+
+function phoneKeyboard(lang) {
+  return {
+    keyboard: [[{ text: t(lang).sendPhoneBtn, request_contact: true }]],
+    resize_keyboard: true,
+    one_time_keyboard: true,
+  };
+}
+
+function webAppUrl(lang) {
+  return `${config.bot.webAppUrl}/?lang=${lang}`;
+}
+
+function openAppMarkup(lang, text) {
+  if (!config.webAppIsHttps) return undefined;
+  return { inline_keyboard: [[{ text: text || t(lang).openMenuBtn, web_app: { url: webAppUrl(lang) } }]] };
+}
+
+/** Har bir foydalanuvchi uchun "Menyu" tugmasini o'z tilida o'rnatadi */
+async function setUserMenuButton(chatId, lang) {
+  if (!bot || !config.webAppIsHttps) return;
+  await bot.api.setChatMenuButton({
+    chat_id: Number(chatId),
+    menu_button: { type: 'web_app', text: t(lang).menuButton, web_app: { url: webAppUrl(lang) } },
+  }).catch(() => {});
+}
+
+function itemName(item, lang) {
+  if (lang === 'ru' && item.nameRu) return item.nameRu;
+  if (lang === 'en' && item.nameEn) return item.nameEn;
+  return item.name;
+}
+
+function itemsText(items, lang = 'uz') {
   return (items || [])
-    .map((i) => `• ${escapeHtml(i.name)}${i.size ? ` (${escapeHtml(i.size)})` : ''} × ${i.quantity} — ${money(i.total)}`)
+    .map((i) => `• ${escapeHtml(itemName(i, lang))}${i.size ? ` (${escapeHtml(i.size)})` : ''} × ${i.quantity} — ${money(i.total)}`)
     .join('\n');
 }
 
-function orderSummary(order) {
+function orderSummary(order, lang) {
+  const tr = t(lang);
   const lines = [
-    `🧾 <b>Buyurtma #${order.id}</b>`,
+    `🧾 <b>${tr.order} #${order.id}</b>`,
     '',
-    itemsText(order.items),
+    itemsText(order.items, lang),
     '',
-    `Mahsulotlar: ${money(order.subtotal)}`,
+    `${tr.items}: ${money(order.subtotal)}`,
   ];
+  if (order.discount) lines.push(`${tr.discount}${order.promoCode ? ` (${escapeHtml(order.promoCode)})` : ''}: −${money(order.discount)}`);
   if (order.deliveryType === 'DELIVERY') {
-    lines.push(`Yetkazib berish: ${order.deliveryFee ? money(order.deliveryFee) : 'bepul'}`);
+    lines.push(`${tr.delivery}: ${order.deliveryFee ? money(order.deliveryFee) : tr.free}`);
   }
   lines.push(
-    `<b>Jami: ${money(order.total)}</b>`,
+    `<b>${tr.total}: ${money(order.total)}</b>`,
     '',
-    `${DELIVERY_LABELS[order.deliveryType]}`,
-    `${PAYMENT_LABELS[order.paymentMethod]}`,
+    tr.deliveryType[order.deliveryType],
+    tr.payment[order.paymentMethod],
   );
   if (order.deliveryType === 'DELIVERY' && order.address) lines.push(`📍 ${escapeHtml(order.address)}`);
   if (order.deliveryTime) lines.push(`⏰ ${escapeHtml(order.deliveryTime)}`);
@@ -55,98 +81,128 @@ function orderSummary(order) {
 }
 
 async function sendWelcome(ctx, user) {
-  const name = escapeHtml(user.firstName || 'mehmon');
-  const text = [
-    `Assalomu alaykum, <b>${name}</b>! 🌸`,
-    '',
-    `<b>${escapeHtml(config.shop.name)}</b> — qo'lda tayyorlanadigan premium tortlar va shirinliklar.`,
-    '',
-    "Menyuni ochib, sevimli shirinligingizni tanlang. Biz uni yetkazib beramiz yoki o'zingiz olib ketishingiz mumkin. 🧁",
-  ].join('\n');
+  const lang = langOf(user);
+  const tr = t(lang);
+  await ctx.reply(tr.welcome(escapeHtml(user.firstName || '🙂'), escapeHtml(config.shop.name)), {
+    parse_mode: 'HTML',
+    reply_markup: mainKeyboard(lang),
+  });
+  const markup = openAppMarkup(lang);
+  if (markup) await ctx.reply(tr.openMenuHint, { reply_markup: markup });
+  else await ctx.reply(tr.notConfigured);
+}
 
-  await ctx.reply(text, { parse_mode: 'HTML', reply_markup: mainKeyboard });
-  const markup = openAppMarkup();
-  if (markup) {
-    await ctx.reply('👇 Buyurtma berish uchun bosing:', { reply_markup: markup });
-  } else {
-    await ctx.reply("⚙️ Mini App manzili (WEBAPP_URL) hali sozlanmagan. Administrator ngrok manzilini .env fayliga yozishi kerak.");
+async function askLanguage(ctx) {
+  await ctx.reply("🌐 Tilni tanlang\n🌐 Выберите язык\n🌐 Choose a language", {
+    reply_markup: { inline_keyboard: LANG_BUTTONS },
+  });
+}
+
+async function continueOnboarding(ctx, user) {
+  const lang = langOf(user);
+  if (!user.phone) {
+    await ctx.reply(t(lang).greetAskPhone(escapeHtml(user.firstName || '🙂')), {
+      parse_mode: 'HTML',
+      reply_markup: phoneKeyboard(lang),
+    });
+    return;
   }
+  await sendWelcome(ctx, user);
 }
 
 const botController = {
   async start(ctx) {
     const user = await User.upsertFromTelegram(ctx.from);
-    if (!user.phone) {
-      await ctx.reply(
-        `Assalomu alaykum, <b>${escapeHtml(user.firstName || 'mehmon')}</b>! 🌸\n\nBuyurtmalaringiz bo'yicha siz bilan bog'lanishimiz uchun telefon raqamingizni yuboring 👇`,
-        { parse_mode: 'HTML', reply_markup: phoneKeyboard },
-      );
-      return;
-    }
-    await sendWelcome(ctx, user);
+    if (!user.language) return askLanguage(ctx);
+    return continueOnboarding(ctx, user);
+  },
+
+  askLanguage,
+
+  async chooseLanguage(ctx) {
+    const lang = pickLang(ctx.match[1]);
+    await User.upsertFromTelegram(ctx.from);
+    const user = await User.setLanguage(ctx.from.id, lang);
+    await ctx.answerCallbackQuery({ text: t(lang).langSaved });
+    await ctx.deleteMessage().catch(() => {});
+    await setUserMenuButton(ctx.from.id, lang);
+    await continueOnboarding(ctx, user);
   },
 
   async contact(ctx) {
     const contact = ctx.message.contact;
+    const existing = await User.upsertFromTelegram(ctx.from);
+    const lang = langOf(existing);
     if (contact.user_id && contact.user_id !== ctx.from.id) {
-      await ctx.reply("Iltimos, o'zingizning raqamingizni tugma orqali yuboring.", { reply_markup: phoneKeyboard });
+      await ctx.reply(t(lang).ownPhoneOnly, { reply_markup: phoneKeyboard(lang) });
       return;
     }
-    await User.upsertFromTelegram(ctx.from);
-    const phone = normalizePhone(contact.phone_number);
-    const user = await User.setPhone(ctx.from.id, phone || contact.phone_number);
-    await ctx.reply(`✅ Rahmat! Raqamingiz saqlandi: ${user.phone}`);
-    await sendWelcome(ctx, user);
+    const phone = normalizePhone(contact.phone_number) || contact.phone_number;
+    const user = await User.setPhone(ctx.from.id, phone);
+    await ctx.reply(t(lang).phoneSaved(user.phone));
+    if (!user.language) return askLanguage(ctx);
+    return sendWelcome(ctx, user);
   },
 
   async myOrders(ctx) {
     const user = await User.findByTelegramId(ctx.from.id);
+    const lang = langOf(user);
+    const tr = t(lang);
     const orders = user ? await Order.listByUser(user.id, 5) : [];
     if (orders.length === 0) {
-      await ctx.reply("Sizda hali buyurtmalar yo'q. Keling, birinchisini birga tanlaymiz! 🧁", { reply_markup: openAppMarkup() });
+      await ctx.reply(tr.noOrders, { reply_markup: openAppMarkup(lang) });
       return;
     }
     const text = orders
-      .map((o) => `<b>#${o.id}</b> · ${dateTime(o.createdAt)}\n${STATUS_LABELS[o.status]} · ${money(o.total)}`)
+      .map((o) => `<b>#${o.id}</b> · ${dateTime(o.createdAt)}\n${tr.status[o.status]} · ${money(o.total)}`)
       .join('\n\n');
-    await ctx.reply(`📦 <b>So'nggi buyurtmalaringiz:</b>\n\n${text}`, { parse_mode: 'HTML', reply_markup: openAppMarkup('🔁 Yana buyurtma berish') });
+    await ctx.reply(`${tr.lastOrders}\n\n${text}`, { parse_mode: 'HTML', reply_markup: openAppMarkup(lang, tr.reorderBtn) });
   },
 
   async contactInfo(ctx) {
+    const user = await User.findByTelegramId(ctx.from.id);
+    const tr = t(langOf(user));
     const { shop } = config;
     const lines = [`<b>${escapeHtml(shop.name)}</b>`];
     if (shop.phone) lines.push(`📞 ${escapeHtml(shop.phone)}`);
     if (shop.address) lines.push(`📍 ${escapeHtml(shop.address)}`);
-    if (shop.workingHours) lines.push(`🕘 Ish vaqti: ${escapeHtml(shop.workingHours)}`);
+    if (shop.workingHours) lines.push(`🕘 ${tr.workingHours}: ${escapeHtml(shop.workingHours)}`);
     await ctx.reply(lines.join('\n'), { parse_mode: 'HTML' });
     if (shop.lat && shop.lng) await ctx.replyWithLocation(shop.lat, shop.lng);
   },
 
   async fallback(ctx) {
     const user = await User.findByTelegramId(ctx.from.id);
-    if (!user?.phone) return botController.start(ctx);
-    await ctx.reply('Buyurtma berish uchun menyuni oching 👇', { reply_markup: openAppMarkup() || mainKeyboard });
+    if (!user?.language || !user?.phone) return botController.start(ctx);
+    const lang = langOf(user);
+    await ctx.reply(t(lang).openMenuShort, { reply_markup: openAppMarkup(lang) || mainKeyboard(lang) });
+    return undefined;
+  },
+
+  labels: {
+    orders: allLabels('btnOrders'),
+    contact: allLabels('btnContact'),
+    lang: allLabels('btnLang'),
   },
 
   // ================= Bildirishnomalar =================
 
   async notifyOrderCreated(order) {
     if (!bot || !order.user?.telegramId) return;
+    const lang = langOf(order.user);
+    const tr = t(lang);
     const chatId = order.user.telegramId;
     const lines = [
-      "✅ <b>Buyurtmangiz muvaffaqiyatli qabul qilindi!</b>",
-      order.deliveryType === 'DELIVERY'
-        ? 'Kuryerimiz tez orada siz bilan bog\'lanadi 🧁'
-        : "Buyurtmangiz tayyor bo'lishi bilan xabar beramiz 🧁",
+      tr.orderAccepted,
+      order.deliveryType === 'DELIVERY' ? tr.courierSoon : tr.pickupSoon,
       '',
-      orderSummary(order),
+      orderSummary(order, lang),
     ];
     if (order.paymentMethod === 'CARD' && config.shop.cardNumber) {
-      lines.push('', `💳 Karta: <code>${escapeHtml(config.shop.cardNumber)}</code>${config.shop.cardHolder ? `\n👤 ${escapeHtml(config.shop.cardHolder)}` : ''}`,
-        "To'lovni o'tkazib, chekni shu yerga yuborishingiz mumkin yoki kuryerga terminal orqali to'lang.");
+      lines.push('', `💳 ${tr.card}: <code>${escapeHtml(config.shop.cardNumber)}</code>${config.shop.cardHolder ? `\n👤 ${escapeHtml(config.shop.cardHolder)}` : ''}`, tr.cardHint);
     }
     if (order.deliveryType === 'PICKUP' && config.shop.address) {
-      lines.push('', `🏪 Olib ketish manzili: ${escapeHtml(config.shop.address)}`);
+      lines.push('', `🏪 ${tr.pickupAddress}: ${escapeHtml(config.shop.address)}`);
     }
     await bot.api.sendMessage(chatId, lines.join('\n'), { parse_mode: 'HTML' });
     if (order.deliveryType === 'PICKUP' && config.shop.lat && config.shop.lng) {
@@ -156,17 +212,15 @@ const botController = {
 
   async notifyStatusChanged(order) {
     if (!bot || !order.user?.telegramId) return;
-    const messages = {
-      CONFIRMED: `✅ Buyurtmangiz #${order.id} tasdiqlandi! Tez orada tayyorlashni boshlaymiz.`,
-      PREPARING: `👩‍🍳 Buyurtmangiz #${order.id} tayyorlanmoqda. Qandolatchimiz sehr yaratmoqda ✨`,
-      READY: order.deliveryType === 'PICKUP'
-        ? `📦 Buyurtmangiz #${order.id} tayyor! Olib ketishingiz mumkin.\n📍 ${config.shop.address}`
-        : `📦 Buyurtmangiz #${order.id} tayyor va kuryerga topshirilmoqda.`,
-      ON_THE_WAY: `🚚 Buyurtmangiz #${order.id} kuryerga berildi va yo'lda! Kuryer tez orada qo'ng'iroq qiladi.`,
-      DELIVERED: `🎉 Buyurtmangiz #${order.id} yetkazildi. Yoqimli ishtaha! Bizni tanlaganingiz uchun rahmat 💗`,
-      CANCELLED: `❌ Afsuski, buyurtmangiz #${order.id} bekor qilindi. Savollar bo'lsa: ${config.shop.phone}`,
-    };
-    const text = messages[order.status];
+    const m = t(langOf(order.user)).statusMsg;
+    let text = null;
+    if (order.status === 'CANCELLED') {
+      text = order.cancelledBy === 'customer' ? m.CANCELLED_BY_USER(order.id) : m.CANCELLED(order.id, config.shop.phone);
+    } else if (order.status === 'READY') {
+      text = order.deliveryType === 'PICKUP' ? m.READY_PICKUP(order.id, config.shop.address) : m.READY(order.id);
+    } else if (m[order.status]) {
+      text = m[order.status](order.id);
+    }
     if (text) await bot.api.sendMessage(order.user.telegramId, text);
   },
 
@@ -184,16 +238,15 @@ const botController = {
       '',
       itemsText(order.items),
       '',
-      `${PAYMENT_LABELS[order.paymentMethod]} · <b>${money(order.total)}</b>`,
+      `${t('uz').payment[order.paymentMethod]} · <b>${money(order.total)}</b>`,
     ].filter((l) => l !== null);
     await bot.api.sendMessage(config.bot.courierChatId, lines.join('\n'), { parse_mode: 'HTML' });
     if (order.latitude && order.longitude) {
       await bot.api.sendLocation(config.bot.courierChatId, order.latitude, order.longitude);
     }
   },
-};
 
-botController.BTN_ORDERS = BTN_ORDERS;
-botController.BTN_CONTACT = BTN_CONTACT;
+  setUserMenuButton,
+};
 
 module.exports = botController;

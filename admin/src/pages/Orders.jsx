@@ -1,25 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Bell, BellOff, ExternalLink, Eye, RefreshCw, Search } from 'lucide-react';
+import {
+  Bell, BellOff, ExternalLink, Eye, MapPin, RefreshCw, Search, Trash2,
+} from 'lucide-react';
 import Modal from '../components/Modal';
+import { playSignal, unlockSound } from '../sound';
 import { api, dateTime, money, STATUSES, STATUS_MAP } from '../api';
 
 const POLL_MS = 5000;
 
 function beep() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    [0, 0.18].forEach((delay, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.frequency.value = i ? 1046 : 784;
-      gain.gain.setValueAtTime(0.0001, ctx.currentTime + delay);
-      gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + delay + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + 0.25);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(ctx.currentTime + delay);
-      osc.stop(ctx.currentTime + delay + 0.3);
-    });
-  } catch { /* ovoz o'chirilgan */ }
+  unlockSound();
+  playSignal(1);
 }
 
 function StatusSelect({ order, onChange }) {
@@ -87,6 +78,10 @@ function OrderDetails({ order, onClose, onStatus }) {
         </div>
       )}
 
+      {order.discount > 0 && (
+        <div className="comment-box"><div className="label">Promokod</div>{order.promoCode} — chegirma {money(order.discount)}</div>
+      )}
+
       {order.comment && (
         <div className="comment-box"><div className="label">Izoh</div>{order.comment}</div>
       )}
@@ -110,6 +105,7 @@ function OrderDetails({ order, onClose, onStatus }) {
         </tbody>
         <tfoot>
           <tr><td colSpan={3}>Mahsulotlar</td><td className="right">{money(order.subtotal)}</td></tr>
+          {order.discount > 0 && <tr><td colSpan={3}>Chegirma ({order.promoCode})</td><td className="right">−{money(order.discount)}</td></tr>}
           <tr><td colSpan={3}>Yetkazib berish</td><td className="right">{money(order.deliveryFee)}</td></tr>
           <tr className="grand"><td colSpan={3}>Jami</td><td className="right">{money(order.total)}</td></tr>
         </tfoot>
@@ -166,6 +162,17 @@ export default function Orders() {
       const { order: updated } = await api.setOrderStatus(order.id, next);
       setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
       setFresh((prev) => { const n = new Set(prev); n.delete(order.id); return n; });
+      api.stats().then(setStats).catch(() => {});
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  const removeOrder = async (order) => {
+    if (!window.confirm(`#${order.id} buyurtma butunlay o'chirilsinmi? Bu amalni qaytarib bo'lmaydi.`)) return;
+    try {
+      await api.deleteOrder(order.id);
+      setOrders((prev) => prev.filter((o) => o.id !== order.id));
       api.stats().then(setStats).catch(() => {});
     } catch (e) {
       alert(e.message);
@@ -238,12 +245,23 @@ export default function Orders() {
                   <a href={`tel:${o.phone}`} className="muted small nowrap">{o.phone}</a>
                 </td>
                 <td><ItemsCell items={o.items} /></td>
-                <td className="nowrap">{o.deliveryType === 'DELIVERY' ? '🚚 Yetkazish' : '🏪 Olib ketish'}</td>
-                <td className="nowrap">{o.paymentMethod === 'CASH' ? '💵 Naqd' : '💳 Karta'}</td>
-                <td className="right nowrap strong">{money(o.total)}</td>
-                <td><StatusSelect order={o} onChange={changeStatus} /></td>
                 <td>
+                  <div className="nowrap">{o.deliveryType === 'DELIVERY' ? '🚚 Yetkazish' : '🏪 Olib ketish'}</div>
+                  {o.deliveryType === 'DELIVERY' && (o.address || o.latitude) && (
+                    o.latitude
+                      ? <a className="muted small addr-link" href={`https://maps.google.com/?q=${o.latitude},${o.longitude}`} target="_blank" rel="noreferrer"><MapPin size={12} /> {o.address || 'Xaritada'}</a>
+                      : <div className="muted small addr-link">{o.address}</div>
+                  )}
+                </td>
+                <td className="nowrap">{o.paymentMethod === 'CASH' ? '💵 Naqd' : '💳 Karta'}</td>
+                <td className="right nowrap">
+                  <div className="strong">{money(o.total)}</div>
+                  {o.discount > 0 && <small className="muted">{o.promoCode}</small>}
+                </td>
+                <td><StatusSelect order={o} onChange={changeStatus} /></td>
+                <td className="nowrap">
                   <button type="button" className="icon-btn" title="Batafsil" onClick={() => setSelectedId(o.id)}><Eye size={17} /></button>
+                  <button type="button" className="icon-btn danger" title="O'chirish" onClick={() => removeOrder(o)}><Trash2 size={16} /></button>
                 </td>
               </tr>
             ))}

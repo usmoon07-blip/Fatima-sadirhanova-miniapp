@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
 import BottomNav from './components/BottomNav';
 import ProductSheet from './components/ProductSheet';
+import Panels from './components/Panels';
 import Toast from './components/Toast';
 import { StoryViewer } from './components/Stories';
-import Onboarding from './screens/Onboarding';
+import Onboarding, { LanguagePicker } from './screens/Onboarding';
 import Home from './screens/Home';
-import Catalog from './screens/Catalog';
+import Menu from './screens/Menu';
 import Cart from './screens/Cart';
 import Checkout from './screens/Checkout';
 import Success from './screens/Success';
 import Profile from './screens/Profile';
 import Orders from './screens/Orders';
+import Promos from './screens/Promos';
 import { useStore } from './store/StoreContext';
 import { storage } from './lib/storage';
 import { setBackButton } from './lib/telegram';
@@ -24,22 +26,30 @@ function Splash() {
   );
 }
 
+const TABS = {
+  home: Home, menu: Menu, cart: Cart, promos: Promos, profile: Profile,
+};
+
 export default function App() {
   const [onboarded, setOnboarded] = useState(() => storage.get('onboarded', false));
   const {
     loading, error, reload, config, tab, screen, setScreen, goTo, sheetProductId, openProduct, storyIndex, setStoryIndex,
+    panel, setPanel, langChosen, t,
   } = useStore();
 
   // Telegram "Orqaga" tugmasi
   useEffect(() => {
     let handler = null;
     if (storyIndex != null) handler = () => setStoryIndex(null);
+    else if (panel) handler = () => setPanel(null);
     else if (sheetProductId) handler = () => openProduct(null);
     else if (screen === 'checkout' || screen === 'orders') handler = () => setScreen(null);
     else if (screen === 'success') handler = () => goTo('home');
     else if (tab !== 'home') handler = () => goTo('home');
     return setBackButton(handler);
-  }, [storyIndex, sheetProductId, screen, tab, setStoryIndex, openProduct, setScreen, goTo]);
+  }, [storyIndex, panel, sheetProductId, screen, tab, setStoryIndex, setPanel, openProduct, setScreen, goTo]);
+
+  if (!langChosen) return <LanguagePicker />;
 
   if (!onboarded) {
     return (
@@ -58,9 +68,9 @@ export default function App() {
     return (
       <div className="empty big full">
         <div className="empty-emoji">😔</div>
-        <h3 className="serif">Ulanishda xatolik</h3>
+        <h3 className="serif">{t.connError}</h3>
         <p className="muted">{error}</p>
-        <button type="button" className="btn btn-primary" onClick={reload}>Qayta urinish</button>
+        <button type="button" className="btn btn-primary" onClick={reload}>{t.retry}</button>
       </div>
     );
   }
@@ -69,16 +79,17 @@ export default function App() {
   if (screen === 'checkout') content = <Checkout />;
   else if (screen === 'success') content = <Success />;
   else if (screen === 'orders') content = <Orders />;
-  else if (tab === 'catalog') content = <Catalog />;
-  else if (tab === 'cart') content = <Cart />;
-  else if (tab === 'profile') content = <Profile />;
-  else content = <Home />;
+  else {
+    const Tab = TABS[tab] || Home;
+    content = <Tab />;
+  }
 
   return (
     <div className="app">
       <main key={screen || tab} className="screen-enter">{content}</main>
       {!screen && <BottomNav />}
       <ProductSheet />
+      <Panels />
       <StoryViewer />
       <Toast />
     </div>

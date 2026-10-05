@@ -1,18 +1,57 @@
-import { useEffect, useState } from 'react';
-import { RotateCcw } from 'lucide-react';
-import Img from './Img';
+import { useCallback, useEffect, useState } from 'react';
+import { RotateCcw, X } from 'lucide-react';
 import { api } from '../lib/api';
-import { dateTime, money, STATUS } from '../lib/format';
+import { dateTime } from '../lib/format';
+import { loc } from '../lib/i18n';
+import { haptic, tg } from '../lib/telegram';
 import { useStore } from '../store/StoreContext';
 
-export default function OrderList({ limit }) {
-  const { reorder } = useStore();
+const TONE = {
+  NEW: 'warn', CONFIRMED: 'info', PREPARING: 'info', READY: 'info', ON_THE_WAY: 'info', DELIVERED: 'ok', CANCELLED: 'bad',
+};
+
+function confirmDialog(text) {
+  return new Promise((resolve) => {
+    if (tg?.showConfirm && tg.isVersionAtLeast?.('6.2')) {
+      try {
+        tg.showConfirm(text, resolve);
+        return;
+      } catch { /* oddiy oynaga o'tamiz */ }
+    }
+    resolve(window.confirm(text));
+  });
+}
+
+export default function OrderList({ onCount }) {
+  const { reorder, t, lang, money, showToast, refreshMe } = useStore();
   const [orders, setOrders] = useState(null);
   const [error, setError] = useState('');
 
+  const load = useCallback(() => {
+    api.myOrders().then((r) => {
+      setOrders(r.orders);
+      onCount?.(r.orders.length);
+    }).catch((e) => setError(e.message));
+  }, [onCount]);
+
   useEffect(() => {
-    api.myOrders().then((r) => setOrders(r.orders)).catch((e) => setError(e.message));
-  }, []);
+    load();
+  }, [load]);
+
+  const cancel = async (order) => {
+    if (!(await confirmDialog(t.cancelConfirm))) return;
+    try {
+      await api.cancelOrder(order.id);
+      haptic.success();
+      showToast(t.cancelled);
+      refreshMe();
+      load();
+    } catch (e) {
+      haptic.error();
+      showToast(e.reason === 'TOO_LATE' ? t.tooLate : e.message, 'bad');
+      load();
+    }
+  };
 
   if (error) return <p className="muted center">{error}</p>;
   if (!orders) return <div className="skeleton-list"><div /><div /></div>;
@@ -20,42 +59,40 @@ export default function OrderList({ limit }) {
     return (
       <div className="empty">
         <div className="empty-emoji">📜</div>
-        <p className="muted">Hali buyurtmalar yo'q</p>
+        <p className="muted">{t.noOrders}</p>
       </div>
     );
   }
 
   return (
     <div className="orders">
-      {orders.slice(0, limit || orders.length).map((o) => {
-        const st = STATUS[o.status] || STATUS.NEW;
-        return (
-          <article key={o.id} className="order card">
-            <div className="order-head">
-              <div>
-                <b>#{o.id}</b>
-                <div className="muted small">{dateTime(o.createdAt)}</div>
-              </div>
-              <span className={`status ${st.tone}`}>{st.label}</span>
+      {orders.map((o) => (
+        <article key={o.id} className="order card">
+          <div className="order-head">
+            <div>
+              <b>{t.orderNo(o.id)}</b>
+              <div className="muted small">{dateTime(o.createdAt)}</div>
             </div>
-            <div className="order-thumbs">
-              {o.items.slice(0, 4).map((i) => (
-                <Img key={`${i.productId}-${i.size}`} src={i.imageUrl} alt={i.name} className="order-thumb" />
-              ))}
-              {o.items.length > 4 && <span className="more">+{o.items.length - 4}</span>}
-            </div>
-            <div className="order-items muted small">
-              {o.items.map((i) => `${i.name}${i.size ? ` (${i.size})` : ''} × ${i.quantity}`).join(', ')}
-            </div>
-            <div className="order-foot">
-              <b>{money(o.total)}</b>
-              <button type="button" className="btn btn-soft btn-sm" onClick={() => reorder(o)}>
-                <RotateCcw size={15} /> Yana shundan buyurtma qilish
+            <span className={`status ${TONE[o.status]}`}>{t.status[o.status]}</span>
+          </div>
+          <div className="order-items small">
+            {o.items.map((i) => `${loc(i, 'name', lang)}${i.size ? ` (${i.size})` : ''} × ${i.quantity}`).join(' · ')}
+          </div>
+          <div className="order-foot">
+            <b>{money(o.total)}</b>
+            <div className="order-actions">
+              {o.status === 'NEW' && (
+                <button type="button" className="link-btn muted" onClick={() => cancel(o)}>
+                  <X size={14} /> {t.cancel}
+                </button>
+              )}
+              <button type="button" className="link-btn" onClick={() => reorder(o)}>
+                <RotateCcw size={14} /> {t.reorder}
               </button>
             </div>
-          </article>
-        );
-      })}
+          </div>
+        </article>
+      ))}
     </div>
   );
 }

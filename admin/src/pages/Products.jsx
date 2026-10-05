@@ -5,8 +5,15 @@ import ImageInput from '../components/ImageInput';
 import Toggle from '../components/Toggle';
 import { api, money } from '../api';
 
+const LANG_TABS = [
+  { id: '', label: "🇺🇿 O'zbekcha" },
+  { id: 'Ru', label: '🇷🇺 Ruscha' },
+  { id: 'En', label: '🇬🇧 Inglizcha' },
+];
+
 const EMPTY = {
-  name: '', description: '', imageUrl: '', price: '', oldPrice: '', categoryId: '',
+  name: '', nameRu: '', nameEn: '', description: '', descriptionRu: '', descriptionEn: '', imageUrl: '',
+  ingredientsRuText: '', ingredientsEnText: '', price: '', oldPrice: '', categoryId: '',
   ingredientsText: '', sizes: [], rating: 5, reviewsCount: 0, badge: '',
   isPopular: false, isAvailable: true, isUpsell: false, sortOrder: 0,
 };
@@ -18,20 +25,34 @@ function toForm(p) {
     oldPrice: p.oldPrice ?? '',
     categoryId: p.categoryId ?? '',
     badge: p.badge ?? '',
+    nameRu: p.nameRu ?? '',
+    nameEn: p.nameEn ?? '',
+    descriptionRu: p.descriptionRu ?? '',
+    descriptionEn: p.descriptionEn ?? '',
     ingredientsText: (p.ingredients || []).join('\n'),
+    ingredientsRuText: (p.ingredientsRu || []).join('\n'),
+    ingredientsEnText: (p.ingredientsEn || []).join('\n'),
     sizes: Array.isArray(p.sizes) ? p.sizes : [],
   };
 }
 
+const splitLines = (text) => (text || '').split('\n').map((s) => s.trim()).filter(Boolean);
+
 function toPayload(f) {
   return {
     name: f.name,
+    nameRu: f.nameRu,
+    nameEn: f.nameEn,
     description: f.description,
+    descriptionRu: f.descriptionRu,
+    descriptionEn: f.descriptionEn,
     imageUrl: f.imageUrl,
     price: Number(f.price) || 0,
     oldPrice: f.oldPrice === '' ? null : Number(f.oldPrice),
     categoryId: f.categoryId === '' ? null : Number(f.categoryId),
-    ingredients: f.ingredientsText.split('\n').map((s) => s.trim()).filter(Boolean),
+    ingredients: splitLines(f.ingredientsText),
+    ingredientsRu: splitLines(f.ingredientsRuText),
+    ingredientsEn: splitLines(f.ingredientsEnText),
     sizes: f.sizes.filter((s) => s.label && Number(s.price) > 0).map((s) => ({ label: s.label.trim(), price: Number(s.price) })),
     rating: Number(f.rating) || 0,
     reviewsCount: Number(f.reviewsCount) || 0,
@@ -47,6 +68,7 @@ function ProductForm({ initial, categories, onClose, onSaved }) {
   const [f, setF] = useState(() => toForm(initial || {}));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [tab, setTab] = useState('');
   const set = (key) => (e) => setF((prev) => ({ ...prev, [key]: e?.target ? e.target.value : e }));
 
   const setSize = (i, key, value) => setF((prev) => ({
@@ -83,7 +105,21 @@ function ProductForm({ initial, categories, onClose, onSaved }) {
     >
       <div className="form-grid">
         <label className="span-2">Rasm<ImageInput value={f.imageUrl} onChange={set('imageUrl')} /></label>
-        <label className="span-2">Nomi *<input value={f.name} onChange={set('name')} placeholder="Masalan: Qulupnayli tort" /></label>
+        <div className="span-2 lang-tabs">
+          {LANG_TABS.map((l) => (
+            <button key={l.id} type="button" className={tab === l.id ? 'active' : ''} onClick={() => setTab(l.id)}>
+              {l.label}
+              {l.id && f[`name${l.id}`] ? ' ✓' : ''}
+            </button>
+          ))}
+        </div>
+        <label className="span-2">Nomi{tab ? '' : ' *'}
+          <input value={f[`name${tab}`]} onChange={set(`name${tab}`)} placeholder={tab ? `Bo'sh qolsa o'zbekchasi ko'rsatiladi: ${f.name}` : 'Masalan: Qulupnayli tort'} />
+        </label>
+        <label className="span-2">Ta'rifi<textarea rows={3} value={f[`description${tab}`]} onChange={set(`description${tab}`)} /></label>
+        <label className="span-2">Tarkibi (har bir qatorga bittadan)
+          <textarea rows={4} value={f[`ingredients${tab}Text`]} onChange={set(`ingredients${tab}Text`)} placeholder={'Vanilli biskvit\nYangi qulupnay\nQaymoq'} />
+        </label>
         <label>Kategoriya
           <select value={f.categoryId} onChange={set('categoryId')}>
             <option value="">— Kategoriyasiz —</option>
@@ -93,10 +129,6 @@ function ProductForm({ initial, categories, onClose, onSaved }) {
         <label>Belgi (badge)<input value={f.badge} onChange={set('badge')} placeholder="Bestseller, Yangi, -20%..." /></label>
         <label>Yangi narx (so'm) *<input type="number" min="0" value={f.price} onChange={set('price')} placeholder="249000" /></label>
         <label>Eski narx (so'm)<input type="number" min="0" value={f.oldPrice} onChange={set('oldPrice')} placeholder="Chegirma bo'lsa" /></label>
-        <label className="span-2">Ta'rifi<textarea rows={3} value={f.description} onChange={set('description')} /></label>
-        <label className="span-2">Tarkibi (har bir qatorga bittadan)
-          <textarea rows={4} value={f.ingredientsText} onChange={set('ingredientsText')} placeholder={'Vanilli biskvit\nYangi qulupnay\nQaymoq'} />
-        </label>
 
         <div className="span-2 sizes-box">
           <div className="row between">
@@ -210,6 +242,7 @@ export default function Products() {
                 <td><img className="thumb" src={p.imageUrl} alt="" /></td>
                 <td>
                   <div className="strong">{p.name}</div>
+                  {(p.nameRu || p.nameEn) && <div className="muted small">{[p.nameRu, p.nameEn].filter(Boolean).join(' · ')}</div>}
                   <div className="row gap-sm">
                     {p.badge && <span className="pill">{p.badge}</span>}
                     {p.isUpsell && <span className="pill violet">Upsell</span>}

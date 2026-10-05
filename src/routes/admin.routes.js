@@ -5,7 +5,7 @@ const { Router } = require('express');
 const multer = require('multer');
 const config = require('../config/default');
 const admin = require('../controllers/adminController');
-const { adminAuth, validate } = require('../middlewares/auth.middleware');
+const { adminAuth, loginGuard, validate } = require('../middlewares/auth.middleware');
 
 fs.mkdirSync(config.uploadsDir, { recursive: true });
 
@@ -27,31 +27,32 @@ const upload = multer({
 });
 
 const router = Router();
+const adminOnly = adminAuth(['admin']);
+const staff = adminAuth(['admin', 'kitchen']);
 
-router.post('/login', validate(admin.schemas.login), admin.login);
+router.post('/login', loginGuard, validate(admin.schemas.login), admin.login);
+router.get('/me', staff, admin.me);
 
-router.use(adminAuth);
+// Oshxona ekrani — oshpaz ham, admin ham
+router.get('/kitchen', staff, admin.kitchen);
+router.patch('/orders/:id/status', staff, validate(admin.schemas.status), admin.updateOrderStatus);
+
+// Qolganlari faqat admin (egasi / menejer)
+router.use(adminOnly);
 
 router.get('/stats', admin.stats);
+router.get('/report', admin.report);
 
 router.get('/orders', admin.listOrders);
 router.get('/orders/:id', admin.getOrder);
-router.patch('/orders/:id/status', validate(admin.schemas.status), admin.updateOrderStatus);
+router.delete('/orders/:id', admin.deleteOrder);
 
-router.get('/products', admin.products.list);
-router.post('/products', validate(admin.schemas.product), admin.products.create);
-router.put('/products/:id', validate(admin.schemas.product), admin.products.update);
-router.delete('/products/:id', admin.products.remove);
-
-router.get('/categories', admin.categories.list);
-router.post('/categories', validate(admin.schemas.category), admin.categories.create);
-router.put('/categories/:id', validate(admin.schemas.category), admin.categories.update);
-router.delete('/categories/:id', admin.categories.remove);
-
-router.get('/stories', admin.stories.list);
-router.post('/stories', validate(admin.schemas.story), admin.stories.create);
-router.put('/stories/:id', validate(admin.schemas.story), admin.stories.update);
-router.delete('/stories/:id', admin.stories.remove);
+for (const [name, schema] of [['products', 'product'], ['categories', 'category'], ['stories', 'story'], ['promos', 'promo']]) {
+  router.get(`/${name}`, admin[name].list);
+  router.post(`/${name}`, validate(admin.schemas[schema]), admin[name].create);
+  router.put(`/${name}/:id`, validate(admin.schemas[schema]), admin[name].update);
+  router.delete(`/${name}/:id`, admin[name].remove);
+}
 
 router.post('/upload', upload.single('file'), admin.upload);
 
