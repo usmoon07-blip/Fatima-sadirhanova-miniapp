@@ -142,12 +142,6 @@ export function StoreProvider({ children }) {
   const cartCount = cartLines.reduce((s, l) => s + l.quantity, 0);
   const subtotal = cartLines.reduce((s, l) => s + l.total, 0);
 
-  const deliveryFeeFor = useCallback((type) => {
-    if (!config || type !== 'DELIVERY') return 0;
-    const { fee, freeFrom } = config.delivery;
-    return freeFrom && subtotal >= freeFrom ? 0 : fee;
-  }, [config, subtotal]);
-
   const reorder = useCallback((order) => {
     let added = 0;
     for (const item of order.items || []) {
@@ -182,7 +176,7 @@ export function StoreProvider({ children }) {
     config, catalog, user, setUser, userStats, refreshMe, loading, error, reload: load, displayName,
     lang, setLang, langChosen, t, money,
     cart, cartLines, cartCount, subtotal, addToCart, setQuantity, removeFromCart, clearCart, reorder,
-    deliveryType, setDeliveryType, deliveryFeeFor,
+    deliveryType, setDeliveryType,
     favorites, toggleFavorite, productsById,
     tab, goTo, activeCategory, setActiveCategory, menuQuery, setMenuQuery,
     sheetProductId, openProduct: setSheetProductId, courseId, openCourse: setCourseId,

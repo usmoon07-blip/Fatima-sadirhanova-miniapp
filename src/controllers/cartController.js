@@ -50,12 +50,6 @@ function publicUser(user) {
   };
 }
 
-function calcDeliveryFee(deliveryType, amount) {
-  if (deliveryType !== 'DELIVERY') return 0;
-  const free = config.delivery.freeFrom && amount >= config.delivery.freeFrom;
-  return free ? 0 : config.delivery.fee;
-}
-
 const cartController = {
   orderSchema,
   addressSchema,
@@ -173,7 +167,6 @@ const cartController = {
       return res.status(400).json({ message: `Minimal buyurtma summasi: ${config.delivery.minOrder.toLocaleString('ru-RU')} so'm`, reason: 'MIN_ORDER_TOTAL' });
     }
 
-    const deliveryFee = calcDeliveryFee(body.deliveryType, subtotal);
     const isDelivery = body.deliveryType === 'DELIVERY';
 
     const order = await prisma.$transaction(async (tx) => {
@@ -191,8 +184,7 @@ const cartController = {
           userId: req.user.id,
           items,
           subtotal,
-          deliveryFee,
-          total: subtotal + deliveryFee,
+          total: subtotal,
           deliveryType: body.deliveryType,
           paymentMethod: body.paymentMethod,
           customerName: body.customerName,

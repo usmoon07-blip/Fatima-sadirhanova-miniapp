@@ -72,9 +72,6 @@ function orderSummary(order, lang) {
     '',
     `${tr.items}: ${money(order.subtotal)}`,
   ];
-  if (order.deliveryType === 'DELIVERY') {
-    lines.push(`${tr.delivery}: ${order.deliveryFee ? money(order.deliveryFee) : tr.free}`);
-  }
   lines.push(
     `<b>${tr.total}: ${money(order.total)}</b>`,
     '',

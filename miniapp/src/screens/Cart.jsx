@@ -5,16 +5,14 @@ import { useStore } from '../store/StoreContext';
 import { shortMoney } from '../lib/format';
 import { currency, loc } from '../lib/i18n';
 
-export function Totals({ deliveryType }) {
+export function Totals() {
   const {
-    t, money, subtotal, deliveryFeeFor, cartCount,
+    t, money, subtotal, cartCount,
   } = useStore();
-  const fee = deliveryFeeFor(deliveryType);
   return (
     <div className="summary card">
       <div><span>{t.items} ({cartCount})</span><b>{money(subtotal)}</b></div>
-      {deliveryType === 'DELIVERY' && <div><span>{t.delivery}</span><b>{fee ? money(fee) : t.free}</b></div>}
-      <div className="total"><span>{t.total}</span><b>{money(subtotal + fee)}</b></div>
+      <div className="total"><span>{t.total}</span><b>{money(subtotal)}</b></div>
     </div>
   );
 }
@@ -22,7 +20,6 @@ export function Totals({ deliveryType }) {
 export default function Cart() {
   const {
     cartLines, subtotal, setQuantity, removeFromCart, goTo, setScreen, config, t, lang, money,
-    deliveryType, deliveryFeeFor,
   } = useStore();
 
   if (!cartLines.length) {
@@ -40,8 +37,6 @@ export default function Cart() {
   }
 
   const { delivery } = config;
-  const net = subtotal;
-  const left = delivery.freeFrom ? delivery.freeFrom - net : 0;
   const belowMin = delivery.minOrder && subtotal < delivery.minOrder;
 
   return (
@@ -72,21 +67,15 @@ export default function Cart() {
         ))}
       </div>
 
-      <Totals deliveryType={deliveryType} />
+      <Totals />
 
-      {delivery.freeFrom > 0 && deliveryType === 'DELIVERY' && (
-        <div className="hint">
-          {left > 0 ? t.freeLeft(money(left)) : t.freeReached}
-          <div className="progress"><i style={{ width: `${Math.min(100, (net / delivery.freeFrom) * 100)}%` }} /></div>
-        </div>
-      )}
 
       <div className="sticky-cta above-nav">
         {belowMin ? (
           <button type="button" className="btn btn-primary btn-block" disabled>{t.minOrder(money(delivery.minOrder))}</button>
         ) : (
           <button type="button" className="btn btn-primary btn-block" onClick={() => setScreen('checkout')}>
-            {t.checkout} — {money(net + deliveryFeeFor(deliveryType))}
+            {t.checkout} — {money(subtotal)}
           </button>
         )}
       </div>

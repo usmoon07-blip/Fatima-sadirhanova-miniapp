@@ -30,7 +30,7 @@ function prettyDateTime(value) {
 export default function Checkout() {
   const {
     cartLines, subtotal, config, user, setUser, setScreen, clearCart, setLastOrder, showToast, displayName,
-    t, money, deliveryType, setDeliveryType, deliveryFeeFor, refreshMe,
+    t, money, deliveryType, setDeliveryType, refreshMe,
   } = useStore();
   const saved = storage.get('checkout', {});
 
@@ -50,8 +50,8 @@ export default function Checkout() {
     if (!phone && user?.phone) setPhone(formatPhone(user.phone));
   }, [user, phone]);
 
-  const { delivery, shop } = config;
-  const total = subtotal + deliveryFeeFor(deliveryType);
+  const { shop } = config;
+  const total = subtotal;
 
   const chooseType = (type) => {
     haptic.select();
@@ -131,12 +131,10 @@ export default function Checkout() {
         <button type="button" className={deliveryType === 'DELIVERY' ? 'active' : ''} onClick={() => chooseType('DELIVERY')}>
           <Truck size={22} />
           <b>{t.delivery}</b>
-          {!advanceDays && <small>{t.minutes(delivery.etaDelivery)}</small>}
         </button>
         <button type="button" className={deliveryType === 'PICKUP' ? 'active' : ''} onClick={() => chooseType('PICKUP')}>
           <Store size={22} />
           <b>{t.pickup}</b>
-          {!advanceDays && <small>{t.minutes(delivery.etaPickup)}</small>}
         </button>
       </div>
 
@@ -230,7 +228,7 @@ export default function Checkout() {
         <textarea rows={2} value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t.commentPh} maxLength={500} />
       </section>
 
-      <Totals deliveryType={deliveryType} />
+      <Totals />
 
       <div className="sticky-cta">
         <button type="button" className="btn btn-primary btn-block" onClick={submit} disabled={submitting}>

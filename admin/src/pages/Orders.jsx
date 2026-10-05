@@ -101,7 +101,6 @@ function OrderDetails({ order, onClose, onStatus }) {
         </tbody>
         <tfoot>
           <tr><td colSpan={3}>Mahsulotlar</td><td className="right">{money(order.subtotal)}</td></tr>
-          <tr><td colSpan={3}>Yetkazib berish</td><td className="right">{money(order.deliveryFee)}</td></tr>
           <tr className="grand"><td colSpan={3}>Jami</td><td className="right">{money(order.total)}</td></tr>
         </tfoot>
       </table>

@@ -77,7 +77,7 @@ Qo'shimcha (ixtiyoriy, chiroyli ko'rinish uchun) BotFather'da:
    KITCHEN_PASSWORD="oshpaz paroli"           # faqat Oshxona ekrani
    JWT_SECRET="istalgan uzun tasodifiy matn"
    ```
-   Do'kon nomi, telefon, manzil, "Biz haqimizda" matni, karta raqami, yetkazib berish narxi va taxminiy vaqt (`DELIVERY_ETA_MIN`, `PICKUP_ETA_MIN`) ham shu faylda o'zgartiriladi.
+   Do'kon nomi, telefon, manzil, "Biz haqimizda" matni, karta raqami va eng kam buyurtma summasi ham shu faylda o'zgartiriladi.
 
 ---
 

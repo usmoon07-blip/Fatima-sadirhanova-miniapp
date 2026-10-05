@@ -17,7 +17,6 @@ export default function Home() {
   } = useStore();
   const popular = catalog.products.filter((p) => p.isPopular);
   const heroImage = popular[0]?.imageUrl || HERO;
-  const { delivery } = config;
 
   const banners = [];
   if (catalog.courses.length) {
@@ -44,7 +43,7 @@ export default function Home() {
         <span className="address-icon"><MapPin size={18} /></span>
         <span className="address-text">
           <b>{user?.address || (user?.latitude ? `📍 ${user.latitude.toFixed(4)}, ${user.longitude.toFixed(4)}` : t.setAddress)}</b>
-          <small>{config.order?.advanceDays ? t.preorderNote(config.order.advanceDays) : t.deliverIn(delivery.etaDelivery)}</small>
+          {config.order?.advanceDays > 0 && <small>{t.preorderNote(config.order.advanceDays)}</small>}
         </span>
         <ChevronRight size={18} className="muted" />
       </button>
