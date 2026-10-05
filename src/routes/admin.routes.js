@@ -48,7 +48,7 @@ router.get('/orders', admin.listOrders);
 router.get('/orders/:id', admin.getOrder);
 router.delete('/orders/:id', admin.deleteOrder);
 
-for (const [name, schema] of [['products', 'product'], ['categories', 'category'], ['stories', 'story'], ['promos', 'promo']]) {
+for (const [name, schema] of [['products', 'product'], ['categories', 'category'], ['stories', 'story']]) {
   router.get(`/${name}`, admin[name].list);
   router.post(`/${name}`, validate(admin.schemas[schema]), admin[name].create);
   router.put(`/${name}/:id`, validate(admin.schemas[schema]), admin[name].update);

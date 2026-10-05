@@ -5,9 +5,7 @@ const Category = require('../models/Category');
 const Story = require('../models/Story');
 const Order = require('../models/Order');
 const User = require('../models/User');
-const PromoCode = require('../models/PromoCode');
 const botController = require('./botController');
-const { releasePromo } = require('./cartController');
 const { signAdminToken, safeEqual } = require('../middlewares/auth.middleware');
 
 const imageUrl = z.string().trim().min(1, 'Rasm kerak').max(1000);
@@ -66,21 +64,6 @@ const schemas = {
     isActive: z.boolean().default(true),
   }),
 
-  promo: z.object({
-    code: z.string().trim().min(2, 'Kodni kiriting').max(40).regex(/^[A-Za-z0-9_-]+$/, "Kodda faqat lotin harflari va raqamlar bo'lsin"),
-    description: z.string().trim().max(300).default(''),
-    descriptionRu: optText(300),
-    descriptionEn: optText(300),
-    type: z.enum(['PERCENT', 'FIXED']),
-    value: z.coerce.number().int().min(1, 'Chegirma qiymatini kiriting'),
-    maxDiscount: money.nullish().transform((v) => (v ? v : null)),
-    minOrder: money.default(0),
-    expiresAt: z.string().nullish().transform((v) => (v ? new Date(v) : null))
-      .refine((d) => d === null || !Number.isNaN(d.getTime()), "Sana noto'g'ri"),
-    usageLimit: z.coerce.number().int().min(1).nullish().transform((v) => (v ? v : null)),
-    firstOrderOnly: z.boolean().default(false),
-    isActive: z.boolean().default(true),
-  }).refine((p) => p.type !== 'PERCENT' || p.value <= 100, { message: "Foiz 100 dan oshmasligi kerak", path: ['value'] }),
 };
 
 const idParam = (req) => {
@@ -161,7 +144,6 @@ const adminController = {
 
     const extra = req.body.status === 'CANCELLED' ? { cancelledBy: 'restaurant' } : {};
     const order = await Order.updateStatus(id, req.body.status, extra);
-    if (order.status === 'CANCELLED') await releasePromo(order);
     botController.notifyStatusChanged(order).catch((err) => console.error('Mijozga xabar yuborilmadi:', err.message));
     if (order.status === 'ON_THE_WAY') {
       botController.dispatchToCourier(order).catch((err) => console.error('Kuryerga yuborilmadi:', err.message));
@@ -177,7 +159,6 @@ const adminController = {
   products: crud(Product),
   categories: crud(Category),
   stories: crud(Story),
-  promos: crud(PromoCode),
 
   upload(req, res) {
     if (!req.file) return res.status(400).json({ message: 'Fayl yuklanmadi' });

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  BarChart3, CakeSlice, ChefHat, CircleDot, GraduationCap, LayoutGrid, LogOut, ReceiptText, TicketPercent, UserCheck,
+  BarChart3, CakeSlice, ChefHat, CircleDot, GraduationCap, LayoutGrid, LogOut, ReceiptText, UserCheck,
 } from 'lucide-react';
 import Login from './pages/Login';
 import Kitchen from './pages/Kitchen';
@@ -8,7 +8,6 @@ import Orders from './pages/Orders';
 import Products from './pages/Products';
 import Categories from './pages/Categories';
 import Stories from './pages/Stories';
-import Promos from './pages/Promos';
 import Reports from './pages/Reports';
 import Courses from './pages/Courses';
 import Enrollments from './pages/Enrollments';
@@ -21,7 +20,6 @@ const PAGES = [
   { id: 'categories', label: 'Kategoriyalar', Icon: LayoutGrid, Component: Categories, roles: ['admin'] },
   { id: 'enrollments', label: 'Kursga yozilganlar', Icon: UserCheck, Component: Enrollments, roles: ['admin'] },
   { id: 'courses', label: 'Kurslar', Icon: GraduationCap, Component: Courses, roles: ['admin'] },
-  { id: 'promos', label: 'Promokodlar', Icon: TicketPercent, Component: Promos, roles: ['admin'] },
   { id: 'stories', label: 'Stories', Icon: CircleDot, Component: Stories, roles: ['admin'] },
   { id: 'reports', label: 'Hisobot', Icon: BarChart3, Component: Reports, roles: ['admin'] },
 ];

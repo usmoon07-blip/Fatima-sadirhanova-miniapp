@@ -1,4 +1,4 @@
-/* Bazaga boshlang'ich kategoriyalar, mahsulotlar, story'lar va promokodlarni yozadi.
+/* Bazaga boshlang'ich kategoriyalar, mahsulotlar, story'lar va kurslarni yozadi.
    Har bir bo'lim faqat bo'sh bo'lsa to'ldiriladi — qayta ishga tushirilsa ma'lumotlaringiz o'chmaydi. */
 const { PrismaClient } = require('@prisma/client');
 require('dotenv').config();
@@ -205,14 +205,6 @@ const courses = [
   },
 ];
 
-const promos = [
-  { code: 'SHIRIN5', type: 'PERCENT', value: 5, maxDiscount: 30000, minOrder: 0,
-    description: 'Har qanday buyurtmaga 5% chegirma', descriptionRu: 'Скидка 5% на любой заказ', descriptionEn: '5% off any order' },
-  { code: 'YANGI20', type: 'FIXED', value: 20000, minOrder: 200000, firstOrderOnly: true,
-    description: "Birinchi buyurtmangizga 20 000 so'm chegirma", descriptionRu: 'Скидка 20 000 сум на первый заказ', descriptionEn: '20,000 UZS off your first order' },
-  { code: 'FATIMA10', type: 'PERCENT', value: 10, maxDiscount: 50000, minOrder: 150000,
-    description: 'Barcha buyurtmalarga 10% chegirma', descriptionRu: 'Скидка 10% на все заказы', descriptionEn: '10% off all orders' },
-];
 
 async function main() {
   if ((await prisma.product.count()) === 0) {
@@ -239,10 +231,6 @@ async function main() {
     console.log(`✅ ${courses.length} ta kurs qo'shildi.`);
   }
 
-  if ((await prisma.promoCode.count()) === 0) {
-    for (const p of promos) await prisma.promoCode.create({ data: p });
-    console.log(`✅ ${promos.length} promokod qo'shildi: ${promos.map((p) => p.code).join(', ')}`);
-  }
 }
 
 main()

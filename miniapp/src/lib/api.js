@@ -33,7 +33,6 @@ export const api = {
   updatePhone: (phone) => request('/me/phone', { method: 'PUT', body: { phone } }),
   updateLanguage: (language) => request('/me/language', { method: 'PUT', body: { language } }),
   saveAddress: (data) => request('/me/address', { method: 'PUT', body: data }),
-  checkPromo: (code, subtotal) => request('/promo/check', { method: 'POST', body: { code, subtotal } }),
   cancelOrder: (id) => request(`/orders/${id}/cancel`, { method: 'POST' }),
   enroll: (courseId, data) => request(`/courses/${courseId}/enroll`, { method: 'POST', body: data }),
   myEnrollments: () => request('/enrollments'),

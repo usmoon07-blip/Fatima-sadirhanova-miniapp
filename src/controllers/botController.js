@@ -72,7 +72,6 @@ function orderSummary(order, lang) {
     '',
     `${tr.items}: ${money(order.subtotal)}`,
   ];
-  if (order.discount) lines.push(`${tr.discount}${order.promoCode ? ` (${escapeHtml(order.promoCode)})` : ''}: −${money(order.discount)}`);
   if (order.deliveryType === 'DELIVERY') {
     lines.push(`${tr.delivery}: ${order.deliveryFee ? money(order.deliveryFee) : tr.free}`);
   }

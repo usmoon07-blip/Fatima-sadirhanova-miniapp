@@ -24,8 +24,8 @@ function prettyDateTime(value) {
 
 export default function Checkout() {
   const {
-    cartLines, subtotal, discount, promo, config, user, setUser, setScreen, clearCart, setLastOrder, showToast, displayName,
-    t, money, deliveryType, setDeliveryType, deliveryFeeFor, refreshMe, setPromo,
+    cartLines, subtotal, config, user, setUser, setScreen, clearCart, setLastOrder, showToast, displayName,
+    t, money, deliveryType, setDeliveryType, deliveryFeeFor, refreshMe,
   } = useStore();
   const saved = storage.get('checkout', {});
 
@@ -45,7 +45,7 @@ export default function Checkout() {
   }, [user, phone]);
 
   const { delivery, shop } = config;
-  const total = subtotal - discount + deliveryFeeFor(deliveryType);
+  const total = subtotal + deliveryFeeFor(deliveryType);
 
   const chooseType = (type) => {
     haptic.select();
@@ -94,7 +94,6 @@ export default function Checkout() {
         longitude: isDelivery ? coords?.longitude ?? null : null,
         deliveryTime: timeMode === 'later' && time ? prettyDateTime(time) : t.asap,
         comment: comment.trim() || null,
-        promoCode: promo?.code && !promo.error ? promo.code : null,
       };
       const { order } = await api.createOrder(payload);
       storage.set('checkout', { deliveryType, paymentMethod, name: name.trim(), phone, address, coords });
@@ -105,13 +104,8 @@ export default function Checkout() {
       setScreen('success');
     } catch (e) {
       haptic.error();
-      if (e.field === 'promo') {
-        setPromo(null);
-        showToast(e.reason === 'MIN_ORDER' ? t.promoErr.MIN_ORDER(money(e.minOrder)) : t.promoErr[e.reason] || e.message, 'bad');
-      } else {
-        if (e.field) setErrors((prev) => ({ ...prev, [e.field]: e.message }));
-        showToast(e.message, 'bad');
-      }
+      if (e.field) setErrors((prev) => ({ ...prev, [e.field]: e.message }));
+      showToast(e.message, 'bad');
     } finally {
       setSubmitting(false);
     }

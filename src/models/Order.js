@@ -94,10 +94,11 @@ const Order = {
     }
     const where = from ? { createdAt: { gte: from } } : {};
 
-    const [orders, newCustomers, totalCustomers] = await Promise.all([
+    const [orders, newCustomers, totalCustomers, enrollments] = await Promise.all([
       prisma.order.findMany({ where, orderBy: { createdAt: 'asc' } }),
       prisma.user.count({ where: from ? { createdAt: { gte: from } } : {} }),
       prisma.user.count(),
+      prisma.enrollment.findMany({ where, select: { status: true, price: true } }),
     ]);
 
     const valid = orders.filter((o) => o.status !== 'CANCELLED');
@@ -105,7 +106,6 @@ const Order = {
     const revenue = valid.reduce((s, o) => s + o.total, 0);
     const delivered = valid.filter((o) => o.status === 'DELIVERED');
     const collected = delivered.reduce((s, o) => s + o.total, 0);
-    const discounts = valid.reduce((s, o) => s + (o.discount || 0), 0);
 
     const split = (key, values) => values.map((v) => {
       const list = valid.filter((o) => o[key] === v);
@@ -161,8 +161,8 @@ const Order = {
       newCustomers,
       totalCustomers,
       returningCustomers: returning,
-      discounts,
-      promoOrders: valid.filter((o) => o.discount > 0).length,
+      enrollments: enrollments.filter((e) => e.status !== 'CANCELLED').length,
+      enrollmentsPaid: enrollments.filter((e) => ['PAID', 'COMPLETED'].includes(e.status)).reduce((s, e) => s + e.price, 0),
       payment: split('paymentMethod', ['CASH', 'CARD']),
       deliveryType: split('deliveryType', ['DELIVERY', 'PICKUP']),
       daily: [...daily.entries()].map(([date, sum]) => ({ date, sum })),

@@ -1,5 +1,5 @@
 import {
-  ChevronRight, Clock, GraduationCap, Heart, Info, MapPin, Phone, ReceiptText, Ticket,
+  ChevronRight, Clock, GraduationCap, Heart, Info, MapPin, Phone, ReceiptText,
 } from 'lucide-react';
 import { useStore } from '../store/StoreContext';
 import { formatPhone, shortMoney } from '../lib/format';
@@ -57,11 +57,6 @@ export default function Profile() {
         <button type="button" onClick={() => setScreen('myCourses')}>
           <span className="row-icon"><GraduationCap size={18} /></span>
           <span className="row-text"><b>{t.myCourses}</b><small>{t.myCoursesSub}</small></span>
-          <ChevronRight size={18} />
-        </button>
-        <button type="button" onClick={() => setScreen('promos')}>
-          <span className="row-icon"><Ticket size={18} /></span>
-          <span className="row-text"><b>{t.promosTitle}</b><small>{t.promosSub}</small></span>
           <ChevronRight size={18} />
         </button>
         <button type="button" onClick={() => setPanel('address')}>

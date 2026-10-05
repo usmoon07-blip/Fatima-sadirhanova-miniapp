@@ -24,7 +24,7 @@ app.use('/api', (req, res) => res.status(404).json({ message: "Bunday yo'l topil
 // Yagona xatolik ushlagich
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
-  if (err.code === 'P2002') return res.status(400).json({ message: 'Bunday qiymat allaqachon mavjud (masalan, promokod takrorlangan)' });
+  if (err.code === 'P2002') return res.status(400).json({ message: 'Bunday qiymat allaqachon mavjud ' });
   if (err.code === 'P2025') return res.status(404).json({ message: 'Maʼlumot topilmadi' });
   if (err.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ message: 'Fayl hajmi 8 MB dan oshmasligi kerak' });
   if (err.type === 'entity.parse.failed') return res.status(400).json({ message: "Noto'g'ri JSON" });

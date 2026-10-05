@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { LoaderCircle, Ticket, Trash2, X } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import Img from '../components/Img';
 import QtyStepper from '../components/QtyStepper';
 import { useStore } from '../store/StoreContext';
@@ -8,59 +7,21 @@ import { currency, loc } from '../lib/i18n';
 
 export function Totals({ deliveryType }) {
   const {
-    t, money, subtotal, discount, promo, deliveryFeeFor, cartCount,
+    t, money, subtotal, deliveryFeeFor, cartCount,
   } = useStore();
   const fee = deliveryFeeFor(deliveryType);
   return (
     <div className="summary card">
       <div><span>{t.items} ({cartCount})</span><b>{money(subtotal)}</b></div>
-      {discount > 0 && <div className="discount-row"><span>{t.discount} · {promo.code}</span><b>−{money(discount)}</b></div>}
       {deliveryType === 'DELIVERY' && <div><span>{t.delivery}</span><b>{fee ? money(fee) : t.free}</b></div>}
-      <div className="total"><span>{t.total}</span><b>{money(subtotal - discount + fee)}</b></div>
+      <div className="total"><span>{t.total}</span><b>{money(subtotal + fee)}</b></div>
     </div>
-  );
-}
-
-function PromoBox() {
-  const { t, promo, setPromo, applyPromo } = useStore();
-  const [code, setCode] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  if (promo?.code) {
-    return (
-      <div className={`promo-applied ${promo.error ? 'bad' : ''}`}>
-        <Ticket size={18} />
-        <span>
-          <b>{promo.code}</b>
-          {promo.error && <small>{promo.error}</small>}
-        </span>
-        <button type="button" onClick={() => setPromo(null)} aria-label={t.removePromo}><X size={16} /></button>
-      </div>
-    );
-  }
-
-  const submit = async (e) => {
-    e.preventDefault();
-    if (!code.trim()) return;
-    setBusy(true);
-    const ok = await applyPromo(code.trim());
-    setBusy(false);
-    if (ok) setCode('');
-  };
-
-  return (
-    <form className="promo-box" onSubmit={submit}>
-      <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder={t.promoPlaceholder} autoCapitalize="characters" />
-      <button type="submit" className="btn btn-soft" disabled={busy || !code.trim()}>
-        {busy ? <LoaderCircle size={16} className="spin" /> : t.apply}
-      </button>
-    </form>
   );
 }
 
 export default function Cart() {
   const {
-    cartLines, subtotal, discount, setQuantity, removeFromCart, goTo, setScreen, config, t, lang, money,
+    cartLines, subtotal, setQuantity, removeFromCart, goTo, setScreen, config, t, lang, money,
     deliveryType, deliveryFeeFor,
   } = useStore();
 
@@ -79,7 +40,7 @@ export default function Cart() {
   }
 
   const { delivery } = config;
-  const net = subtotal - discount;
+  const net = subtotal;
   const left = delivery.freeFrom ? delivery.freeFrom - net : 0;
   const belowMin = delivery.minOrder && subtotal < delivery.minOrder;
 
@@ -110,8 +71,6 @@ export default function Cart() {
           </div>
         ))}
       </div>
-
-      <PromoBox />
 
       <Totals deliveryType={deliveryType} />
 

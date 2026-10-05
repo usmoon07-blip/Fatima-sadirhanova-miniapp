@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { api } from '../lib/api';
 import { storage } from '../lib/storage';
 import { haptic, tgUser } from '../lib/telegram';
@@ -15,7 +15,7 @@ export function unitPrice(product, size) {
 
 export function StoreProvider({ children }) {
   const [config, setConfig] = useState(null);
-  const [catalog, setCatalog] = useState({ categories: [], products: [], stories: [], promos: [], courses: [] });
+  const [catalog, setCatalog] = useState({ categories: [], products: [], stories: [], courses: [] });
   const [user, setUser] = useState(null);
   const [userStats, setUserStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -29,7 +29,6 @@ export function StoreProvider({ children }) {
 
   const [cart, setCart] = useState(() => storage.get('cart', []));
   const [favorites, setFavorites] = useState(() => storage.get('favorites', []));
-  const [promo, setPromo] = useState(() => storage.get('promo', null)); // { code, discount }
   const [deliveryType, setDeliveryType] = useState(() => storage.get('checkout', {}).deliveryType || 'DELIVERY');
 
   // Navigatsiya
@@ -38,7 +37,7 @@ export function StoreProvider({ children }) {
   const [menuQuery, setMenuQuery] = useState('');
   const [sheetProductId, setSheetProductId] = useState(null);
   const [courseId, setCourseId] = useState(null);
-  const [screen, setScreen] = useState(null); // 'checkout' | 'success' | 'orders' | 'promos' | 'myCourses'
+  const [screen, setScreen] = useState(null); // 'checkout' | 'success' | 'orders' | 'myCourses'
   const [panel, setPanel] = useState(null); // 'address' | 'about'
   const [storyIndex, setStoryIndex] = useState(null);
   const [lastOrder, setLastOrder] = useState(null);
@@ -49,7 +48,6 @@ export function StoreProvider({ children }) {
 
   useEffect(() => storage.set('cart', cart), [cart]);
   useEffect(() => storage.set('favorites', favorites), [favorites]);
-  useEffect(() => storage.set('promo', promo), [promo]);
   useEffect(() => {
     document.documentElement.lang = lang;
   }, [lang]);
@@ -125,7 +123,6 @@ export function StoreProvider({ children }) {
   const removeFromCart = useCallback((key) => setCart((prev) => prev.filter((i) => i.key !== key)), []);
   const clearCart = useCallback(() => {
     setCart([]);
-    setPromo(null);
   }, []);
 
   const toggleFavorite = useCallback((id) => {
@@ -145,46 +142,11 @@ export function StoreProvider({ children }) {
   const cartCount = cartLines.reduce((s, l) => s + l.quantity, 0);
   const subtotal = cartLines.reduce((s, l) => s + l.total, 0);
 
-  // Promokodni savat summasi o'zgarganda serverda qayta tekshirish
-  const promoCheckRef = useRef(0);
-  const applyPromo = useCallback(async (code, { silent } = {}) => {
-    const id = ++promoCheckRef.current;
-    try {
-      const r = await api.checkPromo(code, subtotal);
-      if (id !== promoCheckRef.current) return true;
-      setPromo({ code: r.code, discount: r.discount });
-      if (!silent) {
-        haptic.success();
-        showToast(getDict(lang).promoApplied(r.code));
-      }
-      return true;
-    } catch (e) {
-      if (id !== promoCheckRef.current) return false;
-      const d = getDict(lang);
-      const msg = e.reason === 'MIN_ORDER' ? d.promoErr.MIN_ORDER(fmtMoney(e.minOrder, lang)) : d.promoErr[e.reason] || e.message;
-      if (silent) setPromo((p) => (p ? { ...p, discount: 0, error: msg } : p));
-      else {
-        haptic.error();
-        showToast(msg, 'bad');
-      }
-      return false;
-    }
-  }, [subtotal, lang, showToast]);
-
-  useEffect(() => {
-    if (!promo?.code || !subtotal) return undefined;
-    const timer = setTimeout(() => applyPromo(promo.code, { silent: true }), 350);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subtotal]);
-
-  const discount = promo && !promo.error ? Math.min(promo.discount || 0, subtotal) : 0;
-
   const deliveryFeeFor = useCallback((type) => {
     if (!config || type !== 'DELIVERY') return 0;
     const { fee, freeFrom } = config.delivery;
-    return freeFrom && subtotal - discount >= freeFrom ? 0 : fee;
-  }, [config, subtotal, discount]);
+    return freeFrom && subtotal >= freeFrom ? 0 : fee;
+  }, [config, subtotal]);
 
   const reorder = useCallback((order) => {
     let added = 0;
@@ -220,7 +182,7 @@ export function StoreProvider({ children }) {
     config, catalog, user, setUser, userStats, refreshMe, loading, error, reload: load, displayName,
     lang, setLang, langChosen, t, money,
     cart, cartLines, cartCount, subtotal, addToCart, setQuantity, removeFromCart, clearCart, reorder,
-    promo, setPromo, applyPromo, discount, deliveryType, setDeliveryType, deliveryFeeFor,
+    deliveryType, setDeliveryType, deliveryFeeFor,
     favorites, toggleFavorite, productsById,
     tab, goTo, activeCategory, setActiveCategory, menuQuery, setMenuQuery,
     sheetProductId, openProduct: setSheetProductId, courseId, openCourse: setCourseId,

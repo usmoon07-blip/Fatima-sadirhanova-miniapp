@@ -129,7 +129,7 @@ export default function Reports() {
             <Kpi label="Bekor qilingan" value={`${data.cancelled} ta`} sub={`barcha buyurtmalarning ${data.cancelledShare}%`} />
             <Kpi label="Yangi mijozlar" value={data.newCustomers} sub={`jami bazada ${data.totalCustomers} ta`} />
             <Kpi label="Qayta kelganlar" value={data.returningCustomers} sub="shu davrda 2+ marta buyurtma" />
-            <Kpi label="Chegirmalar" value={money(data.discounts)} sub={`${data.promoOrders} ta promokodli buyurtma`} />
+            <Kpi label="Kurs arizalari" value={`${data.enrollments} ta`} sub={`to'langan: ${money(data.enrollmentsPaid)}`} />
             <Kpi label="Yetkazib berish" value={`${data.deliveryType[0].count} ta`} sub={`olib ketish — ${data.deliveryType[1].count} ta`} />
           </div>
 

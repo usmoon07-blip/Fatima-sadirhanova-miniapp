@@ -78,10 +78,6 @@ function OrderDetails({ order, onClose, onStatus }) {
         </div>
       )}
 
-      {order.discount > 0 && (
-        <div className="comment-box"><div className="label">Promokod</div>{order.promoCode} — chegirma {money(order.discount)}</div>
-      )}
-
       {order.comment && (
         <div className="comment-box"><div className="label">Izoh</div>{order.comment}</div>
       )}
@@ -105,7 +101,6 @@ function OrderDetails({ order, onClose, onStatus }) {
         </tbody>
         <tfoot>
           <tr><td colSpan={3}>Mahsulotlar</td><td className="right">{money(order.subtotal)}</td></tr>
-          {order.discount > 0 && <tr><td colSpan={3}>Chegirma ({order.promoCode})</td><td className="right">−{money(order.discount)}</td></tr>}
           <tr><td colSpan={3}>Yetkazib berish</td><td className="right">{money(order.deliveryFee)}</td></tr>
           <tr className="grand"><td colSpan={3}>Jami</td><td className="right">{money(order.total)}</td></tr>
         </tfoot>
@@ -256,7 +251,6 @@ export default function Orders() {
                 <td className="nowrap">{o.paymentMethod === 'CASH' ? '💵 Naqd' : '💳 Karta'}</td>
                 <td className="right nowrap">
                   <div className="strong">{money(o.total)}</div>
-                  {o.discount > 0 && <small className="muted">{o.promoCode}</small>}
                 </td>
                 <td><StatusSelect order={o} onChange={changeStatus} /></td>
                 <td className="nowrap">

@@ -92,7 +92,7 @@ npm run setup
 Bu buyruq avtomatik ravishda:
 1. Backend, Mini App va Admin Panel paketlarini o'rnatadi (`npm install`);
 2. Prisma migratsiyasini bazaga qo'llaydi — jadvallarni yaratadi (`prisma migrate deploy`);
-3. Seed skriptini ishga tushiradi — 6 ta kategoriya, 12 ta mahsulot (3 tilda), 5 ta story 3 ta kurs va 3 ta promokod (`SHIRIN5`, `YANGI20`, `FATIMA10`) qo'shadi. Kurs narxlari namuna — Admin Panel > Kurslar'da o'zgartiring.
+3. Seed skriptini ishga tushiradi — 6 ta kategoriya, 12 ta mahsulot (3 tilda), 5 ta story va 3 ta kurs qo'shadi. Kurs narxlari namuna — Admin Panel > Kurslar'da o'zgartiring.
 
 Agar qadamlarni alohida bajarmoqchi bo'lsangiz:
 ```bash
@@ -171,30 +171,28 @@ Telegram Mini App faqat **https** manzilda ishlaydi. ngrok kompyuteringizdagi `l
 
 ### Mijoz uchun (Mini App + Bot)
 - **3 til: o'zbek, rus, ingliz.** Bot `/start` da tilni so'raydi; Mini App ham birinchi ochilishda so'raydi. Menyu, taom nomlari, tarkibi va bot xabarlari tarjima qilingan. Til profil yoki botdagi `/lang` orqali istalgan payt almashtiriladi.
-- **Bosh sahifa:** qidiruv, saqlangan manzil ("60 daqiqada yetkazamiz"), stories, tezkor tugmalar (Biz haqimizda, Aksiyalar, Promokodlar, Buyurtmalar), aksiya bannerlari, kategoriyalar, mashhurlar.
+- **Bosh sahifa:** qidiruv, saqlangan manzil ("60 daqiqada yetkazamiz"), stories, tezkor tugmalar (Biz haqimizda, Kurslar, Sevimlilar, Buyurtmalar), bannerlar (bepul yetkazish, kurslar), kategoriyalar, mashhurlar.
 - **Menyu:** kategoriyalar bo'yicha bo'limlar; kategoriya paneli tepada yopishib turadi va skroll qilganda joriy bo'lim o'zi belgilanadi. Qidiruv taom nomi, tarkibi yoki kategoriya bo'yicha (3 tilda).
 - **Taom kartochkasi:** katta surat, nomi ikki tilda, tarkibi ro'yxat bo'lib, o'lcham, miqdor va doim ko'rinib turadigan narx tugmasi.
-- **Savat:** **promokod**, "yana X so'm qo'shsangiz yetkazish bepul", jami summa har o'zgarishda qayta hisoblanadi.
+- **Savat:** "yana X so'm qo'shsangiz yetkazish bepul", jami summa har o'zgarishda qayta hisoblanadi.
 - **Rasmiylashtirish:** yetkazib berish (~60 daq) yoki olib ketish (~20 daq), joylashuvni bir bosishda aniqlash, telefon, vaqt, naqd yoki karta, izoh. **Manzil va telefon eslab qolinadi.**
 - **Buyurtmalar:** rangli holat belgisi; **"Bekor qilish"** oshxona qabul qilmaguncha ishlaydi, keyin yo'qoladi; **"Yana buyurtma qilish"** bir bosishda.
 - **Kurslar** (pastki menyuda): *Makaronterapiya* (online/offline), *Mukammal kurs* (online/offline), *Individual kurs — 1 kishi uchun* (offline). Har bir kursda tavsif, dastur, davomiylik va har format narxi. Mijoz formatni tanlab ariza qoldiradi (ism, telefon, to'lov turi, izoh), bot arizani 3 tilda tasdiqlaydi. "Mening kurslarim" — arizalar va holati, yangi arizani bekor qilish.
-- **Promokodlar sahifasi** (bosh sahifa va profildan): nusxalash tugmasi, chegirmadagi shirinliklar.
 - **Profil:** telefon, saqlangan manzil, buyurtmalar soni, jami xarid, til, mening kurslarim, aloqa, ish vaqti.
 - **Bot** buyurtma qabul qilinganda va har bir holat o'zgarganda mijozga uning tilida o'zi xabar yozadi.
 
 ### Restoran uchun (Admin Panel)
 - **Oshxona ekrani:** 3 ustun (Yangi → Tayyorlanmoqda → Yo'lda / Olib ketishga tayyor). Yangi buyurtmada **tovushli signal**. Har kartochkada taymer: 15 daqiqadan keyin sariq, 25 daqiqadan keyin qizil. "Qabul qildim", "Tayyorlashni boshladim", "Tayyor — kuryerga berildi" tugmalari — har bosishda bot mijozga xabar yuboradi.
 - **Buyurtmalar jadvali:** holat bo'yicha filtr, qidiruv, telefon bosilsa qo'ng'iroq, manzil xaritada ochiladi, holatni o'zgartirish va o'chirish.
-- **Hisobot:** bugun / 7 / 30 / 90 kun / hammasi. Tushum, qo'lga tekkan pul, o'rtacha chek, bekor qilinganlar ulushi, yangi va qayta kelgan mijozlar, chegirmalar, naqd/karta va yetkazish/olib ketish ulushi, kunlik tushum grafigi, soatlar bo'yicha yuklama, eng ko'p sotilgan taomlar, eng qadrli mijozlar.
+- **Hisobot:** bugun / 7 / 30 / 90 kun / hammasi. Tushum, qo'lga tekkan pul, o'rtacha chek, bekor qilinganlar ulushi, yangi va qayta kelgan mijozlar, kurs arizalari, naqd/karta va yetkazish/olib ketish ulushi, kunlik tushum grafigi, soatlar bo'yicha yuklama, eng ko'p sotilgan taomlar, eng qadrli mijozlar.
 - **Mahsulotlar, kategoriyalar, stories** — 3 tilda, surat yuklash bilan, dasturchisiz.
 - **Kurslar:** kurs qo'shish/tahrirlash (3 tilda nom, tavsif, dastur, davomiylik; online va offline narxi alohida — narx bo'sh qolsa o'sha format yo'q).
 - **Kursga yozilganlar:** barcha arizalar, holat (Yangi → Tasdiqlandi → To'landi → Kursni tugatdi), har o'zgarishda mijozga bot xabari; yangi ariza kelganda signal.
-- **Promokodlar:** foizli yoki summali, maksimal chegirma, eng kam buyurtma, amal qilish muddati, foydalanish limiti, "faqat birinchi buyurtma". Chegirma **serverda qayta hisoblanadi**.
 
 ## Ish jarayoni (qanday ishlaydi)
 
 1. Mijoz botda `/start` bosadi → tilni tanlaydi → telefon raqamini yuboradi → Mini App'ni ochadi.
-2. Menyudan tanlaydi, savatga soladi, kerak bo'lsa promokod kiritadi, rasmiylashtiradi.
+2. Menyudan tanlaydi, savatga soladi, rasmiylashtiradi.
 3. Buyurtma bazaga tushadi, bot mijozga "Buyurtmangiz qabul qilindi!" deb yozadi, Mini App yopiladi.
 4. Buyurtma darhol Oshxona ekranida signal bilan paydo bo'ladi.
 5. Oshpaz/menejer tugmalarni bosib holatni o'zgartiradi — har safar mijozga bot orqali xabar boradi.
@@ -210,7 +208,7 @@ Telegram Mini App faqat **https** manzilda ishlaydi. ngrok kompyuteringizdagi `l
 │   ├── config/default.js
 │   ├── core/bot.js
 │   ├── database/connection.js
-│   ├── models/               # User, Product, Category, Story, Order, PromoCode, Course, Enrollment
+│   ├── models/               # User, Product, Category, Story, Order, Course, Enrollment
 │   ├── controllers/          # botController, cartController, adminController
 │   ├── routes/               # bot.routes, client.routes, admin.routes
 │   ├── middlewares/auth.middleware.js

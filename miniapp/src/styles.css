@@ -392,14 +392,6 @@ input.invalid, textarea.invalid { border-color: var(--sale); background: #fff5f3
 .menu-section { margin-bottom: 22px; scroll-margin-top: 70px; }
 
 /* Cart */
-.promo-box { display: flex; gap: 8px; margin-bottom: 14px; }
-.promo-box input { flex: 1; letter-spacing: 0.08em; font-weight: 700; text-transform: uppercase; }
-.promo-box .btn { height: 46px; border-radius: var(--radius-sm); padding: 0 18px; }
-.promo-applied { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: var(--radius-sm); background: #e4f3ea; color: var(--ok); margin-bottom: 14px; }
-.promo-applied span { flex: 1; display: flex; flex-direction: column; }
-.promo-applied small { font-size: 12px; }
-.promo-applied.bad { background: #fde8e6; color: var(--sale); }
-.discount-row { color: var(--ok); }
 
 /* Checkout */
 .type-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
@@ -416,17 +408,6 @@ input.invalid, textarea.invalid { border-color: var(--sale); background: #fff5f3
 .link-btn { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-size: 13px; color: var(--accent-dark); }
 .link-btn.muted { color: var(--muted); }
 
-/* Promos */
-.promo-list { display: grid; gap: 12px; margin-bottom: 22px; }
-.promo-card { position: relative; overflow: hidden; border-radius: 20px; padding: 16px; color: #fff; background: linear-gradient(135deg, #b98270, #7d5242); display: grid; gap: 6px; box-shadow: var(--shadow); }
-.promo-card.dark { background: linear-gradient(135deg, #3d2d27, #241a16); }
-.promo-card h3 { font-size: 24px; }
-.promo-card p { font-size: 14px; opacity: 0.9; }
-.promo-card small { font-size: 12px; opacity: 0.75; }
-.promo-bg-icon { position: absolute; right: -8px; top: -6px; opacity: 0.18; transform: rotate(-12deg); }
-.promo-code-row { display: flex; gap: 8px; margin: 6px 0 2px; }
-.promo-code { flex: 1; height: 42px; border: 1.5px dashed rgba(255, 255, 255, 0.7); border-radius: 12px; color: #fff; font-weight: 800; letter-spacing: 0.14em; font-size: 15px; }
-.promo-copy { width: 42px; height: 42px; border-radius: 12px; background: rgba(255, 255, 255, 0.2); color: #fff; display: grid; place-items: center; }
 
 /* Profile */
 .stat-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }

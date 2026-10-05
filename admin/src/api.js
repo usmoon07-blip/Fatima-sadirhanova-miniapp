@@ -64,7 +64,6 @@ export const api = {
   products: resource('products'),
   categories: resource('categories'),
   stories: resource('stories'),
-  promos: resource('promos'),
   courses: resource('courses'),
   enrollments: (status) => request(`/enrollments?${new URLSearchParams({ status: status || 'ALL' })}`),
   setEnrollmentStatus: (id, status) => request(`/enrollments/${id}/status`, { method: 'PATCH', body: { status } }),
