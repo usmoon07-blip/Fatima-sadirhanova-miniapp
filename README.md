@@ -171,7 +171,7 @@ Telegram Mini App faqat **https** manzilda ishlaydi. ngrok kompyuteringizdagi `l
 
 ### Mijoz uchun (Mini App + Bot)
 - **3 til: o'zbek, rus, ingliz.** Bot `/start` da tilni so'raydi; Mini App ham birinchi ochilishda so'raydi. Menyu, taom nomlari, tarkibi va bot xabarlari tarjima qilingan. Til profil yoki botdagi `/lang` orqali istalgan payt almashtiriladi.
-- **Bosh sahifa:** qidiruv, saqlangan manzil ("60 daqiqada yetkazamiz"), stories, tezkor tugmalar (Biz haqimizda, Kurslar, Sevimlilar, Buyurtmalar), bannerlar (bepul yetkazish, kurslar), kategoriyalar, mashhurlar.
+- **Bosh sahifa:** qidiruv, saqlangan manzil ("60 daqiqada yetkazamiz"), stories, tezkor tugmalar (Biz haqimizda, Kurslar, Sevimlilar, Buyurtmalar), kurslar banneri, kategoriyalar, mashhurlar.
 - **Menyu:** kategoriyalar bo'yicha bo'limlar; kategoriya paneli tepada yopishib turadi va skroll qilganda joriy bo'lim o'zi belgilanadi. Qidiruv taom nomi, tarkibi yoki kategoriya bo'yicha (3 tilda).
 - **Taom kartochkasi:** katta surat, nomi ikki tilda, tarkibi ro'yxat bo'lib, o'lcham, miqdor va doim ko'rinib turadigan narx tugmasi.
 - **Savat:** "yana X so'm qo'shsangiz yetkazish bepul", jami summa har o'zgarishda qayta hisoblanadi.

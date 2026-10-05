@@ -1,5 +1,5 @@
 import {
-  ChevronRight, GraduationCap, Heart, Info, MapPin, ReceiptText, Search, Truck,
+  ChevronRight, GraduationCap, Heart, Info, MapPin, ReceiptText, Search,
 } from 'lucide-react';
 import CourseCard from '../components/CourseCard';
 import Header from '../components/Header';
@@ -13,18 +13,13 @@ const HERO = 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=
 
 export default function Home() {
   const {
-    catalog, displayName, goTo, t, lang, money, config, user, setPanel, setScreen,
+    catalog, displayName, goTo, t, lang, config, user, setPanel, setScreen,
   } = useStore();
   const popular = catalog.products.filter((p) => p.isPopular);
   const heroImage = popular[0]?.imageUrl || HERO;
   const { delivery } = config;
 
   const banners = [];
-  if (delivery.freeFrom) {
-    banners.push({
-      key: 'free', tag: t.deliveryTag, title: t.freeDeliveryTitle, text: t.freeDeliveryText(money(delivery.freeFrom)), icon: <Truck size={64} strokeWidth={1.2} />, onClick: () => goTo('menu', { category: 'all' }),
-    });
-  }
   if (catalog.courses.length) {
     const c = catalog.courses[0];
     banners.push({

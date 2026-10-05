@@ -488,3 +488,4 @@ input.invalid, textarea.invalid { border-color: var(--sale); background: #fff5f3
 .fo-price { margin-top: 6px; font-weight: 800; color: var(--sale); }
 .enroll-row { display: flex; gap: 10px; align-items: center; }
 .enroll-thumb { width: 52px; height: 52px; border-radius: 12px; flex-shrink: 0; }
+.banners .banner:only-child { width: 100%; max-width: none; }
