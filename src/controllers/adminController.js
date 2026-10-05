@@ -42,7 +42,6 @@ const schemas = {
     badge: optText(30),
     isPopular: z.boolean().default(false),
     isAvailable: z.boolean().default(true),
-    isUpsell: z.boolean().default(false),
     sortOrder: z.coerce.number().int().default(0),
   }),
 

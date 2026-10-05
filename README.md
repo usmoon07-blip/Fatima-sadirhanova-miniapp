@@ -92,7 +92,7 @@ npm run setup
 Bu buyruq avtomatik ravishda:
 1. Backend, Mini App va Admin Panel paketlarini o'rnatadi (`npm install`);
 2. Prisma migratsiyasini bazaga qo'llaydi — jadvallarni yaratadi (`prisma migrate deploy`);
-3. Seed skriptini ishga tushiradi — 6 ta kategoriya, 12 ta mahsulot (3 tilda), 5 ta story va 3 ta promokod (`SHIRIN5`, `YANGI20`, `FATIMA10`) qo'shadi.
+3. Seed skriptini ishga tushiradi — 6 ta kategoriya, 12 ta mahsulot (3 tilda), 5 ta story 3 ta kurs va 3 ta promokod (`SHIRIN5`, `YANGI20`, `FATIMA10`) qo'shadi. Kurs narxlari namuna — Admin Panel > Kurslar'da o'zgartiring.
 
 Agar qadamlarni alohida bajarmoqchi bo'lsangiz:
 ```bash
@@ -174,11 +174,12 @@ Telegram Mini App faqat **https** manzilda ishlaydi. ngrok kompyuteringizdagi `l
 - **Bosh sahifa:** qidiruv, saqlangan manzil ("60 daqiqada yetkazamiz"), stories, tezkor tugmalar (Biz haqimizda, Aksiyalar, Promokodlar, Buyurtmalar), aksiya bannerlari, kategoriyalar, mashhurlar.
 - **Menyu:** kategoriyalar bo'yicha bo'limlar; kategoriya paneli tepada yopishib turadi va skroll qilganda joriy bo'lim o'zi belgilanadi. Qidiruv taom nomi, tarkibi yoki kategoriya bo'yicha (3 tilda).
 - **Taom kartochkasi:** katta surat, nomi ikki tilda, tarkibi ro'yxat bo'lib, o'lcham, miqdor va doim ko'rinib turadigan narx tugmasi.
-- **Savat:** qo'shimcha taklif (bir tugma bilan kofe qo'shiladi), **promokod**, "yana X so'm qo'shsangiz yetkazish bepul", jami summa har o'zgarishda qayta hisoblanadi.
+- **Savat:** **promokod**, "yana X so'm qo'shsangiz yetkazish bepul", jami summa har o'zgarishda qayta hisoblanadi.
 - **Rasmiylashtirish:** yetkazib berish (~60 daq) yoki olib ketish (~20 daq), joylashuvni bir bosishda aniqlash, telefon, vaqt, naqd yoki karta, izoh. **Manzil va telefon eslab qolinadi.**
 - **Buyurtmalar:** rangli holat belgisi; **"Bekor qilish"** oshxona qabul qilmaguncha ishlaydi, keyin yo'qoladi; **"Yana buyurtma qilish"** bir bosishda.
-- **Aksiyalar:** promokodlar nusxalash tugmasi bilan, chegirmadagi shirinliklar.
-- **Profil:** telefon, saqlangan manzil, buyurtmalar soni, jami xarid, til, aloqa, ish vaqti.
+- **Kurslar** (pastki menyuda): *Makaronterapiya* (online/offline), *Mukammal kurs* (online/offline), *Individual kurs — 1 kishi uchun* (offline). Har bir kursda tavsif, dastur, davomiylik va har format narxi. Mijoz formatni tanlab ariza qoldiradi (ism, telefon, to'lov turi, izoh), bot arizani 3 tilda tasdiqlaydi. "Mening kurslarim" — arizalar va holati, yangi arizani bekor qilish.
+- **Promokodlar sahifasi** (bosh sahifa va profildan): nusxalash tugmasi, chegirmadagi shirinliklar.
+- **Profil:** telefon, saqlangan manzil, buyurtmalar soni, jami xarid, til, mening kurslarim, aloqa, ish vaqti.
 - **Bot** buyurtma qabul qilinganda va har bir holat o'zgarganda mijozga uning tilida o'zi xabar yozadi.
 
 ### Restoran uchun (Admin Panel)
@@ -186,6 +187,8 @@ Telegram Mini App faqat **https** manzilda ishlaydi. ngrok kompyuteringizdagi `l
 - **Buyurtmalar jadvali:** holat bo'yicha filtr, qidiruv, telefon bosilsa qo'ng'iroq, manzil xaritada ochiladi, holatni o'zgartirish va o'chirish.
 - **Hisobot:** bugun / 7 / 30 / 90 kun / hammasi. Tushum, qo'lga tekkan pul, o'rtacha chek, bekor qilinganlar ulushi, yangi va qayta kelgan mijozlar, chegirmalar, naqd/karta va yetkazish/olib ketish ulushi, kunlik tushum grafigi, soatlar bo'yicha yuklama, eng ko'p sotilgan taomlar, eng qadrli mijozlar.
 - **Mahsulotlar, kategoriyalar, stories** — 3 tilda, surat yuklash bilan, dasturchisiz.
+- **Kurslar:** kurs qo'shish/tahrirlash (3 tilda nom, tavsif, dastur, davomiylik; online va offline narxi alohida — narx bo'sh qolsa o'sha format yo'q).
+- **Kursga yozilganlar:** barcha arizalar, holat (Yangi → Tasdiqlandi → To'landi → Kursni tugatdi), har o'zgarishda mijozga bot xabari; yangi ariza kelganda signal.
 - **Promokodlar:** foizli yoki summali, maksimal chegirma, eng kam buyurtma, amal qilish muddati, foydalanish limiti, "faqat birinchi buyurtma". Chegirma **serverda qayta hisoblanadi**.
 
 ## Ish jarayoni (qanday ishlaydi)
@@ -207,7 +210,7 @@ Telegram Mini App faqat **https** manzilda ishlaydi. ngrok kompyuteringizdagi `l
 │   ├── config/default.js
 │   ├── core/bot.js
 │   ├── database/connection.js
-│   ├── models/               # User, Product, Category, Story, Order, PromoCode
+│   ├── models/               # User, Product, Category, Story, Order, PromoCode, Course, Enrollment
 │   ├── controllers/          # botController, cartController, adminController
 │   ├── routes/               # bot.routes, client.routes, admin.routes
 │   ├── middlewares/auth.middleware.js

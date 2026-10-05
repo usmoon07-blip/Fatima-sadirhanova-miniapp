@@ -15,7 +15,7 @@ export function unitPrice(product, size) {
 
 export function StoreProvider({ children }) {
   const [config, setConfig] = useState(null);
-  const [catalog, setCatalog] = useState({ categories: [], products: [], stories: [], promos: [] });
+  const [catalog, setCatalog] = useState({ categories: [], products: [], stories: [], promos: [], courses: [] });
   const [user, setUser] = useState(null);
   const [userStats, setUserStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -37,7 +37,8 @@ export function StoreProvider({ children }) {
   const [activeCategory, setActiveCategory] = useState('all');
   const [menuQuery, setMenuQuery] = useState('');
   const [sheetProductId, setSheetProductId] = useState(null);
-  const [screen, setScreen] = useState(null); // 'checkout' | 'success' | 'orders'
+  const [courseId, setCourseId] = useState(null);
+  const [screen, setScreen] = useState(null); // 'checkout' | 'success' | 'orders' | 'promos' | 'myCourses'
   const [panel, setPanel] = useState(null); // 'address' | 'about'
   const [storyIndex, setStoryIndex] = useState(null);
   const [lastOrder, setLastOrder] = useState(null);
@@ -222,7 +223,7 @@ export function StoreProvider({ children }) {
     promo, setPromo, applyPromo, discount, deliveryType, setDeliveryType, deliveryFeeFor,
     favorites, toggleFavorite, productsById,
     tab, goTo, activeCategory, setActiveCategory, menuQuery, setMenuQuery,
-    sheetProductId, openProduct: setSheetProductId,
+    sheetProductId, openProduct: setSheetProductId, courseId, openCourse: setCourseId,
     screen, setScreen, panel, setPanel, storyIndex, setStoryIndex, lastOrder, setLastOrder,
     toast, showToast,
   };

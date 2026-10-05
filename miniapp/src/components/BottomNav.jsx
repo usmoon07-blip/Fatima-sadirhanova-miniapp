@@ -1,11 +1,13 @@
-import { House, ShoppingBag, UserRound, UtensilsCrossed, Zap } from 'lucide-react';
+import {
+  GraduationCap, House, ShoppingBag, UserRound, UtensilsCrossed,
+} from 'lucide-react';
 import { useStore } from '../store/StoreContext';
 
 const ITEMS = [
   { id: 'home', Icon: House },
   { id: 'menu', Icon: UtensilsCrossed },
   { id: 'cart', Icon: ShoppingBag },
-  { id: 'promos', Icon: Zap },
+  { id: 'courses', Icon: GraduationCap },
   { id: 'profile', Icon: UserRound },
 ];
 

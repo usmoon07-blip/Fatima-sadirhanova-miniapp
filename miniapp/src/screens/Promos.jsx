@@ -1,4 +1,4 @@
-import { Copy, Ticket } from 'lucide-react';
+import { ArrowLeft, Copy, Ticket } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import { useStore } from '../store/StoreContext';
 import { loc } from '../lib/i18n';
@@ -29,9 +29,9 @@ function fmtDate(value) {
 
 export default function Promos() {
   const {
-    catalog, t, lang, money, showToast, setPromo, applyPromo, goTo, cartCount,
+    catalog, t, lang, money, showToast, setPromo, applyPromo, goTo, cartCount, setScreen,
   } = useStore();
-  const discounted = catalog.products.filter((p) => p.oldPrice > p.price && !p.isUpsell);
+  const discounted = catalog.products.filter((p) => p.oldPrice > p.price);
 
   const copy = async (code) => {
     await copyText(code);
@@ -51,10 +51,14 @@ export default function Promos() {
   };
 
   return (
-    <div className="page">
-      <div className="page-title">
-        <h1 className="serif">{t.promosTitle}</h1>
-        <p className="muted">{t.promosSub}</p>
+    <div className="page no-nav">
+      <div className="topbar">
+        <button type="button" className="icon-btn" aria-label="←" onClick={() => setScreen(null)}><ArrowLeft size={20} /></button>
+        <div className="topbar-title">
+          <h1 className="serif">{t.promosTitle}</h1>
+          <small className="muted">{t.promosSub}</small>
+        </div>
+        <span style={{ width: 40 }} />
       </div>
 
       {catalog.promos.length ? (

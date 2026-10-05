@@ -50,6 +50,13 @@ function itemName(item, lang) {
   return item.name;
 }
 
+function courseTitle(enrollment, lang) {
+  const c = enrollment.course;
+  if (c && lang === 'ru' && c.titleRu) return c.titleRu;
+  if (c && lang === 'en' && c.titleEn) return c.titleEn;
+  return enrollment.courseTitle;
+}
+
 function itemsText(items, lang = 'uz') {
   return (items || [])
     .map((i) => `• ${escapeHtml(itemName(i, lang))}${i.size ? ` (${escapeHtml(i.size)})` : ''} × ${i.quantity} — ${money(i.total)}`)
@@ -244,6 +251,32 @@ const botController = {
     if (order.latitude && order.longitude) {
       await bot.api.sendLocation(config.bot.courierChatId, order.latitude, order.longitude);
     }
+  },
+
+  // ================= Kurslar =================
+
+  async notifyEnrollmentCreated(enrollment) {
+    if (!bot || !enrollment.user?.telegramId) return;
+    const lang = langOf(enrollment.user);
+    const tr = t(lang);
+    const title = escapeHtml(courseTitle(enrollment, lang));
+    const lines = [
+      tr.enrollAccepted(title, tr.format[enrollment.format]),
+      '',
+      `${tr.price}: <b>${money(enrollment.price)}</b>`,
+      tr.payment[enrollment.paymentMethod],
+    ];
+    if (enrollment.paymentMethod === 'CARD' && config.shop.cardNumber) {
+      lines.push(`💳 <code>${escapeHtml(config.shop.cardNumber)}</code>${config.shop.cardHolder ? ` · ${escapeHtml(config.shop.cardHolder)}` : ''}`);
+    }
+    await bot.api.sendMessage(enrollment.user.telegramId, lines.join('\n'), { parse_mode: 'HTML' });
+  },
+
+  async notifyEnrollmentStatus(enrollment) {
+    if (!bot || !enrollment.user?.telegramId) return;
+    const lang = langOf(enrollment.user);
+    const fn = t(lang).enrollStatus[enrollment.status];
+    if (fn) await bot.api.sendMessage(enrollment.user.telegramId, fn(courseTitle(enrollment, lang)));
   },
 
   setUserMenuButton,

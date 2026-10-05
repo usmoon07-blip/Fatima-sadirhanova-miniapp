@@ -65,6 +65,10 @@ export const api = {
   categories: resource('categories'),
   stories: resource('stories'),
   promos: resource('promos'),
+  courses: resource('courses'),
+  enrollments: (status) => request(`/enrollments?${new URLSearchParams({ status: status || 'ALL' })}`),
+  setEnrollmentStatus: (id, status) => request(`/enrollments/${id}/status`, { method: 'PATCH', body: { status } }),
+  deleteEnrollment: (id) => request(`/enrollments/${id}`, { method: 'DELETE' }),
   upload: (file) => {
     const form = new FormData();
     form.append('file', file);

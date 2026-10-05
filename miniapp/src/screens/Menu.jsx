@@ -23,7 +23,7 @@ export default function Menu() {
   const chipsRef = useRef(null);
   const inputRef = useRef(null);
 
-  const products = useMemo(() => catalog.products.filter((p) => !p.isUpsell), [catalog.products]);
+  const products = useMemo(() => catalog.products, [catalog.products]);
 
   const categoryNames = useMemo(() => new Map(catalog.categories.map((c) => [
     c.id, [c.name, c.nameRu, c.nameEn].filter(Boolean).join(' '),

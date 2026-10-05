@@ -8,6 +8,15 @@ function pickLang(lang) {
 
 const dict = {
   uz: {
+    enrollAccepted: (title, format) => `🎓 <b>Arizangiz qabul qilindi!</b>\n\nKurs: <b>${title}</b> (${format})\nTez orada siz bilan bog'lanib, sana va to'lov tafsilotlarini kelishib olamiz.`,
+    format: { ONLINE: 'Online', OFFLINE: 'Offline' },
+    price: 'Narx',
+    enrollStatus: {
+      CONFIRMED: (t) => `✅ «${t}» kursiga arizangiz tasdiqlandi! Tafsilotlar bo'yicha qo'ng'iroq qilamiz.`,
+      PAID: (t) => `💳 «${t}» kursi uchun to'lov qabul qilindi. Kursda ko'rishguncha! 🧁`,
+      COMPLETED: (t) => `🎉 Tabriklaymiz! «${t}» kursini muvaffaqiyatli tugatdingiz. Ijodingizda omad!`,
+      CANCELLED: (t) => `❌ «${t}» kursiga arizangiz bekor qilindi.`,
+    },
     chooseLang: '🌐 Tilni tanlang',
     langSaved: "✅ Til o'zgartirildi: O'zbekcha",
     greetAskPhone: (name) => `Assalomu alaykum, <b>${name}</b>! 🌸\n\nBuyurtmalaringiz bo'yicha siz bilan bog'lanishimiz uchun telefon raqamingizni yuboring 👇`,
@@ -58,6 +67,15 @@ const dict = {
   },
 
   ru: {
+    enrollAccepted: (title, format) => `🎓 <b>Ваша заявка принята!</b>\n\nКурс: <b>${title}</b> (${format})\nСкоро свяжемся с вами, чтобы согласовать дату и оплату.`,
+    format: { ONLINE: 'Онлайн', OFFLINE: 'Офлайн' },
+    price: 'Цена',
+    enrollStatus: {
+      CONFIRMED: (t) => `✅ Заявка на курс «${t}» подтверждена! Позвоним, чтобы обсудить детали.`,
+      PAID: (t) => `💳 Оплата за курс «${t}» получена. До встречи на курсе! 🧁`,
+      COMPLETED: (t) => `🎉 Поздравляем! Вы успешно завершили курс «${t}». Успехов в творчестве!`,
+      CANCELLED: (t) => `❌ Заявка на курс «${t}» отменена.`,
+    },
     chooseLang: '🌐 Выберите язык',
     langSaved: '✅ Язык изменён: Русский',
     greetAskPhone: (name) => `Здравствуйте, <b>${name}</b>! 🌸\n\nОтправьте, пожалуйста, ваш номер телефона, чтобы мы могли связаться с вами по заказу 👇`,
@@ -108,6 +126,15 @@ const dict = {
   },
 
   en: {
+    enrollAccepted: (title, format) => `🎓 <b>Your application has been received!</b>\n\nCourse: <b>${title}</b> (${format})\nWe'll contact you soon to arrange the date and payment.`,
+    format: { ONLINE: 'Online', OFFLINE: 'Offline' },
+    price: 'Price',
+    enrollStatus: {
+      CONFIRMED: (t) => `✅ Your application for "${t}" is confirmed! We'll call you to discuss the details.`,
+      PAID: (t) => `💳 Payment for "${t}" received. See you at the course! 🧁`,
+      COMPLETED: (t) => `🎉 Congratulations! You've completed "${t}". Good luck with your baking!`,
+      CANCELLED: (t) => `❌ Your application for "${t}" has been cancelled.`,
+    },
     chooseLang: '🌐 Choose a language',
     langSaved: '✅ Language changed: English',
     greetAskPhone: (name) => `Hello, <b>${name}</b>! 🌸\n\nPlease share your phone number so we can contact you about your orders 👇`,

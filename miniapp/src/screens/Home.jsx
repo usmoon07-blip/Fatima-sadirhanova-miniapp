@@ -1,4 +1,7 @@
-import { ChevronRight, Info, MapPin, ReceiptText, Search, Ticket, Truck, Zap } from 'lucide-react';
+import {
+  ChevronRight, GraduationCap, Info, MapPin, ReceiptText, Search, Ticket, Truck,
+} from 'lucide-react';
+import CourseCard from '../components/CourseCard';
 import Header from '../components/Header';
 import Img from '../components/Img';
 import ProductCard from '../components/ProductCard';
@@ -16,7 +19,7 @@ export default function Home() {
   const {
     catalog, displayName, goTo, t, lang, money, config, user, setPanel, setScreen,
   } = useStore();
-  const popular = catalog.products.filter((p) => p.isPopular && !p.isUpsell);
+  const popular = catalog.products.filter((p) => p.isPopular);
   const heroImage = popular[0]?.imageUrl || HERO;
   const { delivery } = config;
 
@@ -28,7 +31,7 @@ export default function Home() {
   }
   for (const p of catalog.promos.slice(0, 3)) {
     banners.push({
-      key: p.code, tag: t.promoTag, title: promoTitle(p, t, money), text: loc(p, 'description', lang), code: p.code, onClick: () => goTo('promos'), dark: banners.length % 2 === 1,
+      key: p.code, tag: t.promoTag, title: promoTitle(p, t, money), text: loc(p, 'description', lang), code: p.code, onClick: () => setScreen('promos'), dark: banners.length % 2 === 1,
     });
   }
 
@@ -58,8 +61,8 @@ export default function Home() {
 
       <div className="quick-grid">
         <button type="button" onClick={() => setPanel('about')}><Info size={20} /><span>{t.quick.about}</span></button>
-        <button type="button" onClick={() => goTo('promos')}><Zap size={20} /><span>{t.quick.promos}</span></button>
-        <button type="button" onClick={() => goTo('promos')}><Ticket size={20} /><span>{t.quick.promocodes}</span></button>
+        <button type="button" onClick={() => goTo('courses')}><GraduationCap size={20} /><span>{t.quick.courses}</span></button>
+        <button type="button" onClick={() => setScreen('promos')}><Ticket size={20} /><span>{t.quick.promocodes}</span></button>
         <button type="button" onClick={() => setScreen('orders')}><ReceiptText size={20} /><span>{t.quick.orders}</span></button>
       </div>
 
@@ -103,6 +106,20 @@ export default function Home() {
                 <span>{loc(c, 'name', lang)}</span>
               </button>
             ))}
+          </div>
+        </section>
+      )}
+
+      {catalog.courses.length > 0 && (
+        <section className="section">
+          <div className="section-head">
+            <h3 className="serif">{t.homeCourses}</h3>
+            <button type="button" className="link" onClick={() => goTo('courses')}>
+              {t.all} <ChevronRight size={16} />
+            </button>
+          </div>
+          <div className="h-scroll course-row">
+            {catalog.courses.map((c) => <CourseCard key={c.id} course={c} compact />)}
           </div>
         </section>
       )}

@@ -5,6 +5,7 @@ const { Router } = require('express');
 const multer = require('multer');
 const config = require('../config/default');
 const admin = require('../controllers/adminController');
+const courses = require('../controllers/courseController');
 const { adminAuth, loginGuard, validate } = require('../middlewares/auth.middleware');
 
 fs.mkdirSync(config.uploadsDir, { recursive: true });
@@ -53,6 +54,15 @@ for (const [name, schema] of [['products', 'product'], ['categories', 'category'
   router.put(`/${name}/:id`, validate(admin.schemas[schema]), admin[name].update);
   router.delete(`/${name}/:id`, admin[name].remove);
 }
+
+router.get('/courses', courses.courses.list);
+router.post('/courses', validate(courses.schemas.course), courses.courses.create);
+router.put('/courses/:id', validate(courses.schemas.course), courses.courses.update);
+router.delete('/courses/:id', courses.courses.remove);
+
+router.get('/enrollments', courses.listEnrollments);
+router.patch('/enrollments/:id/status', validate(courses.schemas.status), courses.updateEnrollmentStatus);
+router.delete('/enrollments/:id', courses.deleteEnrollment);
 
 router.post('/upload', upload.single('file'), admin.upload);
 

@@ -35,6 +35,9 @@ export const api = {
   saveAddress: (data) => request('/me/address', { method: 'PUT', body: data }),
   checkPromo: (code, subtotal) => request('/promo/check', { method: 'POST', body: { code, subtotal } }),
   cancelOrder: (id) => request(`/orders/${id}/cancel`, { method: 'POST' }),
+  enroll: (courseId, data) => request(`/courses/${courseId}/enroll`, { method: 'POST', body: data }),
+  myEnrollments: () => request('/enrollments'),
+  cancelEnrollment: (id) => request(`/enrollments/${id}/cancel`, { method: 'POST' }),
   myOrders: () => request('/orders'),
   createOrder: (payload) => request('/orders', { method: 'POST', body: payload }),
 };

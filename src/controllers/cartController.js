@@ -7,6 +7,7 @@ const Category = require('../models/Category');
 const Story = require('../models/Story');
 const Order = require('../models/Order');
 const PromoCode = require('../models/PromoCode');
+const Course = require('../models/Course');
 const botController = require('./botController');
 const { normalizePhone } = require('../utils/format');
 const { pickLang } = require('../utils/i18n');
@@ -111,11 +112,12 @@ const cartController = {
   },
 
   async getCatalog(req, res) {
-    const [categories, products, stories, promos] = await Promise.all([
+    const [categories, products, stories, promos, courses] = await Promise.all([
       Category.listActive(),
       Product.listAvailable(),
       Story.listActive(),
       PromoCode.listPublic(),
+      Course.listActive(),
     ]);
     const activeCategoryIds = new Set(categories.map((c) => c.id));
     res.json({
@@ -123,6 +125,7 @@ const cartController = {
       products: products.filter((p) => !p.categoryId || activeCategoryIds.has(p.categoryId)),
       stories,
       promos,
+      courses,
     });
   },
 

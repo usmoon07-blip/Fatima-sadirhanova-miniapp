@@ -27,14 +27,27 @@ enum PaymentMethod {
   CARD
 }
 
+enum CourseFormat {
+  ONLINE
+  OFFLINE
+}
+
+enum EnrollmentStatus {
+  NEW
+  CONFIRMED
+  PAID
+  COMPLETED
+  CANCELLED
+}
+
 enum PromoType {
   PERCENT
   FIXED
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  telegramId   String   @unique
+  id           Int          @id @default(autoincrement())
+  telegramId   String       @unique
   firstName    String?
   lastName     String?
   username     String?
@@ -45,9 +58,10 @@ model User {
   address      String?
   latitude     Float?
   longitude    Float?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
   orders       Order[]
+  enrollments  Enrollment[]
 }
 
 model Category {
@@ -156,4 +170,53 @@ model PromoCode {
   firstOrderOnly Boolean   @default(false)
   isActive       Boolean   @default(true)
   createdAt      DateTime  @default(now())
+}
+
+model Course {
+  id            Int          @id @default(autoincrement())
+  title         String
+  titleRu       String?
+  titleEn       String?
+  description   String       @default("")
+  descriptionRu String?
+  descriptionEn String?
+  /// Dastur: har bir element — bitta mavzu
+  program       String[]     @default([])
+  programRu     String[]     @default([])
+  programEn     String[]     @default([])
+  duration      String?
+  durationRu    String?
+  durationEn    String?
+  imageUrl      String
+  /// null — bu formatda o'tilmaydi
+  onlinePrice   Int?
+  offlinePrice  Int?
+  badge         String?
+  isActive      Boolean      @default(true)
+  sortOrder     Int          @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  enrollments   Enrollment[]
+}
+
+/// Kursga yozilish arizasi
+model Enrollment {
+  id            Int              @id @default(autoincrement())
+  userId        Int
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId      Int?
+  course        Course?          @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  courseTitle   String
+  format        CourseFormat
+  price         Int
+  customerName  String
+  phone         String
+  paymentMethod PaymentMethod
+  comment       String?
+  status        EnrollmentStatus @default(NEW)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([status])
+  @@index([userId])
 }

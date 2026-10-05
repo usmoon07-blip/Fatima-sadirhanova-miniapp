@@ -13,6 +13,9 @@ import Success from './screens/Success';
 import Profile from './screens/Profile';
 import Orders from './screens/Orders';
 import Promos from './screens/Promos';
+import Courses from './screens/Courses';
+import MyCourses from './screens/MyCourses';
+import CourseSheet from './components/CourseSheet';
 import { useStore } from './store/StoreContext';
 import { storage } from './lib/storage';
 import { setBackButton } from './lib/telegram';
@@ -27,13 +30,14 @@ function Splash() {
 }
 
 const TABS = {
-  home: Home, menu: Menu, cart: Cart, promos: Promos, profile: Profile,
+  home: Home, menu: Menu, cart: Cart, courses: Courses, profile: Profile,
 };
 
 export default function App() {
   const [onboarded, setOnboarded] = useState(() => storage.get('onboarded', false));
   const {
     loading, error, reload, config, tab, screen, setScreen, goTo, sheetProductId, openProduct, storyIndex, setStoryIndex,
+    courseId, openCourse,
     panel, setPanel, langChosen, t,
   } = useStore();
 
@@ -43,11 +47,12 @@ export default function App() {
     if (storyIndex != null) handler = () => setStoryIndex(null);
     else if (panel) handler = () => setPanel(null);
     else if (sheetProductId) handler = () => openProduct(null);
-    else if (screen === 'checkout' || screen === 'orders') handler = () => setScreen(null);
+    else if (courseId) handler = () => openCourse(null);
+    else if (['checkout', 'orders', 'promos', 'myCourses'].includes(screen)) handler = () => setScreen(null);
     else if (screen === 'success') handler = () => goTo('home');
     else if (tab !== 'home') handler = () => goTo('home');
     return setBackButton(handler);
-  }, [storyIndex, panel, sheetProductId, screen, tab, setStoryIndex, setPanel, openProduct, setScreen, goTo]);
+  }, [storyIndex, panel, sheetProductId, courseId, screen, tab, setStoryIndex, setPanel, openProduct, openCourse, setScreen, goTo]);
 
   if (!langChosen) return <LanguagePicker />;
 
@@ -79,6 +84,8 @@ export default function App() {
   if (screen === 'checkout') content = <Checkout />;
   else if (screen === 'success') content = <Success />;
   else if (screen === 'orders') content = <Orders />;
+  else if (screen === 'promos') content = <Promos />;
+  else if (screen === 'myCourses') content = <MyCourses />;
   else {
     const Tab = TABS[tab] || Home;
     content = <Tab />;
@@ -89,6 +96,7 @@ export default function App() {
       <main key={screen || tab} className="screen-enter">{content}</main>
       {!screen && <BottomNav />}
       <ProductSheet />
+      <CourseSheet />
       <Panels />
       <StoryViewer />
       <Toast />

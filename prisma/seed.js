@@ -141,12 +141,12 @@ const products = [
     ingredientsEn: ['Cream cheese', 'Biscuit base', 'Berry sauce', 'Vanilla'],
   },
   {
-    cat: 'drinks', isUpsell: true,
+    cat: 'drinks',
     name: 'Kapuchino', nameRu: 'Капучино', nameEn: 'Cappuccino',
     description: 'Arabika donlaridan tayyorlangan kapuchino — shirinlik uchun ideal juftlik.',
     descriptionRu: 'Капучино из зёрен арабики — идеальная пара к десерту.',
     descriptionEn: 'Arabica cappuccino — the perfect match for dessert.',
-    imageUrl: img('1495474472287-4d71bcdd2085'), price: 5000, oldPrice: 25000, rating: 4.8, reviewsCount: 40,
+    imageUrl: img('1495474472287-4d71bcdd2085'), price: 25000, rating: 4.8, reviewsCount: 40,
     ingredients: ['Arabika espresso', "Sut ko'pigi"],
     ingredientsRu: ['Эспрессо арабика', 'Молочная пенка'],
     ingredientsEn: ['Arabica espresso', 'Milk foam'],
@@ -164,6 +164,45 @@ const stories = [
     text: 'Har tong 8:00 da yangi kruassanlar ☕', textRu: 'Свежие круассаны каждое утро в 8:00 ☕', textEn: 'Fresh croissants every morning at 8:00 ☕' },
   { title: "Sovg'a", titleRu: 'Подарок', titleEn: 'Gifts', imageUrl: img('1569864358642-9d1684040f43'),
     text: "Makaronlar sovg'a qutisida — yaqinlaringizni xursand qiling 💝", textRu: 'Макаруны в подарочной коробке — порадуйте близких 💝', textEn: 'Macarons in a gift box — delight your loved ones 💝' },
+];
+
+// Narxlar namuna sifatida — Admin Panel > Kurslar bo'limida o'zgartiring
+const courses = [
+  {
+    title: 'Makaronterapiya', titleRu: 'Макаронтерапия', titleEn: 'Macaron Therapy',
+    badge: 'Hit',
+    description: "Fransuz makaronlarini noldan o'rganing: silliq qopqoqlar, «yubka» va mukammal to'ldirmalar. Kurs oxirida o'z sovg'a qutingizni tayyorlaysiz.",
+    descriptionRu: 'Научитесь готовить французские макаруны с нуля: гладкие крышечки, «юбочка» и идеальные начинки. В конце курса соберёте свою подарочную коробку.',
+    descriptionEn: 'Learn French macarons from scratch: smooth shells, perfect "feet" and fillings. You will assemble your own gift box at the end.',
+    program: ["Bodom uni va shakar tanlash", "Italyan va fransuz merengi", "Makaronaj — xamirni to'g'ri aralashtirish", "Qopqoqlarni quyish va pishirish", "Ganash, kurd va mevali to'ldirmalar", "Bo'yash, bezatish va qadoqlash"],
+    programRu: ['Выбор миндальной муки и сахара', 'Итальянская и французская меренга', 'Макаронаж — правильное смешивание', 'Отсадка и выпекание крышечек', 'Ганаш, курд и фруктовые начинки', 'Окрашивание, декор и упаковка'],
+    programEn: ['Choosing almond flour and sugar', 'Italian and French meringue', 'Macaronage — mixing the batter right', 'Piping and baking the shells', 'Ganache, curd and fruit fillings', 'Colouring, decorating and packaging'],
+    duration: '2 kun · 8 soat', durationRu: '2 дня · 8 часов', durationEn: '2 days · 8 hours',
+    imageUrl: img('1569864358642-9d1684040f43'), onlinePrice: 790000, offlinePrice: 1490000, sortOrder: 1,
+  },
+  {
+    title: 'Mukammal kurs', titleRu: 'Полный курс', titleEn: 'Complete Course',
+    badge: 'Premium',
+    description: "Qandolatchilikni boshidan oxirigacha: biskvitlar, kremlar, muss tortlar, bezash va tannarxni hisoblash. Uydan biznes boshlamoqchi bo'lganlar uchun.",
+    descriptionRu: 'Кондитерское дело от А до Я: бисквиты, кремы, муссовые торты, декор и расчёт себестоимости. Для тех, кто хочет начать бизнес из дома.',
+    descriptionEn: 'Pastry from A to Z: sponges, creams, mousse cakes, decorating and costing. For those who want to start a home bakery business.',
+    program: ['Biskvit turlari va ularning sirlari', 'Kremlar: krem-chiz, ganash, plombir kremi', "Tortni yig'ish va tekislash", 'Muss tortlar va glazur (zerkalo)', 'Bezash: gullar, shokolad dekor, yozuvlar', 'Tannarx, narx qo\'yish va mijoz topish'],
+    programRu: ['Виды бисквитов и их секреты', 'Кремы: крем-чиз, ганаш, пломбирный', 'Сборка и выравнивание торта', 'Муссовые торты и зеркальная глазурь', 'Декор: цветы, шоколад, надписи', 'Себестоимость, ценообразование и поиск клиентов'],
+    programEn: ['Types of sponge and their secrets', 'Creams: cream cheese, ganache, ice-cream cream', 'Assembling and levelling a cake', 'Mousse cakes and mirror glaze', 'Decorating: flowers, chocolate, lettering', 'Costing, pricing and finding customers'],
+    duration: '10 kun · 40 soat', durationRu: '10 дней · 40 часов', durationEn: '10 days · 40 hours',
+    imageUrl: img('1464349095431-e9a21285b5f3'), onlinePrice: 2490000, offlinePrice: 4900000, sortOrder: 2,
+  },
+  {
+    title: 'Individual kurs (1 kishi uchun)', titleRu: 'Индивидуальный курс (для 1 человека)', titleEn: 'Private Course (1 person)',
+    description: "Ustoz bilan yakkama-yakka offline dars. Dasturni o'zingiz tanlaysiz — siz xohlagan desert va texnikalar, qulay vaqtda.",
+    descriptionRu: 'Индивидуальное офлайн-занятие с мастером. Программу выбираете вы — любые десерты и техники в удобное время.',
+    descriptionEn: 'One-to-one offline lesson with the chef. You choose the programme — any desserts and techniques, at a time that suits you.',
+    program: ["Dastur siz bilan kelishiladi", "Barcha ingredientlar va jihozlar bizdan", "Tayyorlagan shirinliklaringizni olib ketasiz", 'Retseptlar va texnik kartalar', "Kursdan keyin 1 oy savol-javob qo'llab-quvvatlash"],
+    programRu: ['Программа согласовывается с вами', 'Все ингредиенты и оборудование — наши', 'Приготовленные десерты забираете с собой', 'Рецепты и технологические карты', 'Поддержка с вопросами 1 месяц после курса'],
+    programEn: ['Programme agreed with you', 'All ingredients and equipment provided', 'Take home everything you make', 'Recipes and technical sheets', '1 month of Q&A support after the course'],
+    duration: 'Kelishiladi', durationRu: 'По договорённости', durationEn: 'By arrangement',
+    imageUrl: img('1556910103-1c02745aae4d'), onlinePrice: null, offlinePrice: 3500000, sortOrder: 3,
+  },
 ];
 
 const promos = [
@@ -193,6 +232,11 @@ async function main() {
   if ((await prisma.story.count()) === 0) {
     for (const [i, s] of stories.entries()) await prisma.story.create({ data: { ...s, sortOrder: i + 1 } });
     console.log(`✅ ${stories.length} story qo'shildi.`);
+  }
+
+  if ((await prisma.course.count()) === 0) {
+    for (const c of courses) await prisma.course.create({ data: c });
+    console.log(`✅ ${courses.length} ta kurs qo'shildi.`);
   }
 
   if ((await prisma.promoCode.count()) === 0) {

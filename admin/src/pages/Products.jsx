@@ -15,7 +15,7 @@ const EMPTY = {
   name: '', nameRu: '', nameEn: '', description: '', descriptionRu: '', descriptionEn: '', imageUrl: '',
   ingredientsRuText: '', ingredientsEnText: '', price: '', oldPrice: '', categoryId: '',
   ingredientsText: '', sizes: [], rating: 5, reviewsCount: 0, badge: '',
-  isPopular: false, isAvailable: true, isUpsell: false, sortOrder: 0,
+  isPopular: false, isAvailable: true, sortOrder: 0,
 };
 
 function toForm(p) {
@@ -59,7 +59,6 @@ function toPayload(f) {
     badge: f.badge,
     isPopular: f.isPopular,
     isAvailable: f.isAvailable,
-    isUpsell: f.isUpsell,
     sortOrder: Number(f.sortOrder) || 0,
   };
 }
@@ -154,7 +153,6 @@ function ProductForm({ initial, categories, onClose, onSaved }) {
         <div className="toggles">
           <Toggle checked={f.isAvailable} onChange={set('isAvailable')} label="Sotuvda bor" />
           <Toggle checked={f.isPopular} onChange={set('isPopular')} label="Mashhur (bosh sahifada)" />
-          <Toggle checked={f.isUpsell} onChange={set('isUpsell')} label="Savatchada taklif (upsell)" />
         </div>
       </div>
     </Modal>
@@ -245,7 +243,6 @@ export default function Products() {
                   {(p.nameRu || p.nameEn) && <div className="muted small">{[p.nameRu, p.nameEn].filter(Boolean).join(' · ')}</div>}
                   <div className="row gap-sm">
                     {p.badge && <span className="pill">{p.badge}</span>}
-                    {p.isUpsell && <span className="pill violet">Upsell</span>}
                   </div>
                 </td>
                 <td>{p.category?.name || <span className="muted">—</span>}</td>

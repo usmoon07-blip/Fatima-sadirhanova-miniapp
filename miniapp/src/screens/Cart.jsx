@@ -60,17 +60,9 @@ function PromoBox() {
 
 export default function Cart() {
   const {
-    cartLines, subtotal, discount, setQuantity, removeFromCart, catalog, addToCart, goTo, setScreen, config, t, lang, money,
+    cartLines, subtotal, discount, setQuantity, removeFromCart, goTo, setScreen, config, t, lang, money,
     deliveryType, deliveryFeeFor,
   } = useStore();
-
-  const upsell = catalog.products.find((p) => p.isUpsell);
-  const upsellLine = upsell && cartLines.find((l) => l.productId === upsell.id);
-  const toggleUpsell = () => {
-    if (!upsell) return;
-    if (upsellLine) removeFromCart(upsellLine.key);
-    else addToCart(upsell, null, 1, { silent: true });
-  };
 
   if (!cartLines.length) {
     return (
@@ -90,7 +82,6 @@ export default function Cart() {
   const net = subtotal - discount;
   const left = delivery.freeFrom ? delivery.freeFrom - net : 0;
   const belowMin = delivery.minOrder && subtotal < delivery.minOrder;
-  const upsellParts = upsell ? t.upsell(loc(upsell, 'name', lang), money(upsell.price)) : [];
 
   return (
     <div className="page with-cta">
@@ -119,19 +110,6 @@ export default function Cart() {
           </div>
         ))}
       </div>
-
-      {upsell && (
-        <label className="upsell">
-          <Img src={upsell.imageUrl} alt="" className="upsell-img" emoji="☕" />
-          <span className="upsell-text">
-            {upsellParts[0]}<b>{upsellParts[1]}</b>{upsellParts[2]}<b className="accent">{upsellParts[3]}</b>{upsellParts[4]}
-          </span>
-          <span className={`switch ${upsellLine ? 'on' : ''}`}>
-            <input type="checkbox" checked={Boolean(upsellLine)} onChange={toggleUpsell} />
-            <i />
-          </span>
-        </label>
-      )}
 
       <PromoBox />
 
