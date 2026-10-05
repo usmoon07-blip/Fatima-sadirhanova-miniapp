@@ -1,7 +1,7 @@
 export const tg = window.Telegram?.WebApp;
 export const isTelegram = Boolean(tg && tg.initData);
 
-const BG = '#FBF4EE';
+const BG = '#FAF2E9';
 
 function safe(fn) {
   try {
