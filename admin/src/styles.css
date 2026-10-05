@@ -262,3 +262,15 @@ select { height: 38px; padding: 0 10px; }
   .k-board { grid-template-columns: 1fr; }
 }
 .k-timer.due { background: #fff3dc; color: #8a5300; }
+
+/* Bekor qilinganlar */
+.strike { text-decoration: line-through; color: var(--muted); }
+.stat.bad { background: #fdf3f2; border-color: #f6d6d2; }
+.stat.bad b { color: #c8392c; }
+.kpi.bad b { color: #c8392c; }
+.cancel-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.cancel-stats > div { background: #fdf3f2; border: 1px solid #f6d6d2; border-radius: 12px; padding: 14px 16px; display: grid; gap: 2px; }
+.cancel-stats span { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 600; }
+.cancel-stats b { font-size: 20px; color: #c8392c; }
+.cancel-stats small { color: var(--muted); }
+.stats .stat b { font-size: 20px; white-space: nowrap; }

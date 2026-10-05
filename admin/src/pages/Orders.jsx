@@ -197,6 +197,7 @@ export default function Orders() {
           <div className="stat"><span>Bugungi tushum</span><b>{money(stats.todayRevenue)}</b></div>
           <div className="stat accent"><span>Yangi (kutilmoqda)</span><b>{stats.newOrders}</b></div>
           <div className="stat"><span>Jarayonda</span><b>{stats.activeOrders}</b></div>
+          <div className="stat bad"><span>Bugun bekor qilingan</span><b>{money(stats.todayCancelledSum)}</b><small className="muted">{stats.todayCancelled} ta · tushumga kirmaydi</small></div>
           <div className="stat"><span>Mijozlar</span><b>{stats.customers}</b></div>
         </div>
       )}
@@ -250,7 +251,8 @@ export default function Orders() {
                 </td>
                 <td className="nowrap">{o.paymentMethod === 'CASH' ? '💵 Naqd' : '💳 Karta'}</td>
                 <td className="right nowrap">
-                  <div className="strong">{money(o.total)}</div>
+                  <div className={`strong ${o.status === 'CANCELLED' ? 'strike' : ''}`}>{money(o.total)}</div>
+                  {o.status === 'CANCELLED' && <small className="muted">hisobga olinmaydi</small>}
                 </td>
                 <td><StatusSelect order={o} onChange={changeStatus} /></td>
                 <td className="nowrap">

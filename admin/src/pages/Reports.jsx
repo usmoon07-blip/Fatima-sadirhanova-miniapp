@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { api, money } from '../api';
+import { api, dateTime, money } from '../api';
 
 const PERIODS = [
   { id: 'today', label: 'Bugun' },
@@ -16,9 +16,9 @@ const short = (n) => {
   return String(n);
 };
 
-function Kpi({ label, value, sub }) {
+function Kpi({ label, value, sub, tone }) {
   return (
-    <div className="kpi">
+    <div className={`kpi ${tone || ''}`}>
       <span>{label}</span>
       <b>{value}</b>
       {sub && <small>{sub}</small>}
@@ -123,10 +123,10 @@ export default function Reports() {
       {data && (
         <>
           <div className="kpis">
-            <Kpi label="Tushum" value={money(data.revenue)} sub={`${data.ordersCount} ta buyurtma`} />
+            <Kpi label="Tushum" value={money(data.revenue)} sub={`${data.ordersCount} ta buyurtma · bekor qilinganlarsiz`} />
             <Kpi label="Qo'lga tekkan pul" value={money(data.collected)} sub={`${data.deliveredCount} ta yetkazilgan`} />
             <Kpi label="O'rtacha chek" value={money(data.averageCheck)} sub="bitta buyurtmaga" />
-            <Kpi label="Bekor qilingan" value={`${data.cancelled} ta`} sub={`barcha buyurtmalarning ${data.cancelledShare}%`} />
+            <Kpi label="Bekor qilingan" value={money(data.cancelledSum)} sub={`${data.cancelled} ta · barcha buyurtmalarning ${data.cancelledShare}%`} tone="bad" />
             <Kpi label="Yangi mijozlar" value={data.newCustomers} sub={`jami bazada ${data.totalCustomers} ta`} />
             <Kpi label="Qayta kelganlar" value={data.returningCustomers} sub="shu davrda 2+ marta buyurtma" />
             <Kpi label="Kurs arizalari" value={`${data.enrollments} ta`} sub={`to'langan: ${money(data.enrollmentsPaid)}`} />
@@ -152,6 +152,35 @@ export default function Reports() {
                 { label: 'Olib ketish', count: data.deliveryType[1].count, sum: data.deliveryType[1].sum },
               ]}
             />
+          </div>
+
+          <div className="panel cancelled-panel">
+            <div className="panel-head">
+              <h3>Bekor qilingan buyurtmalar</h3>
+              <small className="muted">Bu summalar tushumga, o'rtacha chekka, grafiklarga va top ro'yxatlarga kirmaydi</small>
+            </div>
+            <div className="cancel-stats">
+              <div><span>Jami bekor qilingan</span><b>{money(data.cancelledSum)}</b><small>{data.cancelled} ta buyurtma</small></div>
+              <div><span>Mijoz bekor qildi</span><b>{money(data.cancelledByCustomer.sum)}</b><small>{data.cancelledByCustomer.count} ta</small></div>
+              <div><span>Do'kon bekor qildi</span><b>{money(data.cancelledByRestaurant.sum)}</b><small>{data.cancelledByRestaurant.count} ta</small></div>
+            </div>
+            {data.cancelledList.length ? (
+              <table className="table compact">
+                <thead><tr><th>#</th><th>Sana</th><th>Mijoz</th><th>Mahsulotlar</th><th>Kim bekor qildi</th><th className="right">Summa</th></tr></thead>
+                <tbody>
+                  {data.cancelledList.map((o) => (
+                    <tr key={o.id}>
+                      <td><b>#{o.id}</b></td>
+                      <td className="nowrap">{dateTime(o.createdAt)}</td>
+                      <td><div className="strong">{o.customerName}</div><a className="muted small" href={`tel:${o.phone}`}>{o.phone}</a></td>
+                      <td className="muted small">{o.items}</td>
+                      <td><span className={`pill ${o.cancelledBy === 'customer' ? '' : 'violet'}`}>{o.cancelledBy === 'customer' ? 'Mijoz' : "Do'kon"}</span></td>
+                      <td className="right nowrap strike">{money(o.total)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : <div className="k-empty">Bu davrda bekor qilingan buyurtma yo'q</div>}
           </div>
 
           <div className="panel">

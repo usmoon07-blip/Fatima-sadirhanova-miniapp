@@ -184,7 +184,7 @@ Telegram Mini App faqat **https** manzilda ishlaydi. ngrok kompyuteringizdagi `l
 ### Restoran uchun (Admin Panel)
 - **Oshxona ekrani:** 3 ustun (Yangi → Tayyorlanmoqda → Yo'lda / Olib ketishga tayyor). Yangi buyurtmada **tovushli signal**. Har kartochkada taymer: 15 daqiqadan keyin sariq, 25 daqiqadan keyin qizil. "Qabul qildim", "Tayyorlashni boshladim", "Tayyor — kuryerga berildi" tugmalari — har bosishda bot mijozga xabar yuboradi.
 - **Buyurtmalar jadvali:** holat bo'yicha filtr, qidiruv, telefon bosilsa qo'ng'iroq, manzil xaritada ochiladi, holatni o'zgartirish va o'chirish.
-- **Hisobot:** bugun / 7 / 30 / 90 kun / hammasi. Tushum, qo'lga tekkan pul, o'rtacha chek, bekor qilinganlar ulushi, yangi va qayta kelgan mijozlar, kurs arizalari, naqd/karta va yetkazish/olib ketish ulushi, kunlik tushum grafigi, soatlar bo'yicha yuklama, eng ko'p sotilgan taomlar, eng qadrli mijozlar.
+- **Hisobot:** bugun / 7 / 30 / 90 kun / hammasi. Tushum (bekor qilinganlarsiz), qo'lga tekkan pul, o'rtacha chek, **bekor qilinganlar alohida** (jami summa, mijoz yoki do'kon bekor qilgani, ro'yxat), yangi va qayta kelgan mijozlar, kurs arizalari, naqd/karta va yetkazish/olib ketish ulushi, kunlik tushum grafigi, soatlar bo'yicha yuklama, eng ko'p sotilgan taomlar, eng qadrli mijozlar.
 - **Mahsulotlar, kategoriyalar, stories** — 3 tilda, surat yuklash bilan, dasturchisiz.
 - **Kurslar:** kurs qo'shish/tahrirlash (3 tilda nom, tavsif, dastur, davomiylik; online va offline narxi alohida — narx bo'sh qolsa o'sha format yo'q).
 - **Kursga yozilganlar:** barcha arizalar, holat (Yangi → Tasdiqlandi → To'landi → Kursni tugatdi), har o'zgarishda mijozga bot xabari; yangi ariza kelganda signal.

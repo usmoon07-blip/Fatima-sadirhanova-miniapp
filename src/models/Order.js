@@ -62,7 +62,7 @@ const Order = {
 
   async stats() {
     const today = startOfTodayTashkent();
-    const [todayAgg, totalAgg, newCount, activeCount] = await Promise.all([
+    const [todayAgg, totalAgg, newCount, activeCount, todayCancelled] = await Promise.all([
       prisma.order.aggregate({
         where: { createdAt: { gte: today }, status: { not: 'CANCELLED' } },
         _count: true,
@@ -71,6 +71,11 @@ const Order = {
       prisma.order.aggregate({ where: { status: { not: 'CANCELLED' } }, _count: true, _sum: { total: true } }),
       prisma.order.count({ where: { status: 'NEW' } }),
       prisma.order.count({ where: { status: { in: ['CONFIRMED', 'PREPARING', 'READY', 'ON_THE_WAY'] } } }),
+      prisma.order.aggregate({
+        where: { createdAt: { gte: today }, status: 'CANCELLED' },
+        _count: true,
+        _sum: { total: true },
+      }),
     ]);
     return {
       todayOrders: todayAgg._count,
@@ -79,6 +84,8 @@ const Order = {
       totalRevenue: totalAgg._sum.total || 0,
       newOrders: newCount,
       activeOrders: activeCount,
+      todayCancelled: todayCancelled._count,
+      todayCancelledSum: todayCancelled._sum.total || 0,
     };
   },
 
@@ -101,8 +108,13 @@ const Order = {
       prisma.enrollment.findMany({ where, select: { status: true, price: true } }),
     ]);
 
+    // Bekor qilinganlar tushumga va boshqa hisob-kitoblarga KIRMAYDI — alohida hisoblanadi
     const valid = orders.filter((o) => o.status !== 'CANCELLED');
-    const cancelled = orders.length - valid.length;
+    const cancelledOrders = orders.filter((o) => o.status === 'CANCELLED');
+    const cancelled = cancelledOrders.length;
+    const sumOf = (list) => list.reduce((s, o) => s + o.total, 0);
+    const byCustomer = cancelledOrders.filter((o) => o.cancelledBy === 'customer');
+    const byRestaurant = cancelledOrders.filter((o) => o.cancelledBy !== 'customer');
     const revenue = valid.reduce((s, o) => s + o.total, 0);
     const delivered = valid.filter((o) => o.status === 'DELIVERED');
     const collected = delivered.reduce((s, o) => s + o.total, 0);
@@ -158,6 +170,19 @@ const Order = {
       averageCheck: valid.length ? Math.round(revenue / valid.length) : 0,
       cancelled,
       cancelledShare: orders.length ? Math.round((cancelled / orders.length) * 100) : 0,
+      cancelledSum: sumOf(cancelledOrders),
+      cancelledByCustomer: { count: byCustomer.length, sum: sumOf(byCustomer) },
+      cancelledByRestaurant: { count: byRestaurant.length, sum: sumOf(byRestaurant) },
+      cancelledList: cancelledOrders.slice(-50).reverse().map((o) => ({
+        id: o.id,
+        createdAt: o.createdAt,
+        cancelledAt: o.statusAt,
+        customerName: o.customerName,
+        phone: o.phone,
+        total: o.total,
+        cancelledBy: o.cancelledBy === 'customer' ? 'customer' : 'restaurant',
+        items: (o.items || []).map((i) => `${i.name}${i.size ? ` (${i.size})` : ''} × ${i.quantity}`).join(', '),
+      })),
       newCustomers,
       totalCustomers,
       returningCustomers: returning,
