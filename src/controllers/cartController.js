@@ -8,7 +8,7 @@ const Story = require('../models/Story');
 const Order = require('../models/Order');
 const Course = require('../models/Course');
 const botController = require('./botController');
-const { normalizePhone } = require('../utils/format');
+const { normalizePhone, startOfTodayTashkent } = require('../utils/format');
 const { pickLang } = require('../utils/i18n');
 
 const orderSchema = z.object({
@@ -25,6 +25,7 @@ const orderSchema = z.object({
   latitude: z.number().min(-90).max(90).nullish(),
   longitude: z.number().min(-180).max(180).nullish(),
   deliveryTime: z.string().trim().max(60).nullish(),
+  deliveryAt: z.string().datetime({ offset: true }).nullish(),
   comment: z.string().trim().max(500).nullish(),
 });
 
@@ -75,6 +76,7 @@ const cartController = {
         about: shop.about,
       },
       delivery,
+      order: config.order,
     });
   },
 
@@ -126,6 +128,15 @@ const cartController = {
     const hasCoords = body.latitude != null && body.longitude != null;
     if (body.deliveryType === 'DELIVERY' && !hasCoords && !body.address) {
       return res.status(400).json({ message: 'Yetkazib berish manzilini kiriting yoki joylashuvni yuboring', field: 'address' });
+    }
+
+    // Oldindan buyurtma: sana kamida ORDER_ADVANCE_DAYS kun keyin bo'lishi kerak
+    const { advanceDays } = config.order;
+    if (advanceDays > 0) {
+      const earliest = startOfTodayTashkent().getTime() + advanceDays * 24 * 60 * 60 * 1000;
+      if (!body.deliveryAt || new Date(body.deliveryAt).getTime() < earliest) {
+        return res.status(400).json({ message: `Buyurtma kamida ${advanceDays} kun avval beriladi. Sanani tanlang.`, field: 'time', reason: 'ADVANCE' });
+      }
     }
 
     // Narxlar faqat bazadan olinadi — mijoz yuborgan narxga ishonilmaydi

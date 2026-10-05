@@ -6,164 +6,143 @@ require('dotenv').config();
 const prisma = new PrismaClient();
 const img = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=900&q=80`;
 
+// ====== Menyu — Fatima Sadirkhanova prayslisti asosida ======
+// Rasmlar vaqtinchalik: Admin Panel > Mahsulotlar'dan haqiqiy suratlarni yuklang.
+const IMG = {
+  napoleon: img('1612203985729-70726954388c'),
+  layered: img('1571877227200-a0d98ea607e9'),
+  honey: img('1578985545062-69928b1d9587'),
+  pie: img('1519915028121-7d3463d20b13'),
+  cheesecake: img('1533134242443-d4fd215305ad'),
+  berry: img('1488477181946-6428a0291777'),
+  meringue: img('1464305795204-6f5bbfc7fb81'),
+  mini: img('1587668178277-295251f900ce'),
+  macarons: img('1569864358642-9d1684040f43'),
+  chocolate: img('1606313564200-e75d5e30476c'),
+  cake: img('1563729784474-d77dbb933a9e'),
+  celebration: img('1464349095431-e9a21285b5f3'),
+};
+
 const categories = [
-  { key: 'cakes', name: 'Tortlar', nameRu: 'Торты', nameEn: 'Cakes', imageUrl: img('1578985545062-69928b1d9587'), sortOrder: 1 },
-  { key: 'cupcakes', name: 'Keks va kapkeyklar', nameRu: 'Кексы и капкейки', nameEn: 'Cupcakes', imageUrl: img('1587668178277-295251f900ce'), sortOrder: 2 },
-  { key: 'pastries', name: 'Pishiriqlar', nameRu: 'Выпечка', nameEn: 'Pastries', imageUrl: img('1555507036-ab1f4038808a'), sortOrder: 3 },
-  { key: 'cookies', name: 'Pechenyelar', nameRu: 'Печенье', nameEn: 'Cookies', imageUrl: img('1499636136210-6f4ee915583e'), sortOrder: 4 },
-  { key: 'desserts', name: 'Desertlar', nameRu: 'Десерты', nameEn: 'Desserts', imageUrl: img('1571877227200-a0d98ea607e9'), sortOrder: 5 },
-  { key: 'drinks', name: 'Ichimliklar', nameRu: 'Напитки', nameEn: 'Drinks', imageUrl: img('1495474472287-4d71bcdd2085'), sortOrder: 6 },
+  { key: 'list', name: 'Listli pirojenniylar', nameRu: 'Пирожные листами', nameEn: 'Tray pastries', imageUrl: IMG.layered, sortOrder: 1 },
+  { key: 'piece', name: 'Shtuchniy pirojenniylar', nameRu: 'Штучные пирожные', nameEn: 'Individual pastries', imageUrl: IMG.mini, sortOrder: 2 },
+  { key: 'cakes', name: 'Tortlar', nameRu: 'Торты', nameEn: 'Cakes', imageUrl: IMG.cake, sortOrder: 3 },
+  { key: 'celebration', name: 'Torjestvenniy tortlar', nameRu: 'Торжественные торты', nameEn: 'Celebration cakes', imageUrl: IMG.celebration, sortOrder: 4 },
 ];
 
-const products = [
+const LIST = (price) => [{ label: '1 list', price }];
+const PIECE = (price) => [{ label: '1 dona', price }];
+
+/** Listli pirojenniylar — narx 1 list uchun */
+const listItems = [
+  ['Napoleon', 'Наполеон', 'Napoleon', 500000, IMG.napoleon, true],
+  ['Avganskiy Napoleon', 'Афганский Наполеон', 'Afghan Napoleon', 500000, IMG.napoleon],
+  ['Spartak', 'Спартак', 'Spartak', 500000, IMG.chocolate],
+  ['Negr', 'Негр', 'Negr', 500000, IMG.chocolate],
+  ['Medovik', 'Медовик', 'Honey cake (Medovik)', 480000, IMG.honey, true],
+  ['Paxlava', 'Пахлава', 'Baklava', 480000, IMG.layered],
+  ['Fruktoviy pirog', 'Фруктовый пирог', 'Fruit pie', 450000, IMG.pie],
+  ['Yablochno limonniy pirog', 'Яблочно-лимонный пирог', 'Apple and lemon pie', 450000, IMG.pie],
+  ['Tvorojnik klassik bezeli', 'Творожник классический с безе', 'Classic curd cake with meringue', 450000, IMG.meringue],
+  ['Tvorojnik limonniy', 'Творожник лимонный', 'Lemon curd cake', 450000, IMG.cheesecake],
+  ['Tvorojnik malinoviy', 'Творожник малиновый', 'Raspberry curd cake', 450000, IMG.berry],
+  ["Ptich'e moloko", 'Птичье молоко', "Bird's milk", 480000, IMG.chocolate],
+  ['Arini ini', 'Пчелиное гнездо', "Bee's nest", 600000, IMG.honey],
+  ['Shokoladno vishnyoviy tvorojnik', 'Шоколадно-вишнёвый творожник', 'Chocolate cherry curd cake', 550000, IMG.chocolate],
+  ['Chizkeyk klassik yagodali', 'Чизкейк классический с ягодами', 'Classic berry cheesecake', 850000, IMG.cheesecake],
+  ['Chizkeyk olchali', 'Чизкейк вишнёвый', 'Cherry cheesecake', 850000, IMG.cheesecake],
+].map(([name, nameRu, nameEn, price, imageUrl, isPopular = false]) => ({
+  cat: 'list', name, nameRu, nameEn, price, imageUrl, isPopular, sizes: LIST(price),
+}));
+
+listItems.push(
   {
-    cat: 'cakes', badge: 'Bestseller', isPopular: true,
-    name: 'Qulupnayli Shortcake', nameRu: 'Клубничный шорткейк', nameEn: 'Strawberry Shortcake',
-    description: "Yengil biskvit, yangi qulupnay va qaymoqli krem — klassik retsept bo'yicha qo'lda tayyorlanadi.",
-    descriptionRu: 'Лёгкий бисквит, свежая клубника и сливочный крем — ручная работа по классическому рецепту.',
-    descriptionEn: 'Light sponge, fresh strawberries and whipped cream — handmade from a classic recipe.',
-    imageUrl: img('1565958011703-44f9829ba187'), price: 249000, oldPrice: 290000, rating: 4.9, reviewsCount: 218,
-    ingredients: ['Vanilli biskvit', 'Yangi qulupnay', 'Tabiiy qaymoq (33%)', 'Mascarpone kremi', 'Qulupnay konfityuri'],
-    ingredientsRu: ['Ванильный бисквит', 'Свежая клубника', 'Натуральные сливки (33%)', 'Крем маскарпоне', 'Клубничный конфитюр'],
-    ingredientsEn: ['Vanilla sponge', 'Fresh strawberries', 'Natural cream (33%)', 'Mascarpone cream', 'Strawberry confiture'],
-    sizes: [{ label: '16 sm (6–8)', price: 249000 }, { label: '20 sm (10–12)', price: 349000 }, { label: '24 sm (14–16)', price: 449000 }],
+    cat: 'list', name: 'Chizkeyk fistashka', nameRu: 'Фисташковый чизкейк', nameEn: 'Pistachio cheesecake',
+    imageUrl: IMG.cheesecake, price: 850000, isPopular: true,
+    sizes: [{ label: 'Yagodasiz — 1 list', price: 850000 }, { label: 'Yagodali — 1 list', price: 900000 }],
+  },
+  { cat: 'list', name: 'Merengoviy rulet', nameRu: 'Меренговый рулет', nameEn: 'Meringue roll', imageUrl: IMG.meringue, price: 300000, sizes: PIECE(300000) },
+);
+
+/** Shtuchniy pirojenniylar — narx 1 dona uchun */
+const pieceItems = [
+  {
+    name: 'Mini pirojenniy', nameRu: 'Мини-пирожное', nameEn: 'Mini pastry', price: 30000, imageUrl: IMG.mini,
+    description: 'Listda 24 dona.', descriptionRu: 'В листе 24 шт.', descriptionEn: '24 pieces per tray.', sizes: PIECE(30000),
   },
   {
-    cat: 'cakes', isPopular: true,
-    name: 'Shokoladli Truffle tort', nameRu: 'Шоколадный торт Трюфель', nameEn: 'Chocolate Truffle Cake',
-    description: 'Belgiya shokoladidan tayyorlangan nam biskvit va ganash. Shokolad ishqibozlari uchun.',
-    descriptionRu: 'Влажный бисквит и ганаш из бельгийского шоколада. Для настоящих любителей шоколада.',
-    descriptionEn: 'Moist sponge and ganache made with Belgian chocolate. For true chocolate lovers.',
-    imageUrl: img('1578985545062-69928b1d9587'), price: 289000, rating: 4.8, reviewsCount: 164,
-    ingredients: ['Belgiya qora shokoladi (70%)', 'Kakao biskvit', 'Shokoladli ganash', "Sariyog'", 'Fundukli krokant'],
-    ingredientsRu: ['Бельгийский тёмный шоколад (70%)', 'Какао-бисквит', 'Шоколадный ганаш', 'Сливочное масло', 'Фундучный кракант'],
-    ingredientsEn: ['Belgian dark chocolate (70%)', 'Cocoa sponge', 'Chocolate ganache', 'Butter', 'Hazelnut crunch'],
-    sizes: [{ label: '16 sm (6–8)', price: 289000 }, { label: '20 sm (10–12)', price: 389000 }],
+    name: 'Pavlova pirojenniysi', nameRu: 'Пирожное Павлова', nameEn: 'Pavlova', price: 25000, imageUrl: IMG.meringue,
+    description: 'Listda 24 dona.', descriptionRu: 'В листе 24 шт.', descriptionEn: '24 pieces per tray.', sizes: PIECE(25000),
   },
   {
-    cat: 'cakes',
-    name: 'Qizil baxmal (Red Velvet)', nameRu: 'Красный бархат', nameEn: 'Red Velvet',
-    description: 'Mayin qizil biskvit va krem-pishloq — bayram dasturxonining yulduzi.',
-    descriptionRu: 'Нежный красный бисквит и крем-чиз — звезда праздничного стола.',
-    descriptionEn: 'Tender red sponge with cream cheese — the star of any celebration.',
-    imageUrl: img('1563729784474-d77dbb933a9e'), price: 269000, rating: 4.7, reviewsCount: 97,
-    ingredients: ['Red velvet biskvit', 'Krem-pishloq', 'Oq shokolad', 'Vanil'],
-    ingredientsRu: ['Бисквит red velvet', 'Крем-чиз', 'Белый шоколад', 'Ваниль'],
-    ingredientsEn: ['Red velvet sponge', 'Cream cheese', 'White chocolate', 'Vanilla'],
-    sizes: [{ label: '16 sm (6–8)', price: 269000 }, { label: '20 sm (10–12)', price: 369000 }],
+    name: 'Medoviy mini', nameRu: 'Медовик мини', nameEn: 'Mini honey cake', price: 30000, imageUrl: IMG.honey,
+    description: 'Listda 24 dona.', descriptionRu: 'В листе 24 шт.', descriptionEn: '24 pieces per tray.', sizes: PIECE(30000),
   },
   {
-    cat: 'cupcakes', badge: 'Bestseller', isPopular: true,
-    name: 'Shokoladli kapkeyk', nameRu: 'Шоколадный капкейк', nameEn: 'Chocolate Cupcake',
-    description: 'Shokoladli keks va mayin shokoladli krem shapkasi.',
-    descriptionRu: 'Шоколадный кекс с нежной шапочкой из шоколадного крема.',
-    descriptionEn: 'Chocolate cupcake topped with silky chocolate cream.',
-    imageUrl: img('1587668178277-295251f900ce'), price: 28000, oldPrice: 32000, rating: 4.8, reviewsCount: 312,
-    ingredients: ['Kakao', 'Sut shokoladi', "Sariyog'li krem", "Shokolad bo'laklari"],
-    ingredientsRu: ['Какао', 'Молочный шоколад', 'Сливочный крем', 'Кусочки шоколада'],
-    ingredientsEn: ['Cocoa', 'Milk chocolate', 'Butter cream', 'Chocolate chips'],
+    name: 'Makaronlar', nameRu: 'Макаруны', nameEn: 'Macarons', price: 15000, imageUrl: IMG.macarons, isPopular: true,
+    description: 'Listda 56 dona.', descriptionRu: 'В листе 56 шт.', descriptionEn: '56 pieces per tray.', sizes: PIECE(15000),
   },
   {
-    cat: 'cupcakes', isPopular: true,
-    name: 'Rezavorli tartaletka', nameRu: 'Тарталетка с ягодами', nameEn: 'Berry Tart',
-    description: 'Qumli xamir, vanilli krem va yangi rezavorlar.',
-    descriptionRu: 'Песочное тесто, ванильный крем и свежие ягоды.',
-    descriptionEn: 'Shortcrust pastry, vanilla cream and fresh berries.',
-    imageUrl: img('1488477181946-6428a0291777'), price: 39000, rating: 4.9, reviewsCount: 143,
-    ingredients: ['Qumli xamir', 'Vanilli krem-patisser', 'Qulupnay', "Ko'k mevalar (chernika)", 'Malina'],
-    ingredientsRu: ['Песочное тесто', 'Ванильный крем-патисьер', 'Клубника', 'Черника', 'Малина'],
-    ingredientsEn: ['Shortcrust pastry', 'Vanilla crème pâtissière', 'Strawberries', 'Blueberries', 'Raspberries'],
+    name: 'Lastochka', nameRu: 'Ласточка', nameEn: 'Lastochka', price: 12000, imageUrl: IMG.chocolate,
+    sizes: [{ label: '1 dona', price: 12000 }, { label: '1 list', price: 576000 }],
   },
   {
-    cat: 'pastries', badge: '-20%', isPopular: true,
-    name: "Sariyog'li kruassan", nameRu: 'Сливочный круассан', nameEn: 'Butter Croissant',
-    description: "Fransuz retsepti bo'yicha 27 qatlamli sariyog'li kruassan. Har tong yangi.",
-    descriptionRu: 'Круассан из 27 слоёв на сливочном масле по французскому рецепту. Свежий каждое утро.',
-    descriptionEn: 'A 27-layer butter croissant made the French way. Fresh every morning.',
-    imageUrl: img('1555507036-ab1f4038808a'), price: 24000, oldPrice: 30000, rating: 4.7, reviewsCount: 201,
-    ingredients: ["Fransuz sariyog'i (82%)", "Bug'doy uni (oliy nav)", 'Sut', 'Tuxum'],
-    ingredientsRu: ['Французское сливочное масло (82%)', 'Пшеничная мука (высший сорт)', 'Молоко', 'Яйца'],
-    ingredientsEn: ['French butter (82%)', 'Premium wheat flour', 'Milk', 'Eggs'],
+    name: 'Muraveynik', nameRu: 'Муравейник', nameEn: 'Anthill (Muraveynik)', price: 12000, imageUrl: IMG.honey,
+    sizes: [{ label: '1 dona', price: 12000 }, { label: '1 list', price: 576000 }],
   },
   {
-    cat: 'pastries',
-    name: 'Daniya bulochkasi', nameRu: 'Датская булочка', nameEn: 'Danish Pastry',
-    description: "Qatlamli xamir, vanilli krem va mevali to'ldirma.",
-    descriptionRu: 'Слоёное тесто, ванильный крем и фруктовая начинка.',
-    descriptionEn: 'Flaky pastry with vanilla cream and fruit filling.',
-    imageUrl: img('1509440159596-0249088772ff'), price: 29000, rating: 4.6, reviewsCount: 58,
-    ingredients: ['Qatlamli xamir', 'Vanilli krem', "O'rik konfityuri"],
-    ingredientsRu: ['Слоёное тесто', 'Ванильный крем', 'Абрикосовый конфитюр'],
-    ingredientsEn: ['Puff pastry', 'Vanilla cream', 'Apricot confiture'],
+    name: 'Kartoshka', nameRu: 'Картошка', nameEn: 'Kartoshka', price: 10000, imageUrl: IMG.chocolate, isPopular: true,
+    sizes: [{ label: '1 dona', price: 10000 }, { label: '1 list', price: 480000 }],
   },
-  {
-    cat: 'cookies', badge: '-30%',
-    name: 'Shokoladli pechenye (6 dona)', nameRu: 'Шоколадное печенье (6 шт)', nameEn: 'Chocolate Chip Cookies (6 pcs)',
-    description: "Tashqarisi qarsildoq, ichi yumshoq — shokolad bo'laklari bilan.",
-    descriptionRu: 'Хрустящее снаружи, мягкое внутри — с кусочками шоколада.',
-    descriptionEn: 'Crispy outside, soft inside — loaded with chocolate chunks.',
-    imageUrl: img('1499636136210-6f4ee915583e'), price: 45000, oldPrice: 64000, rating: 4.8, reviewsCount: 126,
-    ingredients: ["Sariyog'", 'Jigarrang shakar', "Belgiya shokoladi bo'laklari", 'Dengiz tuzi'],
-    ingredientsRu: ['Сливочное масло', 'Коричневый сахар', 'Кусочки бельгийского шоколада', 'Морская соль'],
-    ingredientsEn: ['Butter', 'Brown sugar', 'Belgian chocolate chunks', 'Sea salt'],
-  },
-  {
-    cat: 'cookies', isPopular: true,
-    name: 'Fransuz makaronlari (12 dona)', nameRu: 'Французские макаруны (12 шт)', nameEn: 'French Macarons (12 pcs)',
-    description: "Bodom unidan tayyorlangan 6 xil ta'mli nafis makaronlar. Sovg'a qutisida.",
-    descriptionRu: 'Изысканные макаруны из миндальной муки, 6 вкусов. В подарочной коробке.',
-    descriptionEn: 'Delicate almond-flour macarons in 6 flavours. In a gift box.',
-    imageUrl: img('1569864358642-9d1684040f43'), price: 119000, rating: 4.9, reviewsCount: 89,
-    ingredients: ['Bodom uni', 'Tuxum oqi', "Ganash va mevali to'ldirmalar", "Tabiiy bo'yoqlar"],
-    ingredientsRu: ['Миндальная мука', 'Яичный белок', 'Ганаш и фруктовые начинки', 'Натуральные красители'],
-    ingredientsEn: ['Almond flour', 'Egg whites', 'Ganache and fruit fillings', 'Natural colourings'],
-  },
-  {
-    cat: 'desserts',
-    name: 'Tiramisu', nameRu: 'Тирамису', nameEn: 'Tiramisu',
-    description: 'Mascarpone, espresso va savoyardi — italyancha klassika.',
-    descriptionRu: 'Маскарпоне, эспрессо и савоярди — итальянская классика.',
-    descriptionEn: 'Mascarpone, espresso and savoiardi — an Italian classic.',
-    imageUrl: img('1571877227200-a0d98ea607e9'), price: 55000, rating: 4.8, reviewsCount: 74,
-    ingredients: ['Mascarpone', 'Espresso', 'Savoyardi pechenyesi', 'Kakao'],
-    ingredientsRu: ['Маскарпоне', 'Эспрессо', 'Печенье савоярди', 'Какао'],
-    ingredientsEn: ['Mascarpone', 'Espresso', 'Savoiardi biscuits', 'Cocoa'],
-  },
-  {
-    cat: 'desserts',
-    name: 'Nyu-York chizkeyki', nameRu: 'Чизкейк Нью-Йорк', nameEn: 'New York Cheesecake',
-    description: 'Krem-pishloqli zich va mayin chizkeyk, rezavorli sous bilan.',
-    descriptionRu: 'Плотный и нежный чизкейк из сливочного сыра с ягодным соусом.',
-    descriptionEn: 'Rich, creamy cheesecake served with berry sauce.',
-    imageUrl: img('1533134242443-d4fd215305ad'), price: 49000, rating: 4.7, reviewsCount: 66,
-    ingredients: ['Krem-pishloq', 'Qumli asos', 'Rezavorli sous', 'Vanil'],
-    ingredientsRu: ['Сливочный сыр', 'Песочная основа', 'Ягодный соус', 'Ваниль'],
-    ingredientsEn: ['Cream cheese', 'Biscuit base', 'Berry sauce', 'Vanilla'],
-  },
-  {
-    cat: 'drinks',
-    name: 'Kapuchino', nameRu: 'Капучино', nameEn: 'Cappuccino',
-    description: 'Arabika donlaridan tayyorlangan kapuchino — shirinlik uchun ideal juftlik.',
-    descriptionRu: 'Капучино из зёрен арабики — идеальная пара к десерту.',
-    descriptionEn: 'Arabica cappuccino — the perfect match for dessert.',
-    imageUrl: img('1495474472287-4d71bcdd2085'), price: 25000, rating: 4.8, reviewsCount: 40,
-    ingredients: ['Arabika espresso', "Sut ko'pigi"],
-    ingredientsRu: ['Эспрессо арабика', 'Молочная пенка'],
-    ingredientsEn: ['Arabica espresso', 'Milk foam'],
-  },
-];
+  { name: 'Fruktovaya podushka', nameRu: 'Фруктовая подушка', nameEn: 'Fruit pillow', price: 12000, imageUrl: IMG.pie, sizes: PIECE(12000) },
+  { name: 'Vishnyovaya trubochka', nameRu: 'Вишнёвая трубочка', nameEn: 'Cherry roll', price: 12000, imageUrl: IMG.pie, sizes: PIECE(12000) },
+].map((p) => ({ cat: 'piece', ...p }));
+
+/** Tortlar — narx 1 dona tort uchun */
+const cakeItems = [
+  ['Merengoviy tort', 'Меренговый торт', 'Meringue cake', 800000, IMG.meringue],
+  ['Maxroviy tort', 'Махровый торт', 'Makhroviy cake', 650000, IMG.cake],
+  ['Orexoviy tort', 'Ореховый торт', 'Walnut cake', 800000, IMG.honey],
+  ['Domashniy tort', 'Домашний торт', 'Homemade cake', 1000000, IMG.cake],
+  ['Chococherry torti', 'Торт Чоко-черри', 'Choco-cherry cake', 800000, IMG.chocolate],
+  ['Snikers tort', 'Торт Сникерс', 'Snickers cake', 1000000, IMG.chocolate, true],
+].map(([name, nameRu, nameEn, price, imageUrl, isPopular = false]) => ({
+  cat: 'cakes', name, nameRu, nameEn, price, imageUrl, isPopular,
+}));
+
+/** Torjestvenniy tortlar — porsiyasi 60 000 – 65 000 so'mdan (dizaynga qarab) */
+const PORTION = 60000;
+const celebration = {
+  cat: 'celebration', isPopular: true, badge: 'Buyurtma',
+  name: 'Torjestvenniy tort', nameRu: 'Торжественный торт', nameEn: 'Celebration cake',
+  description: "Porsiyasi 60 000 – 65 000 so'mdan (dizaynga qarab). Masalan, 20 kishilik tort — 1 200 000 so'm. Yakuniy narx dizayn kelishilgach aniqlanadi.",
+  descriptionRu: 'Порция от 60 000 – 65 000 сум (в зависимости от дизайна). Например, торт на 20 человек — 1 200 000 сум. Итоговая цена определяется после согласования дизайна.',
+  descriptionEn: 'From 60,000 – 65,000 UZS per portion (depending on design). For example, a cake for 20 people is 1,200,000 UZS. The final price is confirmed once the design is agreed.',
+  imageUrl: IMG.celebration, price: 10 * PORTION,
+  sizes: [10, 15, 20, 25, 30, 40, 50].map((n) => ({ label: `${n} kishilik`, price: n * PORTION })),
+};
+
+const products = [...listItems, ...pieceItems, ...cakeItems, celebration].map((p) => ({
+  description: '', rating: 5, reviewsCount: 0, ...p,
+}));
 
 const stories = [
-  { title: 'Yangi', titleRu: 'Новинки', titleEn: 'New', imageUrl: img('1565958011703-44f9829ba187'),
-    text: 'Yangi mavsum: qulupnayli tortlar qaytdi! 🍓', textRu: 'Новый сезон: клубничные торты вернулись! 🍓', textEn: 'New season: strawberry cakes are back! 🍓' },
-  { title: 'Aksiya', titleRu: 'Акция', titleEn: 'Sale', imageUrl: img('1499636136210-6f4ee915583e'),
-    text: 'Pechenyelarga −30% chegirma faqat shu hafta!', textRu: 'Скидка −30% на печенье только на этой неделе!', textEn: '−30% off cookies this week only!' },
-  { title: 'Bayram', titleRu: 'Праздник', titleEn: 'Party', imageUrl: img('1464349095431-e9a21285b5f3'),
-    text: "Tug'ilgan kun tortlarini 2 kun oldin buyurtma qiling 🎂", textRu: 'Заказывайте торты на день рождения за 2 дня 🎂', textEn: 'Order birthday cakes 2 days in advance 🎂' },
-  { title: 'Tong', titleRu: 'Утро', titleEn: 'Morning', imageUrl: img('1555507036-ab1f4038808a'),
-    text: 'Har tong 8:00 da yangi kruassanlar ☕', textRu: 'Свежие круассаны каждое утро в 8:00 ☕', textEn: 'Fresh croissants every morning at 8:00 ☕' },
-  { title: "Sovg'a", titleRu: 'Подарок', titleEn: 'Gifts', imageUrl: img('1569864358642-9d1684040f43'),
-    text: "Makaronlar sovg'a qutisida — yaqinlaringizni xursand qiling 💝", textRu: 'Макаруны в подарочной коробке — порадуйте близких 💝', textEn: 'Macarons in a gift box — delight your loved ones 💝' },
+  { title: 'Prayslist', titleRu: 'Прайс', titleEn: 'Prices', imageUrl: IMG.layered,
+    text: "Listli pirojenniylar 300 000 so'mdan, tortlar 650 000 so'mdan.",
+    textRu: 'Пирожные листами от 300 000 сум, торты от 650 000 сум.',
+    textEn: 'Tray pastries from 300,000 UZS, cakes from 650,000 UZS.' },
+  { title: 'Bayram', titleRu: 'Праздник', titleEn: 'Party', imageUrl: IMG.celebration,
+    text: "Torjestvenniy tortlar — porsiyasi 60 000 so'mdan. 20 kishilik tort — 1 200 000 so'm.",
+    textRu: 'Торжественные торты — порция от 60 000 сум. Торт на 20 человек — 1 200 000 сум.',
+    textEn: 'Celebration cakes from 60,000 UZS per portion. A cake for 20 people is 1,200,000 UZS.' },
+  { title: 'Makaron', titleRu: 'Макаруны', titleEn: 'Macarons', imageUrl: IMG.macarons,
+    text: "Makaronlar — 15 000 so'mdan. Listda 56 dona.",
+    textRu: 'Макаруны — от 15 000 сум. В листе 56 шт.',
+    textEn: 'Macarons from 15,000 UZS. 56 pieces per tray.' },
+  { title: 'Buyurtma', titleRu: 'Заказ', titleEn: 'Orders', imageUrl: IMG.cake,
+    text: 'Buyurtmalarni 4–7 kun avvaldan bering 🎂',
+    textRu: 'Заказывайте за 4–7 дней 🎂',
+    textEn: 'Please order 4–7 days in advance 🎂' },
 ];
 
 // Narxlar namuna sifatida — Admin Panel > Kurslar bo'limida o'zgartiring
@@ -206,7 +185,16 @@ const courses = [
 ];
 
 
+// `npm run db:menu` — mavjud menyuni (kategoriya, mahsulot, story) o'chirib, prayslist bo'yicha qayta yozadi.
+// Buyurtmalar tarixi saqlanadi (ular mahsulot nusxasini o'zida saqlaydi).
+const REPLACE_MENU = process.argv.includes('--menu');
+
 async function main() {
+  if (REPLACE_MENU) {
+    await prisma.$transaction([prisma.product.deleteMany(), prisma.category.deleteMany(), prisma.story.deleteMany()]);
+    console.log("🗑  Eski menyu o'chirildi.");
+  }
+
   if ((await prisma.product.count()) === 0) {
     const catIds = {};
     for (const { key, ...data } of categories) {

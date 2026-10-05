@@ -261,3 +261,4 @@ select { height: 38px; padding: 0 10px; }
   .two-cols { grid-template-columns: 1fr; }
   .k-board { grid-template-columns: 1fr; }
 }
+.k-timer.due { background: #fff3dc; color: #8a5300; }

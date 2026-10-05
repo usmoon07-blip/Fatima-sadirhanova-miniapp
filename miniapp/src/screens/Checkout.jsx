@@ -10,8 +10,13 @@ import { formatPhone, isValidPhone } from '../lib/format';
 import { storage } from '../lib/storage';
 import { haptic, openLink, requestContact, tgUser } from '../lib/telegram';
 
-function minDateTime() {
-  const d = new Date(Date.now() + 2 * 60 * 60 * 1000);
+/** datetime-local uchun qiymat: bugundan `days` kun keyin (0 bo'lsa — 2 soatdan keyin) */
+function minDateTime(days) {
+  const d = days > 0 ? new Date() : new Date(Date.now() + 2 * 60 * 60 * 1000);
+  if (days > 0) {
+    d.setDate(d.getDate() + days);
+    d.setHours(10, 0, 0, 0);
+  }
   d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
   return d.toISOString().slice(0, 16);
 }
@@ -34,8 +39,9 @@ export default function Checkout() {
   const [phone, setPhone] = useState(saved.phone || '');
   const [address, setAddress] = useState(user?.address || saved.address || '');
   const [coords, setCoords] = useState(user?.latitude ? { latitude: user.latitude, longitude: user.longitude } : saved.coords || null);
-  const [timeMode, setTimeMode] = useState('asap');
-  const [time, setTime] = useState('');
+  const advanceDays = config.order?.advanceDays || 0;
+  const [timeMode, setTimeMode] = useState(advanceDays ? 'later' : 'asap');
+  const [time, setTime] = useState(advanceDays ? minDateTime(advanceDays) : '');
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
@@ -68,7 +74,7 @@ export default function Checkout() {
     if (name.trim().length < 2) e.name = t.errName;
     if (!isValidPhone(phone)) e.phone = t.errPhone;
     if (deliveryType === 'DELIVERY' && !coords && address.trim().length < 5) e.address = t.errAddress;
-    if (timeMode === 'later' && !time) e.time = t.errTime;
+    if (timeMode === 'later' && (!time || (advanceDays && time.slice(0, 10) < minDateTime(advanceDays).slice(0, 10)))) e.time = t.errTime;
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -93,6 +99,7 @@ export default function Checkout() {
         latitude: isDelivery ? coords?.latitude ?? null : null,
         longitude: isDelivery ? coords?.longitude ?? null : null,
         deliveryTime: timeMode === 'later' && time ? prettyDateTime(time) : t.asap,
+        deliveryAt: timeMode === 'later' && time ? new Date(time).toISOString() : null,
         comment: comment.trim() || null,
       };
       const { order } = await api.createOrder(payload);
@@ -124,12 +131,12 @@ export default function Checkout() {
         <button type="button" className={deliveryType === 'DELIVERY' ? 'active' : ''} onClick={() => chooseType('DELIVERY')}>
           <Truck size={22} />
           <b>{t.delivery}</b>
-          <small>{t.minutes(delivery.etaDelivery)}</small>
+          {!advanceDays && <small>{t.minutes(delivery.etaDelivery)}</small>}
         </button>
         <button type="button" className={deliveryType === 'PICKUP' ? 'active' : ''} onClick={() => chooseType('PICKUP')}>
           <Store size={22} />
           <b>{t.pickup}</b>
-          <small>{t.minutes(delivery.etaPickup)}</small>
+          {!advanceDays && <small>{t.minutes(delivery.etaPickup)}</small>}
         </button>
       </div>
 
@@ -179,15 +186,24 @@ export default function Checkout() {
 
       <section className="card form-card">
         <h4><Clock size={18} /> {deliveryType === 'DELIVERY' ? t.timeDelivery : t.timePickup}</h4>
-        <div className="chips wrap">
-          <button type="button" className={`chip ${timeMode === 'asap' ? 'active' : ''}`} onClick={() => setTimeMode('asap')}>{t.asap}</button>
-          <button type="button" className={`chip ${timeMode === 'later' ? 'active' : ''}`} onClick={() => setTimeMode('later')}>{t.chooseTime}</button>
-        </div>
+        {!advanceDays && (
+          <div className="chips wrap">
+            <button type="button" className={`chip ${timeMode === 'asap' ? 'active' : ''}`} onClick={() => setTimeMode('asap')}>{t.asap}</button>
+            <button type="button" className={`chip ${timeMode === 'later' ? 'active' : ''}`} onClick={() => setTimeMode('later')}>{t.chooseTime}</button>
+          </div>
+        )}
         {timeMode === 'later' && (
           <>
-            <input className={errors.time ? 'invalid' : ''} type="datetime-local" min={minDateTime()} value={time} onChange={(e) => setTime(e.target.value)} />
+            <input
+              className={errors.time ? 'invalid' : ''}
+              type="datetime-local"
+              min={minDateTime(advanceDays).slice(0, 10) + (advanceDays ? 'T00:00' : minDateTime(0).slice(10))}
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              aria-label={t.pickDate}
+            />
             {errors.time && <div className="field-error">{errors.time}</div>}
-            <p className="muted small">{t.advanceHint}</p>
+            {advanceDays > 0 && <p className="muted small">{t.advanceHint(advanceDays)}</p>}
           </>
         )}
       </section>

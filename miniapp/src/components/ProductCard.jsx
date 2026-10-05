@@ -29,7 +29,7 @@ export default function ProductCard({ product, compact = false }) {
       </div>
       <div className="pcard-body">
         <h3 className="pcard-title">{name}</h3>
-        <Stars rating={product.rating} size={11} />
+        <Stars rating={product.rating} size={11} count={product.reviewsCount} />
         <div className="pcard-bottom">
           <div className="price-col">
             {product.oldPrice > product.price && <s className="old-price">{shortMoney(product.oldPrice)}</s>}

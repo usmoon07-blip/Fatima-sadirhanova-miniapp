@@ -92,7 +92,7 @@ npm run setup
 Bu buyruq avtomatik ravishda:
 1. Backend, Mini App va Admin Panel paketlarini o'rnatadi (`npm install`);
 2. Prisma migratsiyasini bazaga qo'llaydi — jadvallarni yaratadi (`prisma migrate deploy`);
-3. Seed skriptini ishga tushiradi — 6 ta kategoriya, 12 ta mahsulot (3 tilda), 5 ta story va 3 ta kurs qo'shadi. Kurs narxlari namuna — Admin Panel > Kurslar'da o'zgartiring.
+3. Seed skriptini ishga tushiradi — **prayslist bo'yicha menyu** (4 kategoriya: Listli pirojenniylar, Shtuchniy pirojenniylar, Tortlar, Torjestvenniy tortlar — 34 mahsulot, 3 tilda), 4 ta story va 3 ta kurs qo'shadi. Mahsulot suratlari vaqtinchalik — Admin Panel > Mahsulotlar'dan haqiqiylarini yuklang. Kurs narxlari namuna — Admin Panel > Kurslar'da o'zgartiring.
 
 Agar qadamlarni alohida bajarmoqchi bo'lsangiz:
 ```bash
@@ -171,11 +171,11 @@ Telegram Mini App faqat **https** manzilda ishlaydi. ngrok kompyuteringizdagi `l
 
 ### Mijoz uchun (Mini App + Bot)
 - **3 til: o'zbek, rus, ingliz.** Bot `/start` da tilni so'raydi; Mini App ham birinchi ochilishda so'raydi. Menyu, taom nomlari, tarkibi va bot xabarlari tarjima qilingan. Til profil yoki botdagi `/lang` orqali istalgan payt almashtiriladi.
-- **Bosh sahifa:** qidiruv, saqlangan manzil ("60 daqiqada yetkazamiz"), stories, tezkor tugmalar (Biz haqimizda, Kurslar, Sevimlilar, Buyurtmalar), kurslar banneri, kategoriyalar, mashhurlar.
+- **Bosh sahifa:** qidiruv, saqlangan manzil ("Buyurtma 4–7 kun avvaldan"), stories, tezkor tugmalar (Biz haqimizda, Kurslar, Sevimlilar, Buyurtmalar), kurslar banneri, kategoriyalar, mashhurlar.
 - **Menyu:** kategoriyalar bo'yicha bo'limlar; kategoriya paneli tepada yopishib turadi va skroll qilganda joriy bo'lim o'zi belgilanadi. Qidiruv taom nomi, tarkibi yoki kategoriya bo'yicha (3 tilda).
 - **Taom kartochkasi:** katta surat, nomi ikki tilda, tarkibi ro'yxat bo'lib, o'lcham, miqdor va doim ko'rinib turadigan narx tugmasi.
 - **Savat:** "yana X so'm qo'shsangiz yetkazish bepul", jami summa har o'zgarishda qayta hisoblanadi.
-- **Rasmiylashtirish:** yetkazib berish (~60 daq) yoki olib ketish (~20 daq), joylashuvni bir bosishda aniqlash, telefon, vaqt, naqd yoki karta, izoh. **Manzil va telefon eslab qolinadi.**
+- **Rasmiylashtirish:** yetkazib berish yoki olib ketish, **topshirish sanasi** (kamida `ORDER_ADVANCE_DAYS` = 4 kun keyin; server ham tekshiradi), joylashuvni bir bosishda aniqlash, telefon, vaqt, naqd yoki karta, izoh. **Manzil va telefon eslab qolinadi.**
 - **Buyurtmalar:** rangli holat belgisi; **"Bekor qilish"** oshxona qabul qilmaguncha ishlaydi, keyin yo'qoladi; **"Yana buyurtma qilish"** bir bosishda.
 - **Kurslar** (pastki menyuda): *Makaronterapiya* (online/offline), *Mukammal kurs* (online/offline), *Individual kurs — 1 kishi uchun* (offline). Har bir kursda tavsif, dastur, davomiylik va har format narxi. Mijoz formatni tanlab ariza qoldiradi (ism, telefon, to'lov turi, izoh), bot arizani 3 tilda tasdiqlaydi. "Mening kurslarim" — arizalar va holati, yangi arizani bekor qilish.
 - **Profil:** telefon, saqlangan manzil, buyurtmalar soni, jami xarid, til, mening kurslarim, aloqa, ish vaqti.
@@ -234,6 +234,7 @@ Telegram Mini App faqat **https** manzilda ishlaydi. ngrok kompyuteringizdagi `l
 | `npm run db:migrate` | Migratsiyalarni bazaga qo'llash |
 | `npm run db:seed` | Boshlang'ich mahsulotlar (baza bo'sh bo'lsa) |
 | `npm run db:studio` | Bazani brauzerda ko'rish (Prisma Studio) |
+| `npm run db:menu` | Menyuni (kategoriya, mahsulot, story) o'chirib, prayslist bo'yicha qayta yozish. Buyurtmalar, mijozlar va kurslar saqlanadi |
 
 ## Muammolar va yechimlar
 

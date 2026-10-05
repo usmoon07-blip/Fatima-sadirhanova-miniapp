@@ -40,20 +40,26 @@ function hhmm(date) {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
+const SCHEDULED_RE = /^\d{2}\.\d{2}\.\d{4}/;
+
 function OrderCard({ order, now, fresh, onAction, busy }) {
   const mins = minutesSince(order.createdAt, now);
-  const level = mins >= LATE_MIN ? 'late' : mins >= WARN_MIN ? 'warn' : 'ok';
+  // Oldindan buyurtma qabul qilingach — taymer o'rniga topshirish sanasi
+  const scheduled = SCHEDULED_RE.test(order.deliveryTime || '') && order.status !== 'NEW';
+  const level = scheduled ? 'ok' : mins >= LATE_MIN ? 'late' : mins >= WARN_MIN ? 'warn' : 'ok';
   return (
     <article className={`k-card ${level} ${fresh ? 'fresh' : ''}`}>
       <div className="k-head">
         <b>#{order.id}</b>
-        <span className={`k-timer ${level}`}>{mins} daqiqa</span>
+        {scheduled
+          ? <span className="k-timer due">📅 {order.deliveryTime}</span>
+          : <span className={`k-timer ${level}`}>{mins} daqiqa</span>}
       </div>
       <div className="k-tags">
         <span>{order.deliveryType === 'DELIVERY' ? 'Yetkazib berish' : 'Olib ketish'}</span>
         <span>{order.paymentMethod === 'CASH' ? 'Naqd' : 'Karta'}</span>
         <span>{hhmm(order.createdAt)}</span>
-        {order.deliveryTime && !/tez|скорее|soon/i.test(order.deliveryTime) && <span className="k-time">⏰ {order.deliveryTime}</span>}
+        {SCHEDULED_RE.test(order.deliveryTime || '') && <span className="k-time">📅 Topshirish: {order.deliveryTime}</span>}
       </div>
       <ul className="k-items">
         {order.items.map((i) => (

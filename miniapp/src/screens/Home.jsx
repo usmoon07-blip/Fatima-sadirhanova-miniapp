@@ -44,7 +44,7 @@ export default function Home() {
         <span className="address-icon"><MapPin size={18} /></span>
         <span className="address-text">
           <b>{user?.address || (user?.latitude ? `📍 ${user.latitude.toFixed(4)}, ${user.longitude.toFixed(4)}` : t.setAddress)}</b>
-          <small>{t.deliverIn(delivery.etaDelivery)}</small>
+          <small>{config.order?.advanceDays ? t.preorderNote(config.order.advanceDays) : t.deliverIn(delivery.etaDelivery)}</small>
         </span>
         <ChevronRight size={18} className="muted" />
       </button>

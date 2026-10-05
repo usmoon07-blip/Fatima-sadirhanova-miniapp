@@ -1,6 +1,8 @@
 import { Star } from 'lucide-react';
 
-export default function Stars({ rating = 5, reviews, label, size = 12 }) {
+export default function Stars({ rating = 5, reviews, label, size = 12, count }) {
+  // Sharhlar bo'lmasa yulduzchalar ko'rsatilmaydi (soxta reyting chiqmasin)
+  if (!(count ?? reviews)) return null;
   const full = Math.round(rating);
   return (
     <div className="stars" aria-label={`${rating}`}>

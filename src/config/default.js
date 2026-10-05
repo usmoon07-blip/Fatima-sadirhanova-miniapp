@@ -48,6 +48,11 @@ const config = {
     etaDelivery: num(process.env.DELIVERY_ETA_MIN, 60),
     etaPickup: num(process.env.PICKUP_ETA_MIN, 20),
   },
+
+  order: {
+    // Buyurtma necha kun avval berilishi shart (0 — "imkon qadar tezroq" ham mumkin)
+    advanceDays: num(process.env.ORDER_ADVANCE_DAYS, 4),
+  },
 };
 
 config.webAppIsHttps = config.bot.webAppUrl.startsWith('https://');
