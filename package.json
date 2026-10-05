@@ -1,0 +1,36 @@
+{
+  "name": "fatima-sadirhanova-bakery",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Premium qandolatchilik uchun Telegram Mini App, Bot va Admin Panel",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "postinstall": "prisma generate",
+    "setup": "npm install && npm --prefix miniapp install && npm --prefix admin install && npm run db:migrate && npm run db:seed",
+    "dev": "concurrently -k -n API,MINIAPP,ADMIN -c magenta,cyan,yellow \"npm:dev:api\" \"npm:dev:app\" \"npm:dev:admin\"",
+    "dev:api": "node --watch-path=src src/index.js",
+    "dev:app": "npm --prefix miniapp run dev",
+    "dev:admin": "npm --prefix admin run dev",
+    "start": "node src/index.js",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "node prisma/seed.js",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "grammy": "^1.36.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "prisma": "^6.19.0"
+  }
+}

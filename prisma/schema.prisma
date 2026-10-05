@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  NEW
+  CONFIRMED
+  PREPARING
+  READY
+  ON_THE_WAY
+  DELIVERED
+  CANCELLED
+}
+
+enum DeliveryType {
+  DELIVERY
+  PICKUP
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  telegramId   String   @unique
+  firstName    String?
+  lastName     String?
+  username     String?
+  phone        String?
+  languageCode String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  orders       Order[]
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String
+  imageUrl  String?
+  sortOrder Int       @default(0)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  products  Product[]
+}
+
+model Product {
+  id           Int       @id @default(autoincrement())
+  name         String
+  description  String    @default("")
+  imageUrl     String
+  oldPrice     Int?
+  price        Int
+  categoryId   Int?
+  category     Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  ingredients  String[]  @default([])
+  /// Variantlar: [{ "label": "6 inch", "price": 249000 }]
+  sizes        Json      @default("[]")
+  rating       Float     @default(5)
+  reviewsCount Int       @default(0)
+  badge        String?
+  isPopular    Boolean   @default(false)
+  isAvailable  Boolean   @default(true)
+  isUpsell     Boolean   @default(false)
+  sortOrder    Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([categoryId])
+}
+
+model Story {
+  id        Int      @id @default(autoincrement())
+  title     String
+  imageUrl  String
+  text      String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id            Int           @id @default(autoincrement())
+  userId        Int
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// [{ productId, name, imageUrl, size, price, quantity, total }]
+  items         Json
+  subtotal      Int
+  deliveryFee   Int           @default(0)
+  total         Int
+  deliveryType  DeliveryType
+  paymentMethod PaymentMethod
+  customerName  String
+  phone         String
+  address       String?
+  latitude      Float?
+  longitude     Float?
+  deliveryTime  String?
+  comment       String?
+  status        OrderStatus   @default(NEW)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([status])
+  @@index([userId])
+  @@index([createdAt])
+}
