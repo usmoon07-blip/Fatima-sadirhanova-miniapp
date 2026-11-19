@@ -403,3 +403,29 @@ h1, h2, h3, h4, p { margin: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* ============ Karta orqali to'lov ============ */
+.success-head { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 0 18px; }
+.success-head h2 { font-size: 27px; line-height: 1.1; }
+.success-head p { color: var(--ink-soft); font-size: 14px; max-width: 320px; }
+.success-badge.small { width: 68px; height: 68px; }
+.later-btn { margin: 12px 0 10px; }
+.pay-panel { display: flex; flex-direction: column; gap: 14px; }
+.pay-card { position: relative; overflow: hidden; border-radius: 22px; padding: 18px; color: #fff; background: var(--grad); box-shadow: 0 16px 34px rgba(156,95,104,.35); }
+.pay-card::after { content: ''; position: absolute; width: 180px; height: 180px; border-radius: 50%; right: -60px; top: -80px; background: rgba(255,255,255,.14); }
+.pay-card-top { display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 13px; opacity: .95; }
+.pay-card-top span { display: inline-flex; align-items: center; gap: 6px; }
+.pay-card-top small { opacity: .85; }
+.pay-number { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; margin-top: 22px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,.18); color: #fff; }
+.pay-number b { font-size: 21px; letter-spacing: 1.5px; font-variant-numeric: tabular-nums; }
+.pay-holder { margin-top: 8px; font-weight: 700; font-size: 14px; letter-spacing: .6px; text-transform: uppercase; opacity: .95; }
+.pay-amount { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,.45); color: #fff; }
+.pay-amount span { font-size: 13px; opacity: .9; }
+.pay-amount b { font-size: 18px; display: inline-flex; align-items: center; gap: 6px; }
+.pay-steps { margin: 0; padding: 14px 16px 14px 34px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; display: grid; gap: 8px; font-size: 14px; color: var(--ink-soft); }
+.pay-steps b { color: var(--ink); }
+.pay-note { background: var(--blush-soft); color: var(--mauve-dark); padding: 12px 14px; border-radius: 14px; font-size: 13.5px; font-weight: 600; }
+.summary .pay-method span:last-child { display: inline-flex; align-items: center; gap: 6px; color: var(--mauve-dark); font-weight: 800; }
+.order-pay { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0 14px 14px; width: calc(100% - 28px); padding: 10px; border-radius: 12px; background: var(--grad); color: #fff; font-weight: 800; font-size: 13.5px; }
+.order-pay.done { background: #E8F4EC; color: var(--green); }
+.spin { animation: spin .8s linear infinite; }

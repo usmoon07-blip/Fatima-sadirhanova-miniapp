@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import BottomNav from './components/BottomNav';
 import CourseSheet from './components/CourseSheet';
 import ReviewSheet from './components/ReviewSheet';
+import BottomSheet from './components/BottomSheet';
+import PaymentPanel from './components/PaymentPanel';
 import Toast from './components/Toast';
 import { StoryViewer } from './components/Stories';
 import Onboarding from './screens/Onboarding';
@@ -28,11 +30,11 @@ function Splash() {
 }
 
 export default function App() {
-  const { status, error, load, tab, setTab, courseId, reviewCourseId, storyIndex } = useStore();
+  const { status, error, load, tab, setTab, courseId, reviewCourseId, storyIndex, paymentOrder, openPayment, toast } = useStore();
   const [onboarded, setOnboarded] = useState(() => storage.get('onboarded', false));
 
   // Telegram "Orqaga" tugmasi: boshqa tabdan bosh sahifaga
-  const overlayOpen = courseId != null || reviewCourseId != null || storyIndex != null;
+  const overlayOpen = courseId != null || reviewCourseId != null || storyIndex != null || paymentOrder != null;
   useEffect(() => {
     if (overlayOpen || !onboarded) return undefined;
     return setBackButton(tab !== 'home' ? () => setTab('home') : null);
@@ -64,6 +66,16 @@ export default function App() {
       <BottomNav />
       {courseId != null && <CourseSheet />}
       {reviewCourseId != null && <ReviewSheet key={reviewCourseId} />}
+      {paymentOrder && (
+        <BottomSheet title="Karta orqali to'lov" onClose={() => openPayment(null)}>
+          <div className="sheet-pad">
+            <PaymentPanel
+              order={paymentOrder}
+              onUploaded={() => { openPayment(null); toast("Chek yuborildi! Tez orada tasdiqlaymiz 🧁"); }}
+            />
+          </div>
+        </BottomSheet>
+      )}
       <StoryViewer />
       <Toast />
     </div>

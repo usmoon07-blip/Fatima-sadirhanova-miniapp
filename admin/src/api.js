@@ -53,6 +53,8 @@ export const api = {
   courses: resource('courses'),
   results: resource('results'),
   stories: resource('stories'),
+  settings: () => request('/settings'),
+  saveSettings: (data) => request('/settings', { method: 'PUT', body: data }),
   reviews: () => request('/reviews'),
   setReviewVisible: (id, isVisible) => request(`/reviews/${id}`, { method: 'PATCH', body: { isVisible } }),
   deleteReview: (id) => request(`/reviews/${id}`, { method: 'DELETE' }),

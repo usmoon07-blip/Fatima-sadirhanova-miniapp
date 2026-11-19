@@ -27,6 +27,9 @@ router.get('/reviews', a.reviews);
 router.patch('/reviews/:id', idParam, validate(a.schemas.visible), a.setReviewVisible);
 router.delete('/reviews/:id', idParam, a.deleteReview);
 
+router.get('/settings', a.getSettings);
+router.put('/settings', validate(a.schemas.settings), a.saveSettings);
+
 router.post('/upload', a.uploadMiddleware, a.upload);
 
 module.exports = router;

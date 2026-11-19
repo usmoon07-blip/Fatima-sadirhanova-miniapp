@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Award, Clapperboard, GraduationCap, LogOut, MessageSquareHeart, ReceiptText } from 'lucide-react';
+import { Award, Clapperboard, GraduationCap, LogOut, MessageSquareHeart, ReceiptText, Settings as SettingsIcon } from 'lucide-react';
 import Login from './pages/Login';
 import Orders from './pages/Orders';
 import CrudPage from './pages/CrudPage';
 import Reviews from './pages/Reviews';
+import Settings from './pages/Settings';
 import { api, auth, money, setUnauthorizedHandler } from './api';
 
 const COURSE_FIELDS = [
@@ -66,6 +67,7 @@ const PAGES = [
   { id: 'results', label: 'Natijalar', Icon: Award },
   { id: 'reviews', label: 'Izohlar', Icon: MessageSquareHeart },
   { id: 'stories', label: 'Stories', Icon: Clapperboard },
+  { id: 'settings', label: "Sozlamalar (karta)", Icon: SettingsIcon },
 ];
 
 export default function App() {
@@ -127,6 +129,7 @@ export default function App() {
           />
         )}
         {page === 'reviews' && <Reviews />}
+        {page === 'settings' && <Settings />}
         {page === 'stories' && (
           <CrudPage
             key="stories"

@@ -8,6 +8,7 @@ const Result = require('../models/Result');
 const Story = require('../models/Story');
 const User = require('../models/User');
 const Upload = require('../models/Upload');
+const Setting = require('../models/Setting');
 const { signAdminToken, safeEqual } = require('../middlewares/auth.middleware');
 const { notifyOrderStatus } = require('./botController');
 
@@ -18,6 +19,11 @@ const schemas = {
   login: z.object({ password: z.string().min(1, 'Parolni kiriting') }),
   status: z.object({ status: z.enum(['PENDING', 'PAID', 'CANCELLED']) }),
   visible: z.object({ isVisible: z.boolean() }),
+  settings: z.object({
+    cardNumber: z.string().trim().max(40).optional(),
+    cardHolder: z.string().trim().max(80).optional(),
+    paymentNote: z.string().trim().max(500).optional(),
+  }),
   course: z.object({
     title: z.string().trim().min(2, 'Kurs nomini kiriting').max(120),
     description: z.string().trim().max(3000).optional().default(''),
@@ -114,6 +120,14 @@ const adminController = {
   courses: crud(Course),
   results: crud(Result),
   stories: crud(Story),
+
+  async getSettings(req, res) {
+    res.json(await Setting.getAll());
+  },
+
+  async saveSettings(req, res) {
+    res.json(await Setting.setMany(req.body));
+  },
 
   async reviews(req, res) {
     res.json(await Review.listAll());

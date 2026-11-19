@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { BookOpenText, CheckCircle2, Phone, Trash2 } from 'lucide-react';
+import { BookOpenText, CheckCircle2, CreditCard, Phone, Trash2 } from 'lucide-react';
 import Img from '../components/Img';
+import PaymentPanel from '../components/PaymentPanel';
 import { PageTitle } from '../components/Header';
 import { useStore } from '../store/StoreContext';
 import { api } from '../lib/api';
@@ -8,12 +9,30 @@ import { lessonsLabel, money } from '../lib/format';
 import { closeApp, haptic, isTelegram, requestContact, tgUser } from '../lib/telegram';
 
 function Success({ order, onClose }) {
+  const [current, setCurrent] = useState(order);
+  const paid = Boolean(current.receiptUrl);
+
+  const finish = () => {
+    if (isTelegram) closeApp();
+    else onClose();
+  };
+
   return (
-    <div className="success-screen">
-      <div className="success-badge"><CheckCircle2 size={56} strokeWidth={1.6} /></div>
-      <h2 className="serif">Buyurtmangiz qabul qilindi!</h2>
-      <p>Buyurtma #{order.id}. Kuratorimiz tez orada siz bilan bog'lanadi 🧁</p>
-      {!isTelegram && <button type="button" className="btn btn-primary" onClick={onClose}>Profilga o'tish</button>}
+    <div className="page">
+      <div className="success-head">
+        <div className="success-badge small"><CheckCircle2 size={34} strokeWidth={1.8} /></div>
+        <h2 className="serif">{paid ? 'Chekingiz qabul qilindi!' : 'Buyurtmangiz qabul qilindi!'}</h2>
+        <p>{paid
+          ? "To'lov tekshirilgach, kursga kirish havolasini botda yuboramiz 🧁"
+          : `Buyurtma #${current.id}. Endi karta orqali to'lovni amalga oshiring 👇`}</p>
+      </div>
+
+      <PaymentPanel order={current} onUploaded={(o) => { setCurrent(o); if (isTelegram) setTimeout(closeApp, 2200); }} />
+
+      <button type="button" className="btn btn-soft btn-block later-btn" onClick={finish}>
+        {paid ? 'Yopish' : "Keyinroq to'layman"}
+      </button>
+      {!paid && <p className="muted small center">Chekni keyinroq Profil → Buyurtmalarim bo'limidan yoki botga rasm qilib yuborishingiz mumkin.</p>}
     </div>
   );
 }
@@ -85,7 +104,7 @@ export default function Cart() {
       clearCart();
       setDone(order);
       refreshMe();
-      if (isTelegram) setTimeout(closeApp, 1600);
+      window.scrollTo({ top: 0 });
     } catch (err) {
       haptic.error();
       setError(err.message);
@@ -152,6 +171,7 @@ export default function Cart() {
         <div><span>Kurslar</span><span>{money(oldTotal)}</span></div>
         {savings > 0 && <div className="save"><span>Chegirma</span><span>−{money(savings)}</span></div>}
         {extra > 0 && <div><span>Qo'shimcha</span><span>{money(extra)}</span></div>}
+        <div className="pay-method"><span>To'lov usuli</span><span><CreditCard size={15} /> Karta orqali</span></div>
         <div className="total"><span>Jami</span><span>{money(total)}</span></div>
       </section>
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, MessageCircle, MessageSquareHeart, Phone, PlayCircle, RotateCcw } from 'lucide-react';
+import { ChevronDown, CreditCard, MessageCircle, MessageSquareHeart, Phone, PlayCircle, ReceiptText, RotateCcw } from 'lucide-react';
 import Img from '../components/Img';
 import { PageTitle } from '../components/Header';
 import { useStore } from '../store/StoreContext';
@@ -13,7 +13,7 @@ const STATUS = {
 };
 
 function OrderCard({ order }) {
-  const { courseMap, me, setCart, setUpsell, setTab, toast } = useStore();
+  const { courseMap, me, setCart, setUpsell, setTab, toast, openPayment } = useStore();
   const [open, setOpen] = useState(false);
   const items = Array.isArray(order.items) ? order.items : [];
   const st = STATUS[order.status] || STATUS.PENDING;
@@ -40,6 +40,15 @@ function OrderCard({ order }) {
         <span className={`status ${st.tone}`}>{st.label}</span>
         <ChevronDown size={18} className="chev" />
       </button>
+      {order.status === 'PENDING' && (
+        order.receiptUrl
+          ? <div className="order-pay done"><ReceiptText size={15} /> Chek yuborilgan — tekshirilmoqda</div>
+          : (
+            <button type="button" className="order-pay" onClick={() => openPayment(order)}>
+              <CreditCard size={15} /> Karta orqali to'lash va chek yuklash
+            </button>
+          )
+      )}
       {open && (
         <div className="order-body">
           {items.map((i, idx) => (

@@ -28,6 +28,7 @@ export function StoreProvider({ children }) {
   const [courseId, setCourseId] = useState(null);
   const [reviewCourseId, setReviewCourseId] = useState(null);
   const [storyIndex, setStoryIndex] = useState(null);
+  const [paymentOrder, setPaymentOrder] = useState(null);
   const [toastMsg, setToastMsg] = useState(null);
   const toastTimer = useRef(null);
 
@@ -124,6 +125,7 @@ export function StoreProvider({ children }) {
     courseId, openCourse: setCourseId, courseMap,
     reviewCourseId, openReview: setReviewCourseId,
     storyIndex, setStoryIndex,
+    paymentOrder, openPayment: setPaymentOrder,
     toastMsg, toast,
   };
 

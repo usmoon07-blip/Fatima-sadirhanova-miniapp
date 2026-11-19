@@ -6,7 +6,9 @@ const Review = require('../models/Review');
 const Result = require('../models/Result');
 const Story = require('../models/Story');
 const User = require('../models/User');
-const { notifyOrderCreated } = require('./botController');
+const Setting = require('../models/Setting');
+const Upload = require('../models/Upload');
+const { notifyOrderCreated, notifyReceiptReceived } = require('./botController');
 
 const PHONE_RE = /^\+?[0-9\s\-()]{9,20}$/;
 
@@ -33,8 +35,9 @@ const schemas = {
 const cartController = {
   schemas,
 
-  config(req, res) {
+  async config(req, res) {
     res.json({
+      payment: await Setting.payment(),
       shop: {
         name: config.shop.name,
         tagline: config.shop.tagline,
@@ -116,6 +119,17 @@ const cartController = {
     });
     notifyOrderCreated(order).catch((e) => console.error('❌ Bot xabari yuborilmadi:', e.message));
     return res.status(201).json(order);
+  },
+
+  async uploadReceipt(req, res) {
+    if (!req.file) return res.status(400).json({ message: 'Chek rasmini tanlang' });
+    const order = await Order.findById(req.id);
+    if (!order || order.userId !== req.user.id) return res.status(404).json({ message: 'Buyurtma topilmadi' });
+    if (order.status !== 'PENDING') return res.status(400).json({ message: "Bu buyurtma uchun chek kerak emas" });
+    const saved = await Upload.create({ mimeType: req.file.mimetype, data: req.file.buffer });
+    const updated = await Order.setReceipt(order.id, `/uploads/${saved.id}`);
+    notifyReceiptReceived(updated).catch((e) => console.error('❌ Bot xabari yuborilmadi:', e.message));
+    return res.json(updated);
   },
 
   async courseReviews(req, res) {

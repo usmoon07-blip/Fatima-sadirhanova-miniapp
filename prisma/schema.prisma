@@ -61,6 +61,9 @@ model Order {
   customerName String
   phone        String
   comment      String?
+  /// To'lov cheki rasmi (/uploads/...)
+  receiptUrl   String?
+  receiptAt    DateTime?
   status       OrderStatus @default(PENDING)
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
@@ -116,4 +119,11 @@ model Upload {
   data      Bytes
   size      Int
   createdAt DateTime @default(now())
+}
+
+/// Admin Paneldan o'zgartiriladigan sozlamalar (karta raqami va h.k.)
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }

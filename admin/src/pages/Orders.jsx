@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Bell, BellOff, RefreshCw, Trash2 } from 'lucide-react';
+import { Bell, BellOff, ReceiptText, RefreshCw, Trash2, X } from 'lucide-react';
 import { api, dateTime, fullName, money, STATUSES, STATUS_MAP } from '../api';
 import { isSoundReady, playSignal, unlockSound } from '../sound';
 
@@ -14,7 +14,9 @@ export default function Orders() {
   const [error, setError] = useState('');
   const [sound, setSound] = useState(isSoundReady());
   const [fresh, setFresh] = useState(new Set());
+  const [receipt, setReceipt] = useState(null);
   const knownIds = useRef(null);
+  const knownReceipts = useRef(null);
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -30,6 +32,16 @@ export default function Orders() {
           setTimeout(() => { document.title = 'Admin Panel — Fatima Sadirkhanova'; }, 6000);
         }
       }
+      // Yangi chek kelganini aniqlash
+      const withReceipt = list.filter((o) => o.receiptUrl).map((o) => o.id);
+      if (knownReceipts.current) {
+        const newReceipts = withReceipt.filter((id) => !knownReceipts.current.has(id));
+        if (newReceipts.length) {
+          playSignal(2);
+          setFresh(new Set(newReceipts));
+        }
+      }
+      knownReceipts.current = new Set([...(knownReceipts.current || []), ...withReceipt]);
       knownIds.current = new Set([...(knownIds.current || []), ...list.map((o) => o.id)]);
       setOrders(list);
       setStats(st);
@@ -87,6 +99,7 @@ export default function Orders() {
       {stats && (
         <div className="stats">
           <div className="stat"><small>To'lov kutilmoqda</small><b className="amber">{stats.pending}</b></div>
+          <div className="stat"><small>Chek yuborilgan (tekshiring)</small><b className="rose">{stats.receipts}</b></div>
           <div className="stat"><small>To'langan buyurtmalar</small><b>{stats.paid}</b></div>
           <div className="stat"><small>Tushum</small><b className="rose">{money(stats.revenue)}</b></div>
           <div className="stat"><small>Bugun</small><b>{stats.today}</b></div>
@@ -112,6 +125,7 @@ export default function Orders() {
               <th>Telefon</th>
               <th>Kurslar</th>
               <th>Jami</th>
+              <th>Chek</th>
               <th>Holati</th>
               <th />
             </tr>
@@ -137,6 +151,13 @@ export default function Orders() {
                 </td>
                 <td className="nowrap"><b>{money(o.total)}</b></td>
                 <td>
+                  {o.receiptUrl ? (
+                    <button type="button" className="receipt-thumb" onClick={() => setReceipt(o)} title="Chekni ko'rish">
+                      <img src={o.receiptUrl} alt="Chek" />
+                    </button>
+                  ) : <span className="muted small-text">{o.status === 'PENDING' ? 'kutilmoqda' : '—'}</span>}
+                </td>
+                <td>
                   <select className={`status-select ${STATUS_MAP[o.status]?.tone}`} value={o.status} onChange={(e) => changeStatus(o, e.target.value)}>
                     {STATUSES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
                   </select>
@@ -147,11 +168,33 @@ export default function Orders() {
               </tr>
             ))}
             {!orders.length && !loading && (
-              <tr><td colSpan={8} className="empty-cell">Buyurtmalar yo'q</td></tr>
+              <tr><td colSpan={9} className="empty-cell">Buyurtmalar yo'q</td></tr>
             )}
           </tbody>
         </table>
       </div>
+
+      {receipt && (
+        <div className="modal-backdrop" onMouseDown={() => setReceipt(null)}>
+          <div className="receipt-modal" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="modal-head">
+              <h3><ReceiptText size={20} /> Buyurtma #{receipt.id} cheki</h3>
+              <button type="button" className="icon-btn" onClick={() => setReceipt(null)} aria-label="Yopish"><X size={18} /></button>
+            </div>
+            <a href={receipt.receiptUrl} target="_blank" rel="noreferrer"><img src={receipt.receiptUrl} alt="Chek" /></a>
+            <div className="receipt-info">
+              <span>{receipt.customerName} · {receipt.phone}</span>
+              <b>Kutilgan summa: {money(receipt.total)}</b>
+            </div>
+            {receipt.status === 'PENDING' && (
+              <div className="modal-foot">
+                <button type="button" className="btn btn-outline" onClick={() => { changeStatus(receipt, 'CANCELLED'); setReceipt(null); }}>Bekor qilish</button>
+                <button type="button" className="btn btn-primary" onClick={() => { changeStatus(receipt, 'PAID'); setReceipt(null); }}>✅ To'landi — kursni ochish</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

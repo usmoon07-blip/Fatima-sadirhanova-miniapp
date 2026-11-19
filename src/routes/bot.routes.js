@@ -7,6 +7,7 @@ function registerBotRoutes(bot) {
   bot.command('yordam', botController.help);
   bot.command('telefon', botController.askPhone);
   bot.on('message:contact', botController.contact);
+  bot.on(['message:photo', 'message:document'], botController.receiptPhoto);
   bot.on('message:text', botController.start);
 }
 

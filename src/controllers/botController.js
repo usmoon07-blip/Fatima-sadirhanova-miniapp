@@ -4,6 +4,8 @@ const { bot } = require('../core/bot');
 const User = require('../models/User');
 const Order = require('../models/Order');
 const Course = require('../models/Course');
+const Setting = require('../models/Setting');
+const Upload = require('../models/Upload');
 const { money, escapeHtml } = require('../utils/format');
 
 const STATUS_LABEL = { PENDING: "⏳ To'lov kutilmoqda", PAID: "✅ To'landi", CANCELLED: '❌ Bekor qilindi' };
@@ -76,6 +78,33 @@ const botController = {
     await User.setPhone(user.id, phone);
     return ctx.reply('✅ Raqamingiz saqlandi. Rahmat!', { reply_markup: { remove_keyboard: true } });
   },
+
+  /** Mijoz chatga chek rasmini yuborsa — oxirgi to'lanmagan buyurtmaga biriktiriladi */
+  async receiptPhoto(ctx) {
+    const msg = ctx.message;
+    const doc = msg.document && /^image\//.test(msg.document.mime_type || '') ? msg.document : null;
+    const photo = msg.photo ? msg.photo[msg.photo.length - 1] : null;
+    const fileInfo = photo || doc;
+    if (!fileInfo) return undefined;
+
+    const user = await User.findByTelegramId(ctx.from.id);
+    const order = user && (await Order.latestAwaitingReceipt(user.id));
+    if (!order) {
+      return ctx.reply("Sizda to'lovi kutilayotgan buyurtma yo'q. Kurs tanlash uchun tugmani bosing 👇", { reply_markup: appKeyboard() });
+    }
+    if (fileInfo.file_size && fileInfo.file_size > 8 * 1024 * 1024) {
+      return ctx.reply('Rasm juda katta. Iltimos, skrinshot yuboring.');
+    }
+
+    const file = await ctx.api.getFile(fileInfo.file_id);
+    const res = await fetch(`https://api.telegram.org/file/bot${config.bot.token}/${file.file_path}`);
+    if (!res.ok) throw new Error(`Faylni yuklab bo'lmadi: ${res.status}`);
+    const data = Buffer.from(await res.arrayBuffer());
+    const saved = await Upload.create({ mimeType: doc?.mime_type || 'image/jpeg', data });
+    const updated = await Order.setReceipt(order.id, `/uploads/${saved.id}`);
+    await notifyReceiptReceived(updated);
+    return undefined;
+  },
 };
 
 /** Mini App'dan buyurtma tushganda mijozga xabar */
@@ -89,15 +118,31 @@ async function notifyOrderCreated(order) {
     '',
     `💰 Jami: <b>${money(order.total)}</b>`,
   ];
-  if (config.shop.cardNumber) {
+  const pay = await Setting.payment();
+  if (order.receiptUrl) {
+    lines.push('', "🧾 Chekingiz qabul qilindi. To'lov tekshirilgach, kursga kirish havolasi shu yerga keladi.");
+  } else if (pay.cardNumber) {
     lines.push(
       '',
-      "💳 To'lov uchun karta:",
-      `<code>${escapeHtml(config.shop.cardNumber)}</code>${config.shop.cardHolder ? ` (${escapeHtml(config.shop.cardHolder)})` : ''}`,
-      "To'lov chekini shu chatga yoki kuratorga yuboring.",
+      "💳 <b>To'lov — karta orqali:</b>",
+      `<code>${escapeHtml(pay.cardNumber)}</code>${pay.cardHolder ? `\n👤 ${escapeHtml(pay.cardHolder)}` : ''}`,
+      `💰 Summa: <b>${money(order.total)}</b>`,
     );
+    if (pay.note) lines.push(escapeHtml(pay.note));
+    lines.push('', "📸 To'lagach, <b>chek rasmini (skrinshot) shu chatga yuboring</b>.");
+  } else {
+    lines.push('', "💳 To'lov karta orqali. Kuratorimiz karta ma'lumotlarini yuboradi.");
   }
   await bot.api.sendMessage(order.user.telegramId, lines.join('\n'), { parse_mode: 'HTML' });
+}
+
+/** Chek qabul qilinganda mijozga tasdiq */
+async function notifyReceiptReceived(order) {
+  if (!bot || !order.user?.telegramId) return;
+  await bot.api.sendMessage(
+    order.user.telegramId,
+    `🧾 Buyurtma #${order.id} uchun chekingiz qabul qilindi!\nTo'lov tekshirilgach, kursga kirish havolasini shu yerga yuboramiz ⏳`,
+  );
 }
 
 /** Admin buyurtma holatini o'zgartirganda mijozga xabar */
@@ -123,4 +168,4 @@ async function notifyOrderStatus(order) {
   }
 }
 
-module.exports = { botController, notifyOrderCreated, notifyOrderStatus };
+module.exports = { botController, notifyOrderCreated, notifyOrderStatus, notifyReceiptReceived };

@@ -32,6 +32,19 @@ const Order = {
     return prisma.order.delete({ where: { id } });
   },
 
+  setReceipt(id, receiptUrl) {
+    return prisma.order.update({
+      where: { id }, data: { receiptUrl, receiptAt: new Date() }, include: { user: { select: USER_SELECT } },
+    });
+  },
+
+  /** Foydalanuvchining chek yuborilmagan oxirgi kutilayotgan buyurtmasi */
+  latestAwaitingReceipt(userId) {
+    return prisma.order.findFirst({
+      where: { userId, status: 'PENDING', receiptUrl: null }, orderBy: { createdAt: 'desc' },
+    });
+  },
+
   /** Foydalanuvchi to'lagan (PAID) va to'lovi kutilayotgan (PENDING) kurs ID'lari */
   async courseIdsByUser(userId) {
     const orders = await prisma.order.findMany({
@@ -51,13 +64,14 @@ const Order = {
   },
 
   async stats() {
-    const [pending, paid, revenue, today] = await Promise.all([
+    const [pending, receipts, paid, revenue, today] = await Promise.all([
       prisma.order.count({ where: { status: 'PENDING' } }),
+      prisma.order.count({ where: { status: 'PENDING', receiptUrl: { not: null } } }),
       prisma.order.count({ where: { status: 'PAID' } }),
       prisma.order.aggregate({ where: { status: 'PAID' }, _sum: { total: true } }),
       prisma.order.count({ where: { createdAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } } }),
     ]);
-    return { pending, paid, revenue: revenue._sum.total || 0, today };
+    return { pending, receipts, paid, revenue: revenue._sum.total || 0, today };
   },
 };
 
