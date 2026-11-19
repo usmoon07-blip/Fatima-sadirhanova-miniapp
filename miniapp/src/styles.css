@@ -449,3 +449,7 @@ h1, h2, h3, h4, p { margin: 0; }
 .made-by { text-align: center; color: var(--muted); font-size: 11.5px; margin: 26px 0 4px; opacity: .8; }
 .btn-done { background: #E8F4EC !important; color: var(--green) !important; box-shadow: none !important; }
 .toast.err { background: var(--red); }
+
+/* FS logotipi */
+.brand-logo { background: #FFF8F4; border: 1px solid #EED9CF; overflow: hidden; }
+.brand-logo img { width: 82%; height: 82%; object-fit: contain; display: block; }

@@ -1,0 +1,22 @@
+{
+  "name": "Fatima Sadirkhanova — Admin Panel",
+  "short_name": "FS Admin",
+  "description": "Buyurtmalar, kurslar va statistika",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FFF8F4",
+  "theme_color": "#FFF8F4",
+  "lang": "uz",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Buyurtmalar", "url": "./#orders", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Statistika", "url": "./#analytics", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] }
+  ]
+}

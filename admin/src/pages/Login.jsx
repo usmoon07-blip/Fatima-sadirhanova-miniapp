@@ -25,7 +25,7 @@ export default function Login({ onSuccess }) {
   return (
     <div className="login-page">
       <form className="login-card" onSubmit={submit}>
-        <span className="brand-logo big">🧁</span>
+        <span className="brand-logo big"><img src={`${import.meta.env.BASE_URL}fs-logo.png`} alt="FS" /></span>
         <h1>Fatima Sadirkhanova</h1>
         <p className="muted">Admin Panelga kirish</p>
         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Parol" autoFocus />

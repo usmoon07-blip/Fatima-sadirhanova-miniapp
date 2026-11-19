@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Award, BarChart3, Clapperboard, GraduationCap, LogOut, MessageSquareHeart, ReceiptText, Settings as SettingsIcon } from 'lucide-react';
 import NotchNav from './components/NotchNav';
+import InstallButton from './components/InstallButton';
 import Analytics from './pages/Analytics';
 import Login from './pages/Login';
 import Orders from './pages/Orders';
@@ -118,8 +119,9 @@ export default function App() {
   return (
     <div className="layout">
       <header className="mobile-top">
-        <span className="brand-logo">🧁</span>
+        <span className="brand-logo"><img src={`${import.meta.env.BASE_URL}fs-logo.png`} alt="FS" /></span>
         <b>Fatima Sadirkhanova</b>
+        <InstallButton compact />
         <button type="button" className="icon-btn" onClick={logout} aria-label="Chiqish"><LogOut size={17} /></button>
       </header>
       <NotchNav
@@ -128,14 +130,19 @@ export default function App() {
         onChange={setPage}
         header={(
           <div className="brand">
-            <span className="brand-logo">🧁</span>
+            <span className="brand-logo"><img src={`${import.meta.env.BASE_URL}fs-logo.png`} alt="FS" /></span>
             <div>
               <b>Fatima Sadirkhanova</b>
               <small>ADMIN PANEL</small>
             </div>
           </div>
         )}
-        footer={<button type="button" className="logout" onClick={logout}><LogOut size={18} /> <span>Chiqish</span></button>}
+        footer={(
+          <div className="side-footer">
+            <InstallButton />
+            <button type="button" className="logout" onClick={logout}><LogOut size={18} /> <span>Chiqish</span></button>
+          </div>
+        )}
       />
 
       <main key={page} className="content">

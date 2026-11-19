@@ -72,8 +72,20 @@ app.use('/uploads', express.static(config.uploadsDir, { maxAge: '7d' }));
 
 // Admin Panel (qurilgan bo'lsa) — /admin manzilida
 if (fs.existsSync(path.join(config.adminDist, 'index.html'))) {
-  app.use('/admin', express.static(config.adminDist, { index: false, maxAge: '1h' }));
-  app.get(/^\/admin(\/.*)?$/, (req, res) => res.sendFile(path.join(config.adminDist, 'index.html')));
+  app.use('/admin', express.static(config.adminDist, {
+    index: false,
+    maxAge: '1h',
+    setHeaders(res, filePath) {
+      // PWA: service worker va manifest har doim yangi olinsin; xeshli fayllar — uzoq kesh
+      if (/sw\.js$|manifest\.webmanifest$|index\.html$/.test(filePath)) res.setHeader('Cache-Control', 'no-cache');
+      else if (filePath.includes(`${path.sep}assets${path.sep}`)) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      if (filePath.endsWith('.webmanifest')) res.setHeader('Content-Type', 'application/manifest+json');
+    },
+  }));
+  app.get(/^\/admin(\/.*)?$/, (req, res) => {
+    res.setHeader('Cache-Control', 'no-cache');
+    res.sendFile(path.join(config.adminDist, 'index.html'));
+  });
   app.get('/', (req, res) => res.redirect('/admin/'));
 }
 

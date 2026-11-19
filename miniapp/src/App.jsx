@@ -21,7 +21,7 @@ const SCREENS = { home: Home, courses: Catalog, cart: Cart, results: Results, pr
 function Splash() {
   return (
     <div className="splash">
-      <span className="brand-logo big">🧁</span>
+      <span className="brand-logo big"><img src="/fs-logo.png" alt="Fatima Sadirkhanova" /></span>
       <b className="serif">Fatima Sadirkhanova</b>
       <small>PATISSERIE</small>
       <span className="loader" />
@@ -48,7 +48,7 @@ export default function App() {
   if (status === 'error') {
     return (
       <div className="splash">
-        <span className="brand-logo big">🧁</span>
+        <span className="brand-logo big"><img src="/fs-logo.png" alt="Fatima Sadirkhanova" /></span>
         <b>{t('connError')}</b>
         <small className="muted">{error}</small>
         <button type="button" className="btn btn-primary" onClick={load}>{t('retry')}</button>

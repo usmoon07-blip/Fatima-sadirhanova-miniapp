@@ -5,7 +5,7 @@ export function Brand() {
   const { config } = useStore();
   return (
     <div className="brand">
-      <span className="brand-logo" aria-hidden>🧁</span>
+      <span className="brand-logo"><img src="/fs-logo.png" alt="Fatima Sadirkhanova" /></span>
       <span className="brand-text">
         <b className="serif">{config?.shop?.name || 'Fatima Sadirkhanova'}</b>
         <small>{config?.shop?.tagline || 'PATISSERIE'}</small>
