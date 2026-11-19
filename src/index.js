@@ -1,30 +1,89 @@
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 const express = require('express');
 const cors = require('cors');
+const { webhookCallback } = require('grammy');
 const config = require('./config/default');
 const { connectDatabase, disconnectDatabase } = require('./database/connection');
 const { bot } = require('./core/bot');
 const { registerBotRoutes, setupBotUi } = require('./routes/bot.routes');
 const clientRoutes = require('./routes/client.routes');
 const adminRoutes = require('./routes/admin.routes');
+const Upload = require('./models/Upload');
+
+// BOT_TOKEN hech qachon log'larga tushmasin
+const redact = (v) => (typeof v === 'string' ? v.replace(/bot\d+:[\w-]+/g, 'bot***').replace(/\d{6,}:[\w-]{30,}/g, '***') : v);
+for (const level of ['log', 'warn', 'error']) {
+  const original = console[level].bind(console);
+  console[level] = (...args) => original(...args.map((a) => (a instanceof Error ? redact(a.stack || a.message) : redact(a))));
+}
+
+const sha256 = (s) => crypto.createHash('sha256').update(s).digest('hex');
+const useWebhook = Boolean(bot && config.publicUrl.startsWith('https://'));
+const webhookPath = bot ? `/telegram/${sha256(config.bot.token).slice(0, 32)}` : null;
+const webhookSecret = bot ? sha256(`${config.bot.token}:webhook`).slice(0, 48) : null;
 
 const app = express();
-
 app.disable('x-powered-by');
-app.set('trust proxy', 'loopback');
-app.use(cors());
-app.use(express.json({ limit: '1mb' }));
-app.use('/uploads', express.static(config.uploadsDir, { maxAge: '7d' }));
+app.set('trust proxy', 1);
 
-app.get('/api/health', (req, res) => res.json({ ok: true, bot: Boolean(bot) }));
+app.use(cors({
+  origin(origin, cb) {
+    // Origin'siz so'rovlar (Telegram, server-server) o'tadi; ro'yxat bo'sh bo'lsa — hammasiga ruxsat
+    if (!origin || config.corsOrigins.length === 0) return cb(null, true);
+    return cb(null, config.corsOrigins.includes(origin.replace(/\/$/, '')));
+  },
+}));
+
+// Telegram webhook — 404 handler'dan OLDIN
+if (useWebhook) {
+  const checkSecret = (req, res, next) => (
+    req.get('X-Telegram-Bot-Api-Secret-Token') === webhookSecret ? next() : res.sendStatus(401)
+  );
+  app.post(webhookPath, checkSecret, express.json(), webhookCallback(bot, 'express', { secretToken: webhookSecret }));
+}
+
+app.use(express.json({ limit: '1mb' }));
+
+app.get('/api/health', (req, res) => res.json({ ok: true, bot: Boolean(bot), mode: useWebhook ? 'webhook' : 'polling' }));
 app.use('/api/admin', adminRoutes);
 app.use('/api', clientRoutes);
 app.use('/api', (req, res) => res.status(404).json({ message: "Bunday yo'l topilmadi" }));
+
+// Rasmlar: bazadan (yangi) yoki diskdan (eski, lokal)
+app.get('/uploads/:id', async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    if (/^[a-z0-9]{20,40}$/i.test(id)) {
+      const file = await Upload.findById(id);
+      if (file) {
+        res.set('Content-Type', file.mimeType);
+        res.set('Cache-Control', 'public, max-age=31536000, immutable');
+        return res.send(Buffer.from(file.data));
+      }
+    }
+    return next();
+  } catch (err) {
+    return next(err);
+  }
+});
+app.use('/uploads', express.static(config.uploadsDir, { maxAge: '7d' }));
+
+// Admin Panel (qurilgan bo'lsa) — /admin manzilida
+if (fs.existsSync(path.join(config.adminDist, 'index.html'))) {
+  app.use('/admin', express.static(config.adminDist, { index: false, maxAge: '1h' }));
+  app.get(/^\/admin(\/.*)?$/, (req, res) => res.sendFile(path.join(config.adminDist, 'index.html')));
+  app.get('/', (req, res) => res.redirect('/admin/'));
+}
+
+app.use((req, res) => res.status(404).json({ message: 'Topilmadi' }));
 
 // Yagona xatolik ushlagich
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   if (err.code === 'P2025') return res.status(404).json({ message: "Ma'lumot topilmadi" });
-  if (err.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ message: 'Fayl hajmi 8 MB dan oshmasligi kerak' });
+  if (err.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ message: 'Rasm hajmi 5 MB dan oshmasligi kerak' });
   if (err.type === 'entity.parse.failed') return res.status(400).json({ message: "Noto'g'ri JSON" });
   const status = err.status || 500;
   if (status >= 500) console.error('❌ Server xatosi:', err);
@@ -37,10 +96,20 @@ async function startBot() {
   try {
     await bot.init();
     await setupBotUi(bot);
-    bot.start({
-      drop_pending_updates: true,
-      onStart: (info) => console.log(`🤖 Bot ishga tushdi: @${info.username}`),
-    }).catch((err) => console.error("❌ Bot to'xtadi:", err.message));
+    if (useWebhook) {
+      await bot.api.setWebhook(`${config.publicUrl}${webhookPath}`, {
+        secret_token: webhookSecret,
+        drop_pending_updates: true,
+        allowed_updates: ['message', 'callback_query'],
+      });
+      console.log(`🤖 Bot webhook rejimida: @${bot.botInfo.username}`);
+    } else {
+      await bot.api.deleteWebhook({ drop_pending_updates: true });
+      bot.start({
+        drop_pending_updates: true,
+        onStart: (info) => console.log(`🤖 Bot ishga tushdi (polling): @${info.username}`),
+      }).catch((err) => console.error("❌ Bot to'xtadi:", err.message));
+    }
   } catch (err) {
     console.error("❌ Botni ishga tushirib bo'lmadi. BOT_TOKEN to'g'riligini tekshiring:", err.message);
   }
@@ -49,7 +118,7 @@ async function startBot() {
 async function main() {
   await connectDatabase();
   const server = app.listen(config.port, () => {
-    console.log(`🚀 API ishlayapti: http://localhost:${config.port}`);
+    console.log(`🚀 API ishlayapti: port ${config.port}`);
   });
   await startBot();
 
@@ -67,7 +136,7 @@ async function main() {
 main().catch((err) => {
   console.error('❌ Ishga tushishda xato:', err.message);
   if (/DATABASE_URL|connect|P1001|P1000/i.test(err.message)) {
-    console.error("👉 .env faylidagi DATABASE_URL (Neon connection string) to'g'riligini tekshiring.");
+    console.error("👉 DATABASE_URL (Neon connection string) to'g'riligini tekshiring.");
   }
   process.exit(1);
 });

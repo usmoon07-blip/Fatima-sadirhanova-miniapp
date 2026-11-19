@@ -108,3 +108,12 @@ model Story {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 }
+
+/// Yuklangan rasmlar bazada saqlanadi (bepul serverlarda disk vaqtinchalik)
+model Upload {
+  id        String   @id @default(cuid())
+  mimeType  String
+  data      Bytes
+  size      Int
+  createdAt DateTime @default(now())
+}

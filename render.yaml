@@ -1,0 +1,56 @@
+# Render Blueprint: backend + bot (webhook) + Admin Panel (/admin)
+services:
+  - type: web
+    name: fatima-sadirhanova-api
+    runtime: node
+    region: frankfurt
+    plan: free
+    # NODE_ENV=production da npm dev-paketlarni o'tkazib yuboradi — shuning uchun --include=dev
+    buildCommand: >-
+      npm install --include=dev &&
+      npm --prefix admin install --include=dev &&
+      npm --prefix admin run build &&
+      npx prisma generate &&
+      npx prisma migrate deploy &&
+      node prisma/seed.js
+    startCommand: node src/index.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      # --- Maxfiy qiymatlar: Render ularni yaratishda so'raydi ---
+      - key: DATABASE_URL
+        sync: false
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      # --- Mini App (Vercel) manzili ---
+      - key: WEBAPP_URL
+        value: https://fatima-sadirhanova-miniapp.vercel.app
+      - key: CORS_ORIGINS
+        value: https://fatima-sadirhanova-miniapp.vercel.app
+      - key: DEV_ALLOW_BROWSER
+        value: "false"
+      # --- Akademiya ma'lumotlari ---
+      - key: SHOP_NAME
+        value: Fatima Sadirkhanova
+      - key: SHOP_TAGLINE
+        value: PATISSERIE
+      - key: SHOP_PHONE
+        value: +998 99 811 06 66
+      - key: ADMIN_USERNAME
+        value: ""
+      - key: CARD_NUMBER
+        value: ""
+      - key: CARD_HOLDER
+        value: ""
+      - key: UPSELL_TITLE
+        value: Mualliflik retseptlar to'plami (PDF)
+      - key: UPSELL_PRICE
+        value: "49000"

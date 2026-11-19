@@ -75,6 +75,7 @@ export default function Cart() {
     try {
       const order = await api.createOrder({
         courseIds: cartCourses.map((c) => c.id),
+        titles: Object.fromEntries(cartCourses.map((c) => [c.id, c.title])),
         upsell: Boolean(offer && upsell),
         customerName: name.trim(),
         phone: phone.trim(),

@@ -16,6 +16,8 @@ const schemas = {
   }),
   order: z.object({
     courseIds: z.array(z.number().int().positive()).min(1, "Savatcha bo'sh").max(30),
+    /** Mini App'dagi kurs nomlari — eski nusxadan noto'g'ri kurs buyurtma qilinmasligi uchun */
+    titles: z.record(z.string(), z.string().max(200)).optional(),
     upsell: z.boolean().optional().default(false),
     customerName: z.string().trim().min(2, 'Ismingizni kiriting').max(80),
     phone: z.string().trim().regex(PHONE_RE, "Telefon raqam noto'g'ri"),
@@ -82,11 +84,15 @@ const cartController = {
   },
 
   async createOrder(req, res) {
-    const { courseIds, upsell, customerName, phone, comment } = req.body;
+    const { courseIds, titles, upsell, customerName, phone, comment } = req.body;
     const ids = [...new Set(courseIds)];
     const courses = await Course.findManyActive(ids);
     if (courses.length !== ids.length) {
       return res.status(400).json({ message: "Savatchadagi ba'zi kurslar endi mavjud emas. Savatchani yangilang." });
+    }
+    const changed = titles && courses.find((c) => titles[c.id] && titles[c.id] !== c.title);
+    if (changed) {
+      return res.status(409).json({ message: "Kurslar ro'yxati yangilandi. Ilovani qayta oching va savatchani tekshiring." });
     }
 
     const { paid } = await Order.courseIdsByUser(req.user.id);

@@ -1,6 +1,3 @@
-const path = require('path');
-const crypto = require('crypto');
-const fs = require('fs');
 const multer = require('multer');
 const { z } = require('zod');
 const config = require('../config/default');
@@ -10,6 +7,7 @@ const Review = require('../models/Review');
 const Result = require('../models/Result');
 const Story = require('../models/Story');
 const User = require('../models/User');
+const Upload = require('../models/Upload');
 const { signAdminToken, safeEqual } = require('../middlewares/auth.middleware');
 const { notifyOrderStatus } = require('./botController');
 
@@ -64,17 +62,10 @@ const crud = (Model) => ({
   },
 });
 
-// Rasm yuklash
-fs.mkdirSync(config.uploadsDir, { recursive: true });
+// Rasm yuklash — fayl bazaga yoziladi (bepul serverlarda disk qayta ishga tushganda o'chadi)
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: config.uploadsDir,
-    filename: (req, file, cb) => {
-      const ext = (path.extname(file.originalname) || '.jpg').toLowerCase().replace(/[^.a-z0-9]/g, '');
-      cb(null, `${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`);
-    },
-  }),
-  limits: { fileSize: 8 * 1024 * 1024 },
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (/^image\/(jpeg|png|webp|gif)$/.test(file.mimetype)) return cb(null, true);
     const err = new Error('Faqat rasm (JPG, PNG, WEBP, GIF) yuklash mumkin');
@@ -137,9 +128,10 @@ const adminController = {
     res.json({ ok: true });
   },
 
-  upload(req, res) {
+  async upload(req, res) {
     if (!req.file) return res.status(400).json({ message: 'Fayl tanlanmadi' });
-    return res.json({ url: `/uploads/${req.file.filename}` });
+    const saved = await Upload.create({ mimeType: req.file.mimetype, data: req.file.buffer });
+    return res.json({ url: `/uploads/${saved.id}` });
   },
 };
 

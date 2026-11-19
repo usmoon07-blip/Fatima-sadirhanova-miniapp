@@ -3,7 +3,9 @@ import react from '@vitejs/plugin-react';
 
 const API = 'http://localhost:4000';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  // Serverda (Render) Admin Panel /admin manzilida turadi
+  base: command === 'build' ? '/admin/' : '/',
   plugins: [react()],
   server: {
     port: 5174,
@@ -14,4 +16,4 @@ export default defineConfig({
       '/uploads': { target: API, changeOrigin: true },
     },
   },
-});
+}));

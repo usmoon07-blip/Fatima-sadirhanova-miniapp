@@ -1,0 +1,15 @@
+# Bepul Render 15 daqiqa jimlikdan keyin uxlaydi. Ish vaqtida har 10 daqiqada turtki beramiz.
+# UTC 04–21 = Toshkent 09:00–02:00 (oyiga ~540 soat, Render'ning 750 soatlik chegarasiga sig'adi)
+name: Serverni uyg'oq tutish
+
+on:
+  schedule:
+    - cron: '*/10 4-21 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health check
+        run: curl -fsS --max-time 90 --retry 2 https://fatima-sadirhanova-api.onrender.com/api/health || true

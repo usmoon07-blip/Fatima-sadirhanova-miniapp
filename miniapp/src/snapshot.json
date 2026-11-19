@@ -1,0 +1,149 @@
+{
+  "catalog": {
+    "courses": [
+      {
+        "id": 1,
+        "title": "Makaronterapiya",
+        "description": "Fransuz makaronlarini noldan o'rganing: silliq qopqoqlar, «yubka» va mukammal to'ldirmalar. Kurs oxirida o'z sovg'a qutingizni tayyorlaysiz.",
+        "imageUrl": "https://images.unsplash.com/photo-1569864358642-9d1684040f43?auto=format&fit=crop&w=900&q=80",
+        "oldPrice": 990000,
+        "price": 790000,
+        "category": "Desertlar",
+        "program": [
+          "Bodom uni va shakar tanlash",
+          "Italyan va fransuz merengi",
+          "Makaronaj — xamirni to'g'ri aralashtirish",
+          "Qopqoqlarni quyish va pishirish",
+          "Ganash, kurd va mevali to'ldirmalar",
+          "Bo'yash, bezatish va qadoqlash"
+        ],
+        "lessonsCount": 12,
+        "duration": "3 hafta",
+        "level": "Boshlang'ich",
+        "badge": "Hit",
+        "rating": null,
+        "reviewsCount": 0
+      },
+      {
+        "id": 2,
+        "title": "Tortlar akademiyasi",
+        "description": "Qandolatchilikni boshidan oxirigacha: biskvitlar, kremlar, tortni yig'ish, bezash va tannarxni hisoblash. Uydan biznes boshlamoqchi bo'lganlar uchun.",
+        "imageUrl": "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=900&q=80",
+        "oldPrice": 2990000,
+        "price": 2490000,
+        "category": "Tortlar",
+        "program": [
+          "Biskvit turlari va ularning sirlari",
+          "Kremlar: krem-chiz, ganash, plombir kremi",
+          "Tortni yig'ish va tekislash",
+          "Bezash: gullar, shokolad dekor, yozuvlar",
+          "Bayram va to'y tortlari",
+          "Tannarx, narx qo'yish va mijoz topish"
+        ],
+        "lessonsCount": 40,
+        "duration": "2 oy",
+        "level": "Boshlang'ichdan professionalgacha",
+        "badge": "Premium",
+        "rating": null,
+        "reviewsCount": 0
+      },
+      {
+        "id": 3,
+        "title": "Bento tortlar",
+        "description": "Instagramda eng ko'p so'raladigan mini tortlar. Kichik hajm, katta daromad: retseptlar, bezash va qadoqlash sirlari.",
+        "imageUrl": "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=900&q=80",
+        "oldPrice": 690000,
+        "price": 490000,
+        "category": "Tortlar",
+        "program": [
+          "Bento uchun biskvit va krem",
+          "Tortni yig'ish va silliq qoplash",
+          "Rang berish va trend dizaynlar",
+          "Yozuvlar va mini dekor",
+          "Qadoqlash va sotish"
+        ],
+        "lessonsCount": 10,
+        "duration": "2 hafta",
+        "level": "Boshlang'ich",
+        "badge": "Yangi",
+        "rating": null,
+        "reviewsCount": 0
+      },
+      {
+        "id": 4,
+        "title": "Muss desertlar va zerkalo glazur",
+        "description": "Zamonaviy fransuz desertlari: muss, konfi, kremyu va oynadek yaltiroq glazur. Restoran darajasidagi desertlarni uyda tayyorlang.",
+        "imageUrl": "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=900&q=80",
+        "oldPrice": 1290000,
+        "price": 990000,
+        "category": "Desertlar",
+        "program": [
+          "Muss desert tuzilishi va qatlamlar",
+          "Konfi, kremyu va krambl",
+          "Silikon qoliplar bilan ishlash",
+          "Zerkalo (oyna) glazur",
+          "Velur va dekor elementlari"
+        ],
+        "lessonsCount": 14,
+        "duration": "3 hafta",
+        "level": "O'rta",
+        "badge": null,
+        "rating": null,
+        "reviewsCount": 0
+      }
+    ],
+    "categories": [
+      "Desertlar",
+      "Tortlar"
+    ],
+    "stories": [
+      {
+        "id": 1,
+        "title": "Yangi oqim",
+        "imageUrl": "https://images.unsplash.com/photo-1569864358642-9d1684040f43?auto=format&fit=crop&w=900&q=80",
+        "text": "Makaronterapiya kursining yangi oqimiga qabul boshlandi! Joylar soni cheklangan.",
+        "sortOrder": 1,
+        "isActive": true
+      },
+      {
+        "id": 2,
+        "title": "Chegirmalar",
+        "imageUrl": "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=900&q=80",
+        "text": "Barcha kurslarga chegirmalar amalda. Shoshiling!",
+        "sortOrder": 2,
+        "isActive": true
+      },
+      {
+        "id": 3,
+        "title": "Sertifikat",
+        "imageUrl": "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=900&q=80",
+        "text": "Kursni tugatgan har bir o'quvchiga shaxsiy sertifikat beriladi.",
+        "sortOrder": 3,
+        "isActive": true
+      },
+      {
+        "id": 4,
+        "title": "Qanday o'qiymiz?",
+        "imageUrl": "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=900&q=80",
+        "text": "Video darslar, retseptlar va kurator bilan yopiq guruh. Istalgan vaqtda, o'zingizga qulay tezlikda.",
+        "sortOrder": 4,
+        "isActive": true
+      }
+    ],
+    "results": [],
+    "reviews": []
+  },
+  "config": {
+    "shop": {
+      "name": "Fatima Sadirkhanova",
+      "tagline": "PATISSERIE",
+      "phone": "+998 99 811 06 66",
+      "adminUsername": ""
+    },
+    "upsell": {
+      "title": "Mualliflik retseptlar to'plami (PDF)",
+      "price": 49000
+    }
+  },
+  "createdAt": null
+}

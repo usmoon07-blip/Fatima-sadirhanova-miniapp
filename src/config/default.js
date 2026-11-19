@@ -9,8 +9,14 @@ const num = (value, fallback) => {
 const config = {
   port: num(process.env.PORT, 4000),
   databaseUrl: process.env.DATABASE_URL,
+  isProduction: process.env.NODE_ENV === 'production',
   devAllowBrowser: process.env.DEV_ALLOW_BROWSER === 'true',
   uploadsDir: path.join(__dirname, '..', '..', 'uploads'),
+  adminDist: path.join(__dirname, '..', '..', 'admin', 'dist'),
+  /** Serverning ommaviy manzili (Render o'zi RENDER_EXTERNAL_URL beradi). Bo'lsa — webhook, bo'lmasa — polling */
+  publicUrl: (process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || '').trim().replace(/\/+$/, ''),
+  /** Ruxsat etilgan saytlar (vergul bilan). Bo'sh bo'lsa — hammasiga ruxsat */
+  corsOrigins: (process.env.CORS_ORIGINS || '').split(',').map((s) => s.trim().replace(/\/+$/, '')).filter(Boolean),
 
   bot: {
     token: (process.env.BOT_TOKEN || '').trim(),

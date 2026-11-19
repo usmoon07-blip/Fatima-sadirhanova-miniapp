@@ -2,18 +2,23 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { api } from '../lib/api';
 import { storage } from '../lib/storage';
 import { haptic } from '../lib/telegram';
+import snapshot from '../snapshot.json';
 
 const StoreContext = createContext(null);
 
 const EMPTY_CATALOG = { courses: [], categories: [], stories: [], results: [], reviews: [] };
 const EMPTY_ME = { user: null, purchased: [], pending: [], myCourses: [], reviews: [] };
 
+// Ilova bilan birga yuklanadigan kurslar nusxasi — server uxlab yotsa ham kurslar darhol ko'rinadi
+const SNAP_CATALOG = { ...EMPTY_CATALOG, ...(snapshot?.catalog || {}) };
+const HAS_SNAPSHOT = SNAP_CATALOG.courses.length > 0;
+
 export function StoreProvider({ children }) {
-  const [config, setConfig] = useState(null);
-  const [catalog, setCatalog] = useState(EMPTY_CATALOG);
+  const [config, setConfig] = useState(snapshot?.config || null);
+  const [catalog, setCatalog] = useState(SNAP_CATALOG);
   const [me, setMe] = useState(EMPTY_ME);
   const [orders, setOrders] = useState([]);
-  const [status, setStatus] = useState('loading');
+  const [status, setStatus] = useState(HAS_SNAPSHOT ? 'ready' : 'loading');
   const [error, setError] = useState('');
 
   const [cart, setCart] = useState(() => storage.get('cart', []));
@@ -51,13 +56,19 @@ export function StoreProvider({ children }) {
   }, []);
 
   const load = useCallback(async () => {
-    setStatus('loading');
+    if (!HAS_SNAPSHOT) setStatus('loading');
     setError('');
     try {
       const [cfg] = await Promise.all([api.config(), refreshCatalog(), refreshMe()]);
       setConfig(cfg);
       setStatus('ready');
     } catch (err) {
+      // Nusxa bor bo'lsa xatolik ko'rsatilmaydi — mijoz kurslarni ko'rib turadi
+      if (HAS_SNAPSHOT) {
+        setStatus('ready');
+        setTimeout(() => load(), 15000);
+        return;
+      }
       setError(err.message);
       setStatus('error');
     }

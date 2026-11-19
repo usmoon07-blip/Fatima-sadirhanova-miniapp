@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { mediaUrl } from '../lib/api';
 
 /** Rasm: yuklanguncha shimmer, xato bo'lsa chiroyli zaxira fon */
 export default function Img({ src, alt = '', className = '', emoji = '🧁', eager = false }) {
@@ -7,7 +8,7 @@ export default function Img({ src, alt = '', className = '', emoji = '🧁', eag
     <div className={`img ${state} ${className}`}>
       {state !== 'error' && (
         <img
-          src={src}
+          src={mediaUrl(src)}
           alt={alt}
           loading={eager ? 'eager' : 'lazy'}
           decoding="async"

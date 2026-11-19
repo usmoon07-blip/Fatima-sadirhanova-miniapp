@@ -109,3 +109,30 @@ prisma/  schema.prisma, migrations, seed.js
 miniapp/ React Mini App
 admin/   React Admin Panel
 ```
+
+---
+
+## 🌐 Bepul serverga joylash (kompyuter o'chiq bo'lsa ham ishlaydi)
+
+| Qism | Qayerda | Manzil |
+|---|---|---|
+| Backend + Bot (webhook) + Admin Panel | **Render** (bepul) | `https://fatima-sadirhanova-api.onrender.com` → Admin: `/admin` |
+| Mini App | **Vercel** (bepul) | `https://fatima-sadirhanova-miniapp.vercel.app` |
+| Baza | **Neon** | mavjud baza |
+
+Kodda tayyor: `render.yaml` (Blueprint), `miniapp/vercel.json`, `miniapp/.env.production`,
+`.github/workflows/keepalive.yml` (ish vaqtida har 10 daqiqada serverni uyg'otadi).
+
+**1. Render:** https://dashboard.render.com → GitHub bilan kiring → **New → Blueprint** →
+`fatima-sadirhanova-miniapp` omborini tanlang → so'ralgan 3 ta qiymatni kiriting
+(`DATABASE_URL`, `BOT_TOKEN`, `ADMIN_PASSWORD`) → **Apply**. 5–10 daqiqa kuting.
+Tekshirish: `https://fatima-sadirhanova-api.onrender.com/api/health` → `{"ok":true,...}`
+
+**2. Vercel:** https://vercel.com → GitHub bilan kiring → **Add New → Project** → omborni **Import** →
+**Root Directory: `miniapp`** (eng muhim!) → **Deploy**.
+
+**3. Manzillar boshqacha chiqsa** (nom band bo'lsa Render/Vercel boshqa nom beradi):
+- Render manzilini `miniapp/.env.production` va `.github/workflows/keepalive.yml` ga yozing.
+- Vercel manzilini Render → Environment → `WEBAPP_URL` va `CORS_ORIGINS` ga yozing.
+
+> ⚠️ Server ishlayotganda botni kompyuterda (`npm run dev`) ishga tushirmang — bitta bot ikki joyda ishlay olmaydi.
