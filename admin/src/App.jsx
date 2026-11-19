@@ -118,16 +118,17 @@ export default function App() {
 
   return (
     <div className="layout">
-      <header className="mobile-top">
-        <span className="brand-logo"><img src={`${import.meta.env.BASE_URL}fs-logo.png`} alt="FS" /></span>
-        <b>Fatima Sadirkhanova</b>
-        <InstallButton compact />
-        <button type="button" className="icon-btn" onClick={logout} aria-label="Chiqish"><LogOut size={17} /></button>
-      </header>
       <NotchNav
         items={PAGES}
         active={page}
         onChange={setPage}
+        brand={<span className="brand-logo"><img src={`${import.meta.env.BASE_URL}fs-logo.png`} alt="FS" /></span>}
+        actions={(
+          <>
+            <InstallButton compact />
+            <button type="button" className="icon-btn" onClick={logout} aria-label="Chiqish"><LogOut size={17} /></button>
+          </>
+        )}
         header={(
           <div className="brand">
             <span className="brand-logo"><img src={`${import.meta.env.BASE_URL}fs-logo.png`} alt="FS" /></span>
