@@ -5,6 +5,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
+const { buildCourses, REMOVE_TITLES } = require('./catalog-v2');
 const img = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=900&q=80`;
 
 // Rasmlar vaqtinchalik: Admin Panel > Kurslar bo'limidan haqiqiy suratlarni yuklang.
@@ -192,6 +193,26 @@ async function main() {
     if (Object.keys(data).length) { await prisma.story.update({ where: { id: st.id }, data }); filled += 1; }
   }
   if (filled) console.log(`✅ ${filled} ta yozuvga rus/ingliz tarjimasi qo'shildi.`);
+
+  await catalogV2();
+}
+
+/* Katalog v2 (bir marta): har bir desert alohida kurs; Bento va Muss yashiriladi.
+   Bajarilgani Setting jadvalida belgilanadi — keyin Admin Panelda qilingan o'zgarishlar qayta yozilmaydi. */
+async function catalogV2() {
+  const FLAG = 'catalog_v2_done';
+  if (await prisma.setting.findUnique({ where: { key: FLAG } })) return;
+
+  const hidden = await prisma.course.updateMany({ where: { title: { in: REMOVE_TITLES } }, data: { isActive: false } });
+  const existing = new Set((await prisma.course.findMany({ select: { title: true } })).map((c) => c.title));
+  let added = 0;
+  for (const c of buildCourses()) {
+    if (existing.has(c.title)) continue;
+    await prisma.course.create({ data: c });
+    added += 1;
+  }
+  await prisma.setting.create({ data: { key: FLAG, value: new Date().toISOString() } });
+  console.log(`✅ Katalog v2: ${added} ta yangi kurs qo'shildi, ${hidden.count} ta kurs yashirildi.`);
 }
 
 main()

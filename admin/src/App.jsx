@@ -12,7 +12,7 @@ import Settings from './pages/Settings';
 import { api, auth, money, setUnauthorizedHandler } from './api';
 
 const COURSE_FIELDS = [
-  { name: 'imageUrl', label: 'Rasm', type: 'image', full: true },
+  { name: 'imageUrl', label: "Rasm (ixtiyoriy — keyin qo'shish mumkin)", type: 'image', full: true },
   { name: 'title', label: 'Kurs nomi', required: true, full: true },
   { name: 'category', label: 'Kategoriya', placeholder: 'Tortlar, Desertlar...', default: 'Tortlar', datalist: 'categories' },
   { name: 'badge', label: 'Belgi (ixtiyoriy)', placeholder: 'Hit, New, Premium' },

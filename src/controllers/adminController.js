@@ -47,7 +47,7 @@ const schemas = {
     mxik: optText(20),
     packageCode: optText(20),
     vat: z.union([z.number().int().min(0).max(100), z.null()]).optional(),
-    imageUrl: z.string().trim().min(1, 'Rasm qo\'shing').max(1000),
+    imageUrl: z.string().trim().max(1000).optional().default(''),
     oldPrice: optInt,
     price: z.number().int().min(0, "Narx noto'g'ri"),
     category: z.string().trim().min(1, 'Kategoriyani kiriting').max(60),

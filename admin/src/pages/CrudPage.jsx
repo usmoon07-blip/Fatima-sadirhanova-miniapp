@@ -103,7 +103,7 @@ export default function CrudPage({ title, subtitle, resource, fields, columns, i
     setFormError('');
     for (const f of fields) {
       if (f.type === 'heading') continue;
-      if ((f.required || f.type === 'image') && (form[f.name] === '' || form[f.name] == null)) {
+      if (f.required && (form[f.name] === '' || form[f.name] == null)) {
         setFormError(`«${f.label}» maydonini to'ldiring`);
         return;
       }
@@ -170,7 +170,7 @@ export default function CrudPage({ title, subtitle, resource, fields, columns, i
               <tr key={item.id} className={item.isActive === false ? 'dim' : ''}>
                 {columns.map((c) => (
                   <td key={c.key}>
-                    {c.type === 'image' ? <img className="thumb" src={item[c.key]} alt="" /> : c.render ? c.render(item) : item[c.key]}
+                    {c.type === 'image' ? (item[c.key] ? <img className="thumb" src={item[c.key]} alt="" /> : <span className="thumb thumb-empty">🧁</span>) : c.render ? c.render(item) : item[c.key]}
                   </td>
                 ))}
                 <td><Toggle checked={item.isActive} onChange={() => toggleActive(item)} /></td>
