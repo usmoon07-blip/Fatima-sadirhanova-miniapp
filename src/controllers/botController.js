@@ -11,7 +11,7 @@ const { ensureAccess, decideJoinRequest } = require('../services/access');
 const { money, escapeHtml, fullName } = require('../utils/format');
 const { t, loc, normalizeLang } = require('../utils/i18n');
 
-const LANG_BUTTONS = [['uz', "O'zbekcha"], ['ru', 'Русский'], ['en', 'English']];
+const LANG_BUTTONS = [['uz', "🇺🇿 O'zbekcha"], ['ru', '🇷🇺 Русский'], ['en', '🇬🇧 English']];
 
 const langOf = (user, from) => user?.language || normalizeLang(from?.language_code);
 const isOwner = (id) => Boolean(config.bot.ownerId) && String(id) === config.bot.ownerId;
@@ -42,6 +42,42 @@ function startText(lang, name) {
   return `${t(lang, 'greeting', { name: escapeHtml(name) })}\n\n${t(lang, 'startBody', { shop: `<b>${escapeHtml(config.shop.name)}</b>` })}`;
 }
 
+/** /start: uch tildagi kutib olish matni (bitta xabarda) va til tanlash */
+function welcomeText(name) {
+  const n = escapeHtml(name);
+  return [
+    `🇺🇿 <b>Assalomu alaykum, ${n}!</b> 👋`,
+    '',
+    "Fatima Sadirkhanova qandolatchilik kurslariga xush kelibsiz! 🌸 Darsga yozilish uchun quyidagi «Ochish» tugmasini bosing.",
+    '',
+    "Savollaringiz bo'lsa, shu yerga yozib qoldiring — albatta javob beramiz. 💬",
+    '',
+    '',
+    `🇷🇺 <b>Здравствуйте, ${n}!</b> 👋`,
+    '',
+    'Добро пожаловать на кондитерские курсы Фатимы Садирхановой! 🌸 Чтобы записаться на урок, нажмите кнопку «Открыть» ниже.',
+    '',
+    'Если у вас есть вопросы, напишите их сюда — мы обязательно ответим. 💬',
+    '',
+    '',
+    `🇬🇧 <b>Hello, ${n}!</b> 👋`,
+    '',
+    "Welcome to Fatima Sadirkhanova's pastry courses! 🌸 To sign up for a lesson, tap the «Open» button below.",
+    '',
+    "If you have any questions, write them here — we'll be sure to reply. 💬",
+    '',
+    '',
+    '🌐 <b>Tilni tanlang / Выберите язык / Choose language</b> 👇',
+  ].join('\n');
+}
+
+function welcomeKeyboard() {
+  const kb = new InlineKeyboard();
+  if (config.webAppIsHttps) kb.webApp('📚 Ochish / Открыть / Open', config.bot.webAppUrl).row();
+  LANG_BUTTONS.forEach(([code, label]) => kb.text(label, `lang:${code}`));
+  return kb;
+}
+
 /** Bot egasiga xabar (egasi botga kamida bir marta /start bosgan bo'lishi kerak) */
 async function toOwner(text, extra = {}) {
   if (!bot || !config.bot.ownerId) return;
@@ -70,14 +106,14 @@ const botController = {
     const user = ctx.from ? await User.upsertFromTelegram(ctx.from) : null;
     const lang = langOf(user, ctx.from);
     await setUserMenuButton(ctx.chat.id, lang);
-    await ctx.reply(startText(lang, ctx.from?.first_name || 'Mehmon'), { parse_mode: 'HTML', reply_markup: appKeyboard(lang, true) });
+    await ctx.reply(welcomeText(ctx.from?.first_name || 'Mehmon'), { parse_mode: 'HTML', reply_markup: welcomeKeyboard() });
     if (!config.webAppIsHttps) await ctx.reply(t(lang, 'appNotReady'));
   },
 
   async chooseLanguage(ctx) {
     const kb = new InlineKeyboard();
     LANG_BUTTONS.forEach(([code, label]) => kb.text(label, `lang:${code}`));
-    return ctx.reply(t('uz', 'chooseLang'), { reply_markup: kb });
+    return ctx.reply(`🌐 ${t('uz', 'chooseLang')}`, { reply_markup: kb });
   },
 
   async setLanguage(ctx) {
@@ -86,8 +122,40 @@ const botController = {
     await User.setLanguage(user.id, lang);
     await setUserMenuButton(ctx.chat.id, lang);
     await ctx.answerCallbackQuery({ text: t(lang, 'langSaved') });
-    await ctx.editMessageText(startText(lang, ctx.from.first_name || 'Mehmon'), { parse_mode: 'HTML', reply_markup: appKeyboard(lang, true) })
-      .catch(() => ctx.reply(startText(lang, ctx.from.first_name || 'Mehmon'), { parse_mode: 'HTML', reply_markup: appKeyboard(lang, true) }));
+    await ctx.reply(t(lang, 'langChosen'), { parse_mode: 'HTML', reply_markup: appKeyboard(lang) });
+  },
+
+  /** Mijoz yozgan savol egasiga yuboriladi; egasi shu xabarga «Reply» qilsa, javob mijozga boradi */
+  async textMessage(ctx) {
+    if (ctx.chat.type !== 'private') return undefined;
+    const text = ctx.message.text || '';
+    if (isOwner(ctx.from.id)) {
+      const replied = ctx.message.reply_to_message;
+      const m = (replied?.text || replied?.caption || '').match(/ID:\s*(\d+)/);
+      if (!m) return botController.start(ctx);
+      const target = await User.findByTelegramId(m[1]);
+      const lang = langOf(target);
+      try {
+        await bot.api.sendMessage(m[1], `${t(lang, 'supportReply', { shop: escapeHtml(config.shop.name) })}\n\n${escapeHtml(text)}`, { parse_mode: 'HTML' });
+        return ctx.reply('✅ Javobingiz mijozga yuborildi.', { reply_parameters: { message_id: ctx.message.message_id } });
+      } catch (e) {
+        return ctx.reply(`❌ Javob yuborilmadi: ${e.message}`);
+      }
+    }
+    const user = await User.upsertFromTelegram(ctx.from);
+    const lang = langOf(user, ctx.from);
+    if (!config.bot.ownerId) return ctx.reply(t(lang, 'supportSent'), { reply_markup: appKeyboard(lang) });
+    const who = [fullName(user), user.username ? `@${user.username}` : '', user.phone || ''].filter(Boolean).join(' · ');
+    await toOwner([
+      '✉️ <b>Yangi savol</b>',
+      `Kimdan: ${escapeHtml(who)}`,
+      `ID: ${user.telegramId}`,
+      '',
+      escapeHtml(text),
+      '',
+      "↩️ <i>Javob berish uchun shu xabarga «Javob berish» (Reply) qiling.</i>",
+    ].join('\n'));
+    return ctx.reply(t(lang, 'supportSent'), { reply_markup: appKeyboard(lang) });
   },
 
   async myOrders(ctx) {

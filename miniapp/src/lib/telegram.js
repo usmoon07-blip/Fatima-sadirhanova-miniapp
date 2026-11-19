@@ -14,7 +14,13 @@ function safe(fn) {
 export function initTelegram() {
   if (!tg) return;
   safe(() => tg.ready());
-  safe(() => tg.expand());
+  // Ilova har doim butun ekranni egallaydi (yarim oynada ochilsa ham darhol kengayadi)
+  const expand = () => safe(() => { if (!tg.isExpanded) tg.expand(); });
+  expand();
+  setTimeout(expand, 150);
+  setTimeout(expand, 600);
+  safe(() => tg.onEvent('viewportChanged', (e) => { if (e?.isStateStable) expand(); }));
+  safe(() => tg.onEvent('activated', expand));
   if (tg.isVersionAtLeast?.('6.1')) {
     safe(() => tg.setHeaderColor(BG));
     safe(() => tg.setBackgroundColor(BG));

@@ -68,10 +68,13 @@ export function StoreProvider({ children }) {
     try {
       const [meData, ordersData] = await Promise.all([api.me(), api.myOrders()]);
       setMe(meData);
+      // Botda tanlangan til — asosiy (Mini App'da almashtirilsa, u ham serverga yoziladi)
       const serverLang = meData?.user?.language;
-      if (serverLang && !storage.get('lang', null)) {
+      if (serverLang && (isTelegram || !storage.get('lang', null))) {
         setLangState(serverLang);
         setApiLang(serverLang);
+        storage.set('lang', serverLang);
+        document.documentElement.lang = serverLang;
       }
       setOrders(ordersData);
     } catch {

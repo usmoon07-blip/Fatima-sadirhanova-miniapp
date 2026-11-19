@@ -46,7 +46,7 @@ function registerBotRoutes(bot) {
   bot.on('chat_join_request', botController.joinRequest);
   bot.on('message:contact', botController.contact);
   bot.on(['message:photo', 'message:document'], botController.receiptPhoto);
-  bot.on('message:text', (ctx, next) => (ctx.chat.type === 'private' ? botController.start(ctx) : next()));
+  bot.on('message:text', botController.textMessage);
 }
 
 /** Bot menyusi: har bir til uchun buyruqlar va "Kurslar" tugmasi (Mini App) */
