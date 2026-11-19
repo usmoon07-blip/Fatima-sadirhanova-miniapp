@@ -1,281 +1,126 @@
+const { InlineKeyboard, Keyboard } = require('grammy');
 const config = require('../config/default');
 const { bot } = require('../core/bot');
 const User = require('../models/User');
 const Order = require('../models/Order');
-const { money, dateTime, escapeHtml, normalizePhone } = require('../utils/format');
-const { t, pickLang, allLabels, LANG_BUTTONS } = require('../utils/i18n');
+const Course = require('../models/Course');
+const { money, escapeHtml } = require('../utils/format');
 
-function langOf(user) {
-  return pickLang(user?.language);
-}
+const STATUS_LABEL = { PENDING: "⏳ To'lov kutilmoqda", PAID: "✅ To'landi", CANCELLED: '❌ Bekor qilindi' };
 
-function mainKeyboard(lang) {
-  const tr = t(lang);
-  return {
-    keyboard: [[{ text: tr.btnOrders }, { text: tr.btnContact }], [{ text: tr.btnLang }]],
-    resize_keyboard: true,
-    is_persistent: true,
-  };
-}
-
-function phoneKeyboard(lang) {
-  return {
-    keyboard: [[{ text: t(lang).sendPhoneBtn, request_contact: true }]],
-    resize_keyboard: true,
-    one_time_keyboard: true,
-  };
-}
-
-function webAppUrl(lang) {
-  return `${config.bot.webAppUrl}/?lang=${lang}`;
-}
-
-function openAppMarkup(lang, text) {
+function appKeyboard(text = "🧁 Kurslarni ko'rish") {
   if (!config.webAppIsHttps) return undefined;
-  return { inline_keyboard: [[{ text: text || t(lang).openMenuBtn, web_app: { url: webAppUrl(lang) } }]] };
+  return new InlineKeyboard().webApp(text, config.bot.webAppUrl);
 }
 
-/** Har bir foydalanuvchi uchun "Menyu" tugmasini o'z tilida o'rnatadi */
-async function setUserMenuButton(chatId, lang) {
-  if (!bot || !config.webAppIsHttps) return;
-  await bot.api.setChatMenuButton({
-    chat_id: Number(chatId),
-    menu_button: { type: 'web_app', text: t(lang).menuButton, web_app: { url: webAppUrl(lang) } },
-  }).catch(() => {});
-}
-
-function itemName(item, lang) {
-  if (lang === 'ru' && item.nameRu) return item.nameRu;
-  if (lang === 'en' && item.nameEn) return item.nameEn;
-  return item.name;
-}
-
-function courseTitle(enrollment, lang) {
-  const c = enrollment.course;
-  if (c && lang === 'ru' && c.titleRu) return c.titleRu;
-  if (c && lang === 'en' && c.titleEn) return c.titleEn;
-  return enrollment.courseTitle;
-}
-
-function itemsText(items, lang = 'uz') {
-  return (items || [])
-    .map((i) => `• ${escapeHtml(itemName(i, lang))}${i.size ? ` (${escapeHtml(i.size)})` : ''} × ${i.quantity} — ${money(i.total)}`)
+function itemsText(items) {
+  return (Array.isArray(items) ? items : [])
+    .map((i) => `• ${escapeHtml(i.title)} — <b>${money(i.price)}</b>`)
     .join('\n');
-}
-
-function orderSummary(order, lang) {
-  const tr = t(lang);
-  const lines = [
-    `🧾 <b>${tr.order} #${order.id}</b>`,
-    '',
-    itemsText(order.items, lang),
-    '',
-    `${tr.items}: ${money(order.subtotal)}`,
-  ];
-  lines.push(
-    `<b>${tr.total}: ${money(order.total)}</b>`,
-    '',
-    tr.deliveryType[order.deliveryType],
-    tr.payment[order.paymentMethod],
-  );
-  if (order.deliveryType === 'DELIVERY' && order.address) lines.push(`📍 ${escapeHtml(order.address)}`);
-  if (order.deliveryTime) lines.push(`⏰ ${escapeHtml(order.deliveryTime)}`);
-  return lines.join('\n');
-}
-
-async function sendWelcome(ctx, user) {
-  const lang = langOf(user);
-  const tr = t(lang);
-  await ctx.reply(tr.welcome(escapeHtml(user.firstName || '🙂'), escapeHtml(config.shop.name)), {
-    parse_mode: 'HTML',
-    reply_markup: mainKeyboard(lang),
-  });
-  const markup = openAppMarkup(lang);
-  if (markup) await ctx.reply(tr.openMenuHint, { reply_markup: markup });
-  else await ctx.reply(tr.notConfigured);
-}
-
-async function askLanguage(ctx) {
-  await ctx.reply("🌐 Tilni tanlang\n🌐 Выберите язык\n🌐 Choose a language", {
-    reply_markup: { inline_keyboard: LANG_BUTTONS },
-  });
-}
-
-async function continueOnboarding(ctx, user) {
-  const lang = langOf(user);
-  if (!user.phone) {
-    await ctx.reply(t(lang).greetAskPhone(escapeHtml(user.firstName || '🙂')), {
-      parse_mode: 'HTML',
-      reply_markup: phoneKeyboard(lang),
-    });
-    return;
-  }
-  await sendWelcome(ctx, user);
 }
 
 const botController = {
   async start(ctx) {
-    const user = await User.upsertFromTelegram(ctx.from);
-    if (!user.language) return askLanguage(ctx);
-    return continueOnboarding(ctx, user);
-  },
+    if (ctx.from) await User.upsertFromTelegram(ctx.from);
+    const name = escapeHtml(ctx.from?.first_name || 'Mehmon');
+    const text = [
+      `Assalomu alaykum, <b>${name}</b>! 🌸`,
+      '',
+      `<b>${escapeHtml(config.shop.name)}</b> qandolatchilik kurslariga xush kelibsiz.`,
+      '',
+      "🎂 Uyda turib professional tortlar, desertlar va makaronlar pishirishni o'rganing.",
+      "🎓 Darslarni istalgan vaqtda ko'rasiz, savollaringizga javob beramiz.",
+      '',
+      "Pastdagi tugmani bosing va o'zingizga mos kursni tanlang 👇",
+    ].join('\n');
 
-  askLanguage,
-
-  async chooseLanguage(ctx) {
-    const lang = pickLang(ctx.match[1]);
-    await User.upsertFromTelegram(ctx.from);
-    const user = await User.setLanguage(ctx.from.id, lang);
-    await ctx.answerCallbackQuery({ text: t(lang).langSaved });
-    await ctx.deleteMessage().catch(() => {});
-    await setUserMenuButton(ctx.from.id, lang);
-    await continueOnboarding(ctx, user);
-  },
-
-  async contact(ctx) {
-    const contact = ctx.message.contact;
-    const existing = await User.upsertFromTelegram(ctx.from);
-    const lang = langOf(existing);
-    if (contact.user_id && contact.user_id !== ctx.from.id) {
-      await ctx.reply(t(lang).ownPhoneOnly, { reply_markup: phoneKeyboard(lang) });
-      return;
+    const keyboard = appKeyboard();
+    await ctx.reply(text, { parse_mode: 'HTML', reply_markup: keyboard });
+    if (!keyboard) {
+      await ctx.reply("ℹ️ Mini App hali ulanmagan. Admin: .env faylida WEBAPP_URL ga ngrok bergan https manzilni yozing va backendni qayta ishga tushiring.");
     }
-    const phone = normalizePhone(contact.phone_number) || contact.phone_number;
-    const user = await User.setPhone(ctx.from.id, phone);
-    await ctx.reply(t(lang).phoneSaved(user.phone));
-    if (!user.language) return askLanguage(ctx);
-    return sendWelcome(ctx, user);
   },
 
   async myOrders(ctx) {
-    const user = await User.findByTelegramId(ctx.from.id);
-    const lang = langOf(user);
-    const tr = t(lang);
-    const orders = user ? await Order.listByUser(user.id, 5) : [];
-    if (orders.length === 0) {
-      await ctx.reply(tr.noOrders, { reply_markup: openAppMarkup(lang) });
-      return;
+    const user = ctx.from && (await User.findByTelegramId(ctx.from.id));
+    const orders = user ? await Order.listByUser(user.id) : [];
+    if (!orders.length) {
+      return ctx.reply("Sizda hali buyurtmalar yo'q. Kurslarni ko'rish uchun tugmani bosing 👇", { reply_markup: appKeyboard() });
     }
-    const text = orders
-      .map((o) => `<b>#${o.id}</b> · ${dateTime(o.createdAt)}\n${tr.status[o.status]} · ${money(o.total)}`)
-      .join('\n\n');
-    await ctx.reply(`${tr.lastOrders}\n\n${text}`, { parse_mode: 'HTML', reply_markup: openAppMarkup(lang, tr.reorderBtn) });
+    const text = orders.slice(0, 5).map((o) => [
+      `<b>Buyurtma #${o.id}</b> · ${STATUS_LABEL[o.status]}`,
+      itemsText(o.items),
+      `Jami: <b>${money(o.total)}</b>`,
+    ].join('\n')).join('\n\n');
+    return ctx.reply(text, { parse_mode: 'HTML', reply_markup: appKeyboard() });
   },
 
-  async contactInfo(ctx) {
-    const user = await User.findByTelegramId(ctx.from.id);
-    const tr = t(langOf(user));
-    const { shop } = config;
-    const lines = [`<b>${escapeHtml(shop.name)}</b>`];
-    if (shop.phone) lines.push(`📞 ${escapeHtml(shop.phone)}`);
-    if (shop.address) lines.push(`📍 ${escapeHtml(shop.address)}`);
-    if (shop.workingHours) lines.push(`🕘 ${tr.workingHours}: ${escapeHtml(shop.workingHours)}`);
-    await ctx.reply(lines.join('\n'), { parse_mode: 'HTML' });
-    if (shop.lat && shop.lng) await ctx.replyWithLocation(shop.lat, shop.lng);
+  async help(ctx) {
+    const lines = ["📞 Bog'lanish:"];
+    if (config.shop.phone) lines.push(`Telefon: ${config.shop.phone}`);
+    if (config.shop.adminUsername) lines.push(`Telegram: @${config.shop.adminUsername}`);
+    lines.push('', '/start — Bosh menyu', '/buyurtmalarim — Mening buyurtmalarim');
+    return ctx.reply(lines.join('\n'), { reply_markup: appKeyboard() });
   },
 
-  async fallback(ctx) {
-    const user = await User.findByTelegramId(ctx.from.id);
-    if (!user?.language || !user?.phone) return botController.start(ctx);
-    const lang = langOf(user);
-    await ctx.reply(t(lang).openMenuShort, { reply_markup: openAppMarkup(lang) || mainKeyboard(lang) });
-    return undefined;
+  async askPhone(ctx) {
+    const kb = new Keyboard().requestContact('📱 Raqamni yuborish').resized().oneTime();
+    return ctx.reply('Telefon raqamingizni yuboring:', { reply_markup: kb });
   },
 
-  labels: {
-    orders: allLabels('btnOrders'),
-    contact: allLabels('btnContact'),
-    lang: allLabels('btnLang'),
+  async contact(ctx) {
+    const contact = ctx.message?.contact;
+    if (!contact || contact.user_id !== ctx.from.id) return undefined;
+    const user = await User.upsertFromTelegram(ctx.from);
+    const phone = contact.phone_number.startsWith('+') ? contact.phone_number : `+${contact.phone_number}`;
+    await User.setPhone(user.id, phone);
+    return ctx.reply('✅ Raqamingiz saqlandi. Rahmat!', { reply_markup: { remove_keyboard: true } });
   },
-
-  // ================= Bildirishnomalar =================
-
-  async notifyOrderCreated(order) {
-    if (!bot || !order.user?.telegramId) return;
-    const lang = langOf(order.user);
-    const tr = t(lang);
-    const chatId = order.user.telegramId;
-    const lines = [
-      tr.orderAccepted,
-      order.deliveryType === 'DELIVERY' ? tr.courierSoon : tr.pickupSoon,
-      '',
-      orderSummary(order, lang),
-    ];
-    if (order.paymentMethod === 'CARD' && config.shop.cardNumber) {
-      lines.push('', `💳 ${tr.card}: <code>${escapeHtml(config.shop.cardNumber)}</code>${config.shop.cardHolder ? `\n👤 ${escapeHtml(config.shop.cardHolder)}` : ''}`, tr.cardHint);
-    }
-    if (order.deliveryType === 'PICKUP' && config.shop.address) {
-      lines.push('', `🏪 ${tr.pickupAddress}: ${escapeHtml(config.shop.address)}`);
-    }
-    await bot.api.sendMessage(chatId, lines.join('\n'), { parse_mode: 'HTML' });
-    if (order.deliveryType === 'PICKUP' && config.shop.lat && config.shop.lng) {
-      await bot.api.sendLocation(chatId, config.shop.lat, config.shop.lng);
-    }
-  },
-
-  async notifyStatusChanged(order) {
-    if (!bot || !order.user?.telegramId) return;
-    const m = t(langOf(order.user)).statusMsg;
-    let text = null;
-    if (order.status === 'CANCELLED') {
-      text = order.cancelledBy === 'customer' ? m.CANCELLED_BY_USER(order.id) : m.CANCELLED(order.id, config.shop.phone);
-    } else if (order.status === 'READY') {
-      text = order.deliveryType === 'PICKUP' ? m.READY_PICKUP(order.id, config.shop.address) : m.READY(order.id);
-    } else if (m[order.status]) {
-      text = m[order.status](order.id);
-    }
-    if (text) await bot.api.sendMessage(order.user.telegramId, text);
-  },
-
-  /** Buyurtmani kuryerlar guruhiga yuboradi (COURIER_CHAT_ID sozlangan bo'lsa) */
-  async dispatchToCourier(order) {
-    if (!bot || !config.bot.courierChatId || order.deliveryType !== 'DELIVERY') return;
-    const lines = [
-      `🚚 <b>Yangi yetkazma — #${order.id}</b>`,
-      '',
-      `👤 ${escapeHtml(order.customerName)}`,
-      `📞 ${escapeHtml(order.phone)}`,
-      order.address ? `📍 ${escapeHtml(order.address)}` : null,
-      order.deliveryTime ? `⏰ ${escapeHtml(order.deliveryTime)}` : null,
-      order.comment ? `💬 ${escapeHtml(order.comment)}` : null,
-      '',
-      itemsText(order.items),
-      '',
-      `${t('uz').payment[order.paymentMethod]} · <b>${money(order.total)}</b>`,
-    ].filter((l) => l !== null);
-    await bot.api.sendMessage(config.bot.courierChatId, lines.join('\n'), { parse_mode: 'HTML' });
-    if (order.latitude && order.longitude) {
-      await bot.api.sendLocation(config.bot.courierChatId, order.latitude, order.longitude);
-    }
-  },
-
-  // ================= Kurslar =================
-
-  async notifyEnrollmentCreated(enrollment) {
-    if (!bot || !enrollment.user?.telegramId) return;
-    const lang = langOf(enrollment.user);
-    const tr = t(lang);
-    const title = escapeHtml(courseTitle(enrollment, lang));
-    const lines = [
-      tr.enrollAccepted(title, tr.format[enrollment.format]),
-      '',
-      `${tr.price}: <b>${money(enrollment.price)}</b>`,
-      tr.payment[enrollment.paymentMethod],
-    ];
-    if (enrollment.paymentMethod === 'CARD' && config.shop.cardNumber) {
-      lines.push(`💳 <code>${escapeHtml(config.shop.cardNumber)}</code>${config.shop.cardHolder ? ` · ${escapeHtml(config.shop.cardHolder)}` : ''}`);
-    }
-    await bot.api.sendMessage(enrollment.user.telegramId, lines.join('\n'), { parse_mode: 'HTML' });
-  },
-
-  async notifyEnrollmentStatus(enrollment) {
-    if (!bot || !enrollment.user?.telegramId) return;
-    const lang = langOf(enrollment.user);
-    const fn = t(lang).enrollStatus[enrollment.status];
-    if (fn) await bot.api.sendMessage(enrollment.user.telegramId, fn(courseTitle(enrollment, lang)));
-  },
-
-  setUserMenuButton,
 };
 
-module.exports = botController;
+/** Mini App'dan buyurtma tushganda mijozga xabar */
+async function notifyOrderCreated(order) {
+  if (!bot) return;
+  const lines = [
+    "Buyurtmangiz muvaffaqiyatli qabul qilindi! Kuratorimiz tez orada bog'lanadi 🧁",
+    '',
+    `<b>Buyurtma #${order.id}</b>`,
+    itemsText(order.items),
+    '',
+    `💰 Jami: <b>${money(order.total)}</b>`,
+  ];
+  if (config.shop.cardNumber) {
+    lines.push(
+      '',
+      "💳 To'lov uchun karta:",
+      `<code>${escapeHtml(config.shop.cardNumber)}</code>${config.shop.cardHolder ? ` (${escapeHtml(config.shop.cardHolder)})` : ''}`,
+      "To'lov chekini shu chatga yoki kuratorga yuboring.",
+    );
+  }
+  await bot.api.sendMessage(order.user.telegramId, lines.join('\n'), { parse_mode: 'HTML' });
+}
+
+/** Admin buyurtma holatini o'zgartirganda mijozga xabar */
+async function notifyOrderStatus(order) {
+  if (!bot || !order.user?.telegramId) return;
+  const chatId = order.user.telegramId;
+
+  if (order.status === 'PAID') {
+    const ids = (Array.isArray(order.items) ? order.items : []).map((i) => i.courseId).filter(Boolean);
+    const courses = ids.length ? await Course.findMany(ids) : [];
+    const kb = new InlineKeyboard();
+    const lines = [`✅ <b>To'lovingiz tasdiqlandi!</b> (buyurtma #${order.id})`, '', '🎓 Kurslaringiz ochildi:'];
+    for (const c of courses) {
+      lines.push(`• ${escapeHtml(c.title)}`);
+      if (c.accessLink) kb.url(`▶️ ${c.title}`.slice(0, 60), c.accessLink).row();
+    }
+    if (!courses.some((c) => c.accessLink)) lines.push('', 'Kurator sizga darslarga kirish havolasini yuboradi.');
+    lines.push('', "Kursni tugatgach, Mini App'da izoh qoldirishni unutmang 🌸");
+    if (config.webAppIsHttps) kb.webApp('🧁 Mini App', config.bot.webAppUrl);
+    await bot.api.sendMessage(chatId, lines.join('\n'), { parse_mode: 'HTML', reply_markup: kb });
+  } else if (order.status === 'CANCELLED') {
+    await bot.api.sendMessage(chatId, `❌ Buyurtma #${order.id} bekor qilindi. Savollar bo'lsa, biz bilan bog'laning.`);
+  }
+}
+
+module.exports = { botController, notifyOrderCreated, notifyOrderStatus };

@@ -6,7 +6,7 @@ const User = require('../models/User');
 const INIT_DATA_MAX_AGE_SEC = 24 * 60 * 60;
 const DEV_USER = { id: 100000001, first_name: 'Mehmon', username: 'dev_user' };
 
-/** Telegram WebApp initData imzosini tekshiradi. To'g'ri bo'lsa foydalanuvchini qaytaradi. */
+/** Telegram WebApp initData imzosini tekshiradi */
 function verifyInitData(initData, botToken) {
   if (!initData || !botToken) return null;
   const params = new URLSearchParams(initData);
@@ -37,17 +37,15 @@ function verifyInitData(initData, botToken) {
   }
 }
 
-/** Mini App so'rovlari uchun: Telegram foydalanuvchisini aniqlaydi va bazaga yozadi */
+/** Mini App so'rovlari: Telegram foydalanuvchisini aniqlaydi va bazaga yozadi */
 async function telegramAuth(req, res, next) {
   try {
     const initData = req.get('X-Telegram-Init-Data') || '';
     let tgUser = verifyInitData(initData, config.bot.token);
-
     if (!tgUser && !initData && config.devAllowBrowser) tgUser = DEV_USER;
     if (!tgUser) {
-      return res.status(401).json({ message: 'Telegram orqali kiring. Ilovani bot ichidan oching.' });
+      return res.status(401).json({ message: 'Ilovani Telegram bot ichidan oching.' });
     }
-
     req.tgUser = tgUser;
     req.user = await User.upsertFromTelegram(tgUser);
     return next();
@@ -56,30 +54,23 @@ async function telegramAuth(req, res, next) {
   }
 }
 
-/** role: 'admin' (hamma bo'limlar) | 'kitchen' (faqat oshxona ekrani) */
-function signAdminToken(role) {
-  return jwt.sign({ role }, config.admin.jwtSecret, { expiresIn: config.admin.tokenTtl });
+function signAdminToken() {
+  return jwt.sign({ role: 'admin' }, config.admin.jwtSecret, { expiresIn: config.admin.tokenTtl });
 }
 
-/** Panel uchun avtorizatsiya. roles — ruxsat etilgan rollar */
-function adminAuth(roles = ['admin']) {
-  return (req, res, next) => {
-    const header = req.get('Authorization') || '';
-    const token = header.startsWith('Bearer ') ? header.slice(7) : null;
-    if (!token) return res.status(401).json({ message: 'Avtorizatsiya talab qilinadi' });
-    let payload;
-    try {
-      payload = jwt.verify(token, config.admin.jwtSecret);
-    } catch {
-      return res.status(401).json({ message: 'Sessiya tugagan. Qaytadan kiring.' });
-    }
-    if (!roles.includes(payload.role)) return res.status(403).json({ message: "Bu bo'limga ruxsat yo'q" });
-    req.admin = payload;
+function adminAuth(req, res, next) {
+  const header = req.get('Authorization') || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  if (!token) return res.status(401).json({ message: 'Avtorizatsiya talab qilinadi' });
+  try {
+    req.admin = jwt.verify(token, config.admin.jwtSecret);
     return next();
-  };
+  } catch {
+    return res.status(401).json({ message: 'Sessiya tugagan. Qaytadan kiring.' });
+  }
 }
 
-// Parolni ko'p marta noto'g'ri kiritganda bloklash (IP bo'yicha)
+// Parol ko'p marta noto'g'ri kiritilsa, IP bloklanadi
 const loginAttempts = new Map();
 
 function loginGuard(req, res, next) {
@@ -97,7 +88,6 @@ function loginGuard(req, res, next) {
       e.fails = 0;
     }
     loginAttempts.set(key, e);
-    return config.admin.maxLoginAttempts - e.fails;
   };
   req.loginSucceeded = () => loginAttempts.delete(key);
   return next();
@@ -109,14 +99,19 @@ function validate(schema) {
     const result = schema.safeParse(req.body);
     if (!result.success) {
       const first = result.error.issues[0];
-      return res.status(400).json({
-        message: first?.message || "Ma'lumotlar noto'g'ri",
-        field: first?.path?.join('.'),
-      });
+      return res.status(400).json({ message: first?.message || "Ma'lumotlar noto'g'ri", field: first?.path?.join('.') });
     }
     req.body = result.data;
     return next();
   };
+}
+
+/** :id parametrini butun songa aylantiradi */
+function idParam(req, res, next) {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ message: "Noto'g'ri ID" });
+  req.id = id;
+  return next();
 }
 
 function safeEqual(a, b) {
@@ -126,5 +121,5 @@ function safeEqual(a, b) {
 }
 
 module.exports = {
-  telegramAuth, adminAuth, loginGuard, validate, signAdminToken, verifyInitData, safeEqual,
+  telegramAuth, adminAuth, loginGuard, validate, idParam, signAdminToken, safeEqual,
 };

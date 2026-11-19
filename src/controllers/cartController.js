@@ -1,225 +1,133 @@
 const { z } = require('zod');
 const config = require('../config/default');
-const { prisma } = require('../database/connection');
-const User = require('../models/User');
-const Product = require('../models/Product');
-const Category = require('../models/Category');
-const Story = require('../models/Story');
-const Order = require('../models/Order');
 const Course = require('../models/Course');
-const botController = require('./botController');
-const { normalizePhone, startOfTodayTashkent } = require('../utils/format');
-const { pickLang } = require('../utils/i18n');
+const Order = require('../models/Order');
+const Review = require('../models/Review');
+const Result = require('../models/Result');
+const Story = require('../models/Story');
+const User = require('../models/User');
+const { notifyOrderCreated } = require('./botController');
 
-const orderSchema = z.object({
-  items: z.array(z.object({
-    productId: z.number().int().positive(),
-    size: z.string().max(60).nullish(),
-    quantity: z.number().int().min(1).max(50),
-  })).min(1, "Savatcha bo'sh").max(50),
-  deliveryType: z.enum(['DELIVERY', 'PICKUP']),
-  paymentMethod: z.enum(['CASH', 'CARD']),
-  customerName: z.string().trim().min(2, 'Ismingizni kiriting').max(80),
-  phone: z.string().trim().min(7, 'Telefon raqamini kiriting').max(30),
-  address: z.string().trim().max(300).nullish(),
-  latitude: z.number().min(-90).max(90).nullish(),
-  longitude: z.number().min(-180).max(180).nullish(),
-  deliveryTime: z.string().trim().max(60).nullish(),
-  deliveryAt: z.string().datetime({ offset: true }).nullish(),
-  comment: z.string().trim().max(500).nullish(),
-});
+const PHONE_RE = /^\+?[0-9\s\-()]{9,20}$/;
 
-const addressSchema = z.object({
-  address: z.string().trim().max(300).nullish(),
-  latitude: z.number().min(-90).max(90).nullish(),
-  longitude: z.number().min(-180).max(180).nullish(),
-});
-
-function publicUser(user) {
-  return {
-    id: user.id,
-    telegramId: user.telegramId,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    username: user.username,
-    phone: user.phone,
-    language: user.language,
-    address: user.address,
-    latitude: user.latitude,
-    longitude: user.longitude,
-  };
-}
+const schemas = {
+  phone: z.object({
+    phone: z.string().trim().regex(PHONE_RE, "Telefon raqam noto'g'ri"),
+  }),
+  order: z.object({
+    courseIds: z.array(z.number().int().positive()).min(1, "Savatcha bo'sh").max(30),
+    upsell: z.boolean().optional().default(false),
+    customerName: z.string().trim().min(2, 'Ismingizni kiriting').max(80),
+    phone: z.string().trim().regex(PHONE_RE, "Telefon raqam noto'g'ri"),
+    comment: z.string().trim().max(500).optional().nullable(),
+  }),
+  review: z.object({
+    courseId: z.number().int().positive(),
+    rating: z.number().int().min(1).max(5),
+    text: z.string().trim().min(3, 'Izoh juda qisqa').max(1000, 'Izoh juda uzun'),
+  }),
+};
 
 const cartController = {
-  orderSchema,
-  addressSchema,
+  schemas,
 
-  getConfig(req, res) {
-    const { shop, delivery } = config;
+  config(req, res) {
     res.json({
       shop: {
-        name: shop.name,
-        tagline: shop.tagline,
-        phone: shop.phone,
-        address: shop.address,
-        lat: shop.lat,
-        lng: shop.lng,
-        workingHours: shop.workingHours,
-        cardNumber: shop.cardNumber,
-        cardHolder: shop.cardHolder,
-        about: shop.about,
+        name: config.shop.name,
+        tagline: config.shop.tagline,
+        phone: config.shop.phone,
+        adminUsername: config.shop.adminUsername,
       },
-      delivery,
-      order: config.order,
+      upsell: config.upsell.enabled ? { title: config.upsell.title, price: config.upsell.price } : null,
     });
   },
 
-  async getCatalog(req, res) {
-    const [categories, products, stories, courses] = await Promise.all([
-      Category.listActive(),
-      Product.listAvailable(),
+  async catalog(req, res) {
+    const [courses, stories, results, reviews] = await Promise.all([
+      Course.listPublic(),
       Story.listActive(),
-      Course.listActive(),
+      Result.listActive(),
+      Review.listPublic({ take: 30 }),
     ]);
-    const activeCategoryIds = new Set(categories.map((c) => c.id));
-    res.json({
-      categories,
-      products: products.filter((p) => !p.categoryId || activeCategoryIds.has(p.categoryId)),
-      stories,
-      courses,
-    });
+    const categories = [...new Set(courses.map((c) => c.category).filter(Boolean))];
+    res.json({ courses, categories, stories, results, reviews });
   },
 
-  async getMe(req, res) {
-    const stats = await User.stats(req.user.id);
-    res.json({ user: publicUser(req.user), stats });
+  async me(req, res) {
+    const u = req.user;
+    const [{ paid, pending }, reviews] = await Promise.all([
+      Order.courseIdsByUser(u.id),
+      Review.listByUser(u.id),
+    ]);
+    const owned = paid.length ? await Course.findMany(paid) : [];
+    res.json({
+      user: { id: u.id, firstName: u.firstName, lastName: u.lastName, username: u.username, phone: u.phone },
+      purchased: paid,
+      pending,
+      myCourses: owned.map((c) => ({
+        id: c.id, title: c.title, imageUrl: c.imageUrl, lessonsCount: c.lessonsCount, accessLink: c.accessLink,
+      })),
+      reviews,
+    });
   },
 
   async updatePhone(req, res) {
-    const phone = normalizePhone(req.body?.phone);
-    if (!phone) return res.status(400).json({ message: "Telefon raqami noto'g'ri" });
-    const user = await User.setPhone(req.user.telegramId, phone);
-    return res.json({ user: publicUser(user) });
-  },
-
-  async updateLanguage(req, res) {
-    const lang = pickLang(req.body?.language);
-    const user = await User.setLanguage(req.user.telegramId, lang);
-    botController.setUserMenuButton(user.telegramId, lang).catch(() => {});
-    res.json({ user: publicUser(user) });
-  },
-
-  async saveAddress(req, res) {
-    const user = await User.saveAddress(req.user.id, req.body);
-    res.json({ user: publicUser(user) });
-  },
-
-  async createOrder(req, res) {
-    const body = req.body;
-    const phone = normalizePhone(body.phone);
-    if (!phone) return res.status(400).json({ message: "Telefon raqami noto'g'ri", field: 'phone' });
-
-    const hasCoords = body.latitude != null && body.longitude != null;
-    if (body.deliveryType === 'DELIVERY' && !hasCoords && !body.address) {
-      return res.status(400).json({ message: 'Yetkazib berish manzilini kiriting yoki joylashuvni yuboring', field: 'address' });
-    }
-
-    // Oldindan buyurtma: sana kamida ORDER_ADVANCE_DAYS kun keyin bo'lishi kerak
-    const { advanceDays } = config.order;
-    if (advanceDays > 0) {
-      const earliest = startOfTodayTashkent().getTime() + advanceDays * 24 * 60 * 60 * 1000;
-      if (!body.deliveryAt || new Date(body.deliveryAt).getTime() < earliest) {
-        return res.status(400).json({ message: `Buyurtma kamida ${advanceDays} kun avval beriladi. Sanani tanlang.`, field: 'time', reason: 'ADVANCE' });
-      }
-    }
-
-    // Narxlar faqat bazadan olinadi — mijoz yuborgan narxga ishonilmaydi
-    const ids = [...new Set(body.items.map((i) => i.productId))];
-    const products = await Product.findManyByIds(ids);
-    const byId = new Map(products.map((p) => [p.id, p]));
-
-    const merged = new Map();
-    for (const item of body.items) {
-      const product = byId.get(item.productId);
-      if (!product || !product.isAvailable) {
-        return res.status(400).json({ message: "Savatchadagi ba'zi mahsulotlar hozir mavjud emas. Savatchani yangilang.", reason: 'UNAVAILABLE' });
-      }
-      const { price, size } = Product.unitPrice(product, item.size);
-      const key = `${product.id}:${size || ''}`;
-      const quantity = (merged.get(key)?.quantity || 0) + item.quantity;
-      merged.set(key, {
-        productId: product.id,
-        name: product.name,
-        nameRu: product.nameRu || null,
-        nameEn: product.nameEn || null,
-        imageUrl: product.imageUrl,
-        size,
-        price,
-        quantity,
-        total: price * quantity,
-      });
-    }
-
-    const items = [...merged.values()];
-    const subtotal = items.reduce((sum, i) => sum + i.total, 0);
-
-    if (config.delivery.minOrder && subtotal < config.delivery.minOrder) {
-      return res.status(400).json({ message: `Minimal buyurtma summasi: ${config.delivery.minOrder.toLocaleString('ru-RU')} so'm`, reason: 'MIN_ORDER_TOTAL' });
-    }
-
-    const isDelivery = body.deliveryType === 'DELIVERY';
-
-    const order = await prisma.$transaction(async (tx) => {
-      const userData = {};
-      if (req.user.phone !== phone) userData.phone = phone;
-      if (isDelivery) {
-        userData.address = body.address || null;
-        userData.latitude = hasCoords ? body.latitude : null;
-        userData.longitude = hasCoords ? body.longitude : null;
-      }
-      if (Object.keys(userData).length) await tx.user.update({ where: { id: req.user.id }, data: userData });
-
-      return tx.order.create({
-        data: {
-          userId: req.user.id,
-          items,
-          subtotal,
-          total: subtotal,
-          deliveryType: body.deliveryType,
-          paymentMethod: body.paymentMethod,
-          customerName: body.customerName,
-          phone,
-          address: isDelivery ? body.address || null : null,
-          latitude: isDelivery && hasCoords ? body.latitude : null,
-          longitude: isDelivery && hasCoords ? body.longitude : null,
-          deliveryTime: body.deliveryTime || null,
-          comment: body.comment || null,
-        },
-        include: { user: { select: { telegramId: true, firstName: true, lastName: true, username: true, language: true } } },
-      });
-    });
-
-    botController.notifyOrderCreated(order).catch((err) => console.error('Bot xabari yuborilmadi:', err.message));
-
-    return res.status(201).json({ order });
+    const user = await User.setPhone(req.user.id, req.body.phone);
+    res.json({ phone: user.phone });
   },
 
   async myOrders(req, res) {
-    const orders = await Order.listByUser(req.user.id);
-    res.json({ orders });
+    res.json(await Order.listByUser(req.user.id));
   },
 
-  /** Mijoz buyurtmani faqat oshxona qabul qilmaguncha (NEW) bekor qila oladi */
-  async cancelOrder(req, res) {
-    const id = Number(req.params.id);
-    const order = Number.isInteger(id) ? await Order.findById(id) : null;
-    if (!order || order.userId !== req.user.id) return res.status(404).json({ message: 'Buyurtma topilmadi' });
-    if (order.status !== 'NEW') {
-      return res.status(400).json({ message: "Buyurtma tayyorlanmoqda — endi bekor qilib bo'lmaydi", reason: 'TOO_LATE' });
+  async createOrder(req, res) {
+    const { courseIds, upsell, customerName, phone, comment } = req.body;
+    const ids = [...new Set(courseIds)];
+    const courses = await Course.findManyActive(ids);
+    if (courses.length !== ids.length) {
+      return res.status(400).json({ message: "Savatchadagi ba'zi kurslar endi mavjud emas. Savatchani yangilang." });
     }
-    const updated = await Order.updateStatus(id, 'CANCELLED', { cancelledBy: 'customer' });
-    botController.notifyStatusChanged(updated).catch(() => {});
-    return res.json({ order: updated });
+
+    const { paid } = await Order.courseIdsByUser(req.user.id);
+    const owned = courses.filter((c) => paid.includes(c.id));
+    if (owned.length) {
+      return res.status(400).json({ message: `«${owned[0].title}» kursi sizda allaqachon bor` });
+    }
+
+    const items = courses.map((c) => ({
+      courseId: c.id, title: c.title, imageUrl: c.imageUrl, price: c.price, oldPrice: c.oldPrice, type: 'course',
+    }));
+    if (upsell && config.upsell.enabled) {
+      items.push({ courseId: null, title: config.upsell.title, imageUrl: null, price: config.upsell.price, oldPrice: null, type: 'extra' });
+    }
+    const total = items.reduce((s, i) => s + i.price, 0);
+
+    if (!req.user.phone) await User.setPhone(req.user.id, phone);
+
+    const order = await Order.create({
+      userId: req.user.id, items, total, customerName, phone, comment: comment || null,
+    });
+    notifyOrderCreated(order).catch((e) => console.error('❌ Bot xabari yuborilmadi:', e.message));
+    return res.status(201).json(order);
+  },
+
+  async courseReviews(req, res) {
+    res.json(await Review.listPublic({ courseId: req.id }));
+  },
+
+  async reviews(req, res) {
+    res.json(await Review.listPublic({ take: 100 }));
+  },
+
+  async addReview(req, res) {
+    const { courseId, rating, text } = req.body;
+    const { paid } = await Order.courseIdsByUser(req.user.id);
+    if (!paid.includes(courseId)) {
+      return res.status(403).json({ message: "Izoh qoldirish uchun avval kursni sotib olishingiz kerak" });
+    }
+    await Review.upsert(req.user.id, courseId, { rating, text });
+    return res.status(201).json({ ok: true });
   },
 };
 

@@ -7,189 +7,104 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// PENDING — to'lov kutilmoqda, PAID — to'landi (kurs ochildi), CANCELLED — bekor qilindi
 enum OrderStatus {
-  NEW
-  CONFIRMED
-  PREPARING
-  READY
-  ON_THE_WAY
-  DELIVERED
-  CANCELLED
-}
-
-enum DeliveryType {
-  DELIVERY
-  PICKUP
-}
-
-enum PaymentMethod {
-  CASH
-  CARD
-}
-
-enum CourseFormat {
-  ONLINE
-  OFFLINE
-}
-
-enum EnrollmentStatus {
-  NEW
-  CONFIRMED
+  PENDING
   PAID
-  COMPLETED
   CANCELLED
 }
 
 model User {
-  id           Int          @id @default(autoincrement())
-  telegramId   String       @unique
-  firstName    String?
-  lastName     String?
-  username     String?
-  phone        String?
-  languageCode String?
-  /// Tanlangan til: uz | ru | en
-  language     String?
-  address      String?
-  latitude     Float?
-  longitude    Float?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  orders       Order[]
-  enrollments  Enrollment[]
+  id         Int      @id @default(autoincrement())
+  telegramId String   @unique
+  firstName  String?
+  lastName   String?
+  username   String?
+  phone      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  orders     Order[]
+  reviews    Review[]
 }
 
-model Category {
-  id        Int       @id @default(autoincrement())
-  name      String
-  nameRu    String?
-  nameEn    String?
-  imageUrl  String?
-  sortOrder Int       @default(0)
-  isActive  Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  products  Product[]
-}
-
-model Product {
-  id            Int       @id @default(autoincrement())
-  name          String
-  nameRu        String?
-  nameEn        String?
-  description   String    @default("")
-  descriptionRu String?
-  descriptionEn String?
-  imageUrl      String
-  oldPrice      Int?
-  price         Int
-  categoryId    Int?
-  category      Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  ingredients   String[]  @default([])
-  ingredientsRu String[]  @default([])
-  ingredientsEn String[]  @default([])
-  /// Variantlar: [{ "label": "6 inch", "price": 249000 }]
-  sizes         Json      @default("[]")
-  rating        Float     @default(5)
-  reviewsCount  Int       @default(0)
-  badge         String?
-  isPopular     Boolean   @default(false)
-  isAvailable   Boolean   @default(true)
-  isUpsell      Boolean   @default(false)
-  sortOrder     Int       @default(0)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  @@index([categoryId])
-}
-
-model Story {
-  id        Int      @id @default(autoincrement())
-  title     String
-  titleRu   String?
-  titleEn   String?
-  imageUrl  String
-  text      String?
-  textRu    String?
-  textEn    String?
-  sortOrder Int      @default(0)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
+/// Kurs (mahsulot)
+model Course {
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String   @default("")
+  imageUrl     String
+  oldPrice     Int?
+  price        Int
+  category     String   @default("Tortlar")
+  /// Kurs dasturi — har bir element alohida mavzu
+  program      String[] @default([])
+  lessonsCount Int      @default(0)
+  duration     String?
+  level        String?
+  badge        String?
+  /// Yopiq kanal / guruh havolasi — to'lov tasdiqlangach o'quvchiga yuboriladi
+  accessLink   String?
+  isActive     Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  reviews      Review[]
 }
 
 model Order {
-  id            Int           @id @default(autoincrement())
-  userId        Int
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  /// [{ productId, name, imageUrl, size, price, quantity, total }]
-  items         Json
-  subtotal      Int
-  deliveryFee   Int           @default(0)
-  total         Int
-  deliveryType  DeliveryType
-  paymentMethod PaymentMethod
-  customerName  String
-  phone         String
-  address       String?
-  latitude      Float?
-  longitude     Float?
-  deliveryTime  String?
-  comment       String?
-  status        OrderStatus   @default(NEW)
-  statusAt      DateTime      @default(now())
-  cancelledBy   String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id           Int         @id @default(autoincrement())
+  userId       Int
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// [{ courseId, title, imageUrl, price, oldPrice, type: "course" | "extra" }]
+  items        Json
+  total        Int
+  customerName String
+  phone        String
+  comment      String?
+  status       OrderStatus @default(PENDING)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
   @@index([status])
   @@index([userId])
   @@index([createdAt])
 }
 
-model Course {
-  id            Int          @id @default(autoincrement())
-  title         String
-  titleRu       String?
-  titleEn       String?
-  description   String       @default("")
-  descriptionRu String?
-  descriptionEn String?
-  /// Dastur: har bir element — bitta mavzu
-  program       String[]     @default([])
-  programRu     String[]     @default([])
-  programEn     String[]     @default([])
-  duration      String?
-  durationRu    String?
-  durationEn    String?
-  imageUrl      String
-  /// null — bu formatda o'tilmaydi
-  onlinePrice   Int?
-  offlinePrice  Int?
-  badge         String?
-  isActive      Boolean      @default(true)
-  sortOrder     Int          @default(0)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  enrollments   Enrollment[]
+/// Kursni sotib olgan o'quvchining izohi
+model Review {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  Int
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  rating    Int      @default(5)
+  text      String
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, courseId])
+  @@index([courseId])
 }
 
-/// Kursga yozilish arizasi
-model Enrollment {
-  id            Int              @id @default(autoincrement())
-  userId        Int
-  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courseId      Int?
-  course        Course?          @relation(fields: [courseId], references: [id], onDelete: SetNull)
-  courseTitle   String
-  format        CourseFormat
-  price         Int
-  customerName  String
-  phone         String
-  paymentMethod PaymentMethod
-  comment       String?
-  status        EnrollmentStatus @default(NEW)
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+/// O'quvchilar natijalari (galereya)
+model Result {
+  id          Int      @id @default(autoincrement())
+  studentName String
+  courseTitle String?
+  imageUrl    String
+  text        String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
 
-  @@index([status])
-  @@index([userId])
+model Story {
+  id        Int      @id @default(autoincrement())
+  title     String
+  imageUrl  String
+  text      String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
 }

@@ -1,101 +1,69 @@
 import { useEffect, useState } from 'react';
 import BottomNav from './components/BottomNav';
-import ProductSheet from './components/ProductSheet';
-import Panels from './components/Panels';
+import CourseSheet from './components/CourseSheet';
+import ReviewSheet from './components/ReviewSheet';
 import Toast from './components/Toast';
 import { StoryViewer } from './components/Stories';
-import Onboarding, { LanguagePicker } from './screens/Onboarding';
+import Onboarding from './screens/Onboarding';
 import Home from './screens/Home';
-import Menu from './screens/Menu';
+import Catalog from './screens/Catalog';
 import Cart from './screens/Cart';
-import Checkout from './screens/Checkout';
-import Success from './screens/Success';
+import Results from './screens/Results';
 import Profile from './screens/Profile';
-import Orders from './screens/Orders';
-import Courses from './screens/Courses';
-import MyCourses from './screens/MyCourses';
-import CourseSheet from './components/CourseSheet';
 import { useStore } from './store/StoreContext';
 import { storage } from './lib/storage';
 import { setBackButton } from './lib/telegram';
 
+const SCREENS = { home: Home, courses: Catalog, cart: Cart, results: Results, profile: Profile };
+
 function Splash() {
   return (
     <div className="splash">
-      <div className="splash-logo">🧁</div>
-      <div className="loader" />
+      <span className="brand-logo big">🧁</span>
+      <b className="serif">Fatima Sadirkhanova</b>
+      <small>PATISSERIE</small>
+      <span className="loader" />
     </div>
   );
 }
 
-const TABS = {
-  home: Home, menu: Menu, cart: Cart, courses: Courses, profile: Profile,
-};
-
 export default function App() {
+  const { status, error, load, tab, setTab, courseId, reviewCourseId, storyIndex } = useStore();
   const [onboarded, setOnboarded] = useState(() => storage.get('onboarded', false));
-  const {
-    loading, error, reload, config, tab, screen, setScreen, goTo, sheetProductId, openProduct, storyIndex, setStoryIndex,
-    courseId, openCourse,
-    panel, setPanel, langChosen, t,
-  } = useStore();
 
-  // Telegram "Orqaga" tugmasi
+  // Telegram "Orqaga" tugmasi: boshqa tabdan bosh sahifaga
+  const overlayOpen = courseId != null || reviewCourseId != null || storyIndex != null;
   useEffect(() => {
-    let handler = null;
-    if (storyIndex != null) handler = () => setStoryIndex(null);
-    else if (panel) handler = () => setPanel(null);
-    else if (sheetProductId) handler = () => openProduct(null);
-    else if (courseId) handler = () => openCourse(null);
-    else if (['checkout', 'orders', 'myCourses'].includes(screen)) handler = () => setScreen(null);
-    else if (screen === 'success') handler = () => goTo('home');
-    else if (tab !== 'home') handler = () => goTo('home');
-    return setBackButton(handler);
-  }, [storyIndex, panel, sheetProductId, courseId, screen, tab, setStoryIndex, setPanel, openProduct, openCourse, setScreen, goTo]);
-
-  if (!langChosen) return <LanguagePicker />;
+    if (overlayOpen || !onboarded) return undefined;
+    return setBackButton(tab !== 'home' ? () => setTab('home') : null);
+  }, [tab, overlayOpen, onboarded, setTab]);
 
   if (!onboarded) {
-    return (
-      <Onboarding
-        onDone={() => {
-          storage.set('onboarded', true);
-          setOnboarded(true);
-        }}
-      />
-    );
+    return <Onboarding onDone={() => { storage.set('onboarded', true); setOnboarded(true); }} />;
   }
 
-  if (loading && !config) return <Splash />;
-
-  if (error && !config) {
+  if (status === 'loading') return <Splash />;
+  if (status === 'error') {
     return (
-      <div className="empty big full">
-        <div className="empty-emoji">😔</div>
-        <h3 className="serif">{t.connError}</h3>
-        <p className="muted">{error}</p>
-        <button type="button" className="btn btn-primary" onClick={reload}>{t.retry}</button>
+      <div className="splash">
+        <span className="brand-logo big">🥺</span>
+        <b>Ulanishda xatolik</b>
+        <small className="muted">{error}</small>
+        <button type="button" className="btn btn-primary" onClick={load}>Qayta urinish</button>
       </div>
     );
   }
 
-  let content;
-  if (screen === 'checkout') content = <Checkout />;
-  else if (screen === 'success') content = <Success />;
-  else if (screen === 'orders') content = <Orders />;
-  else if (screen === 'myCourses') content = <MyCourses />;
-  else {
-    const Tab = TABS[tab] || Home;
-    content = <Tab />;
-  }
+  const Screen = SCREENS[tab] || Home;
 
   return (
     <div className="app">
-      <main key={screen || tab} className="screen-enter">{content}</main>
-      {!screen && <BottomNav />}
-      <ProductSheet />
-      <CourseSheet />
-      <Panels />
+      <main key={tab} className="screen">
+        <Screen />
+      </main>
+      <BottomNav />
+      {courseId != null && <CourseSheet />}
+      {reviewCourseId != null && <ReviewSheet key={reviewCourseId} />}
       <StoryViewer />
       <Toast />
     </div>

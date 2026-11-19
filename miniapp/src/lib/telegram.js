@@ -1,7 +1,7 @@
 export const tg = window.Telegram?.WebApp;
 export const isTelegram = Boolean(tg && tg.initData);
 
-const BG = '#FAF2E9';
+const BG = '#FFF8F4';
 
 function safe(fn) {
   try {
@@ -19,7 +19,7 @@ export function initTelegram() {
     safe(() => tg.setHeaderColor(BG));
     safe(() => tg.setBackgroundColor(BG));
   }
-  if (tg.isVersionAtLeast?.('7.10')) safe(() => tg.setBottomBarColor(BG));
+  if (tg.isVersionAtLeast?.('7.10')) safe(() => tg.setBottomBarColor('#FFFFFF'));
   if (tg.isVersionAtLeast?.('7.7')) safe(() => tg.disableVerticalSwipes());
 }
 
@@ -53,7 +53,9 @@ export function closeApp() {
 }
 
 export function openLink(url) {
-  if (isTelegram && tg.openLink) safe(() => tg.openLink(url));
+  if (!url) return;
+  if (isTelegram && /^https:\/\/t\.me\//.test(url) && tg.openTelegramLink) safe(() => tg.openTelegramLink(url));
+  else if (isTelegram && tg.openLink) safe(() => tg.openLink(url));
   else window.open(url, '_blank', 'noopener');
 }
 
@@ -64,40 +66,8 @@ export function requestContact() {
     safe(() => tg.requestContact((ok, event) => {
       if (!ok) return resolve(null);
       const phone = event?.responseUnsafe?.contact?.phone_number;
-      resolve(phone || 'shared');
+      resolve(phone ? (phone.startsWith('+') ? phone : `+${phone}`) : 'shared');
     }));
     return undefined;
-  });
-}
-
-/** Foydalanuvchi joylashuvini oladi: avval Telegram LocationManager, keyin brauzer geolokatsiyasi */
-export function getLocation() {
-  const viaBrowser = () => new Promise((resolve, reject) => {
-    if (!navigator.geolocation) return reject(Object.assign(new Error('no geolocation'), { code: 'nogeo' }));
-    navigator.geolocation.getCurrentPosition(
-      (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
-      () => reject(Object.assign(new Error('denied'), { code: 'denied' })),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
-    );
-    return undefined;
-  });
-
-  const lm = tg?.LocationManager;
-  if (!isTelegram || !lm || !tg.isVersionAtLeast?.('8.0')) return viaBrowser();
-
-  return new Promise((resolve, reject) => {
-    const fetchLoc = () => {
-      if (!lm.isLocationAvailable) return viaBrowser().then(resolve, reject);
-      lm.getLocation((loc) => {
-        if (loc) return resolve({ latitude: loc.latitude, longitude: loc.longitude });
-        if (lm.isAccessRequested && !lm.isAccessGranted) {
-          return reject(Object.assign(new Error('denied'), { code: 'denied' }));
-        }
-        return viaBrowser().then(resolve, reject);
-      });
-      return undefined;
-    };
-    if (lm.isInited) fetchLoc();
-    else safe(() => lm.init(fetchLoc));
   });
 }

@@ -1,15 +1,19 @@
 import { Star } from 'lucide-react';
 
-export default function Stars({ rating = 5, reviews, label, size = 12, count }) {
-  // Sharhlar bo'lmasa yulduzchalar ko'rsatilmaydi (soxta reyting chiqmasin)
-  if (!(count ?? reviews)) return null;
-  const full = Math.round(rating);
+export default function Stars({ value = 0, size = 14, onChange }) {
   return (
-    <div className="stars" aria-label={`${rating}`}>
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Star key={i} size={size} className={i <= full ? 'on' : ''} fill="currentColor" strokeWidth={0} />
-      ))}
-      {reviews != null && <span className="stars-count">{rating.toFixed(1)} ({reviews} {label})</span>}
-    </div>
+    <span className={`stars ${onChange ? 'interactive' : ''}`} role={onChange ? 'radiogroup' : undefined}>
+      {[1, 2, 3, 4, 5].map((n) => {
+        const filled = n <= Math.round(value);
+        const icon = <Star size={size} strokeWidth={1.6} className={filled ? 'on' : ''} fill={filled ? 'currentColor' : 'none'} />;
+        return onChange ? (
+          <button key={n} type="button" onClick={() => onChange(n)} aria-label={`${n} yulduz`} role="radio" aria-checked={n === value}>
+            {icon}
+          </button>
+        ) : (
+          <span key={n}>{icon}</span>
+        );
+      })}
+    </span>
   );
 }

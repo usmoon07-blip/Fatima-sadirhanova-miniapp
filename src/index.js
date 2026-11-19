@@ -18,14 +18,12 @@ app.use('/uploads', express.static(config.uploadsDir, { maxAge: '7d' }));
 app.get('/api/health', (req, res) => res.json({ ok: true, bot: Boolean(bot) }));
 app.use('/api/admin', adminRoutes);
 app.use('/api', clientRoutes);
-
 app.use('/api', (req, res) => res.status(404).json({ message: "Bunday yo'l topilmadi" }));
 
 // Yagona xatolik ushlagich
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
-  if (err.code === 'P2002') return res.status(400).json({ message: 'Bunday qiymat allaqachon mavjud ' });
-  if (err.code === 'P2025') return res.status(404).json({ message: 'Maʼlumot topilmadi' });
+  if (err.code === 'P2025') return res.status(404).json({ message: "Ma'lumot topilmadi" });
   if (err.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ message: 'Fayl hajmi 8 MB dan oshmasligi kerak' });
   if (err.type === 'entity.parse.failed') return res.status(400).json({ message: "Noto'g'ri JSON" });
   const status = err.status || 500;
@@ -42,9 +40,9 @@ async function startBot() {
     bot.start({
       drop_pending_updates: true,
       onStart: (info) => console.log(`🤖 Bot ishga tushdi: @${info.username}`),
-    }).catch((err) => console.error('❌ Bot to\'xtadi:', err.message));
+    }).catch((err) => console.error("❌ Bot to'xtadi:", err.message));
   } catch (err) {
-    console.error('❌ Botni ishga tushirib bo\'lmadi. BOT_TOKEN to\'g\'riligini tekshiring:', err.message);
+    console.error("❌ Botni ishga tushirib bo'lmadi. BOT_TOKEN to'g'riligini tekshiring:", err.message);
   }
 }
 

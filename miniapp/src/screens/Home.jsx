@@ -1,131 +1,114 @@
-import {
-  ChevronRight, GraduationCap, Heart, Info, MapPin, ReceiptText, Search,
-} from 'lucide-react';
-import CourseCard from '../components/CourseCard';
+import { ArrowRight, Award, GraduationCap, Search, Sparkles } from 'lucide-react';
 import Header from '../components/Header';
+import CourseCard from '../components/CourseCard';
 import Img from '../components/Img';
-import ProductCard from '../components/ProductCard';
 import { StoriesRow } from '../components/Stories';
+import { ReviewItem } from '../components/CourseSheet';
 import { useStore } from '../store/StoreContext';
-import { loc } from '../lib/i18n';
-
-const HERO = 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=1200&q=80';
+import { tgUser } from '../lib/telegram';
 
 export default function Home() {
-  const {
-    catalog, displayName, goTo, t, lang, config, user, setPanel, setScreen,
-  } = useStore();
-  const popular = catalog.products.filter((p) => p.isPopular);
-  const heroImage = popular[0]?.imageUrl || HERO;
+  const { catalog, me, setTab, setFilter } = useStore();
+  const name = me.user?.firstName || tgUser()?.first_name || 'Mehmon';
+  const { courses, categories, results, reviews } = catalog;
 
-  const banners = [];
-  if (catalog.courses.length) {
-    const c = catalog.courses[0];
-    banners.push({
-      key: 'courses', tag: t.coursesTitle.toUpperCase(), title: t.homeCourses, text: loc(c, 'title', lang), dark: true, icon: <GraduationCap size={64} strokeWidth={1.2} />, onClick: () => goTo('courses'),
-    });
-  }
+  const openCategory = (category) => {
+    setFilter({ category, query: '' });
+    setTab('courses');
+  };
 
   return (
     <div className="page">
       <Header />
 
       <div className="greeting">
-        <h2 className="serif">{t.hello(displayName)}</h2>
-        <p className="muted">{t.helloSub}</p>
+        <h1 className="serif">Assalomu alaykum, {name} 👋</h1>
+        <p>Bugun qaysi shirinlikni birga o'rganamiz?</p>
       </div>
 
-      <button type="button" className="search fake" onClick={() => goTo('menu', { category: 'all', query: '' })}>
-        <Search size={18} /> <span>{t.search}</span>
-      </button>
-
-      <button type="button" className="address-card card" onClick={() => setPanel('address')}>
-        <span className="address-icon"><MapPin size={18} /></span>
-        <span className="address-text">
-          <b>{user?.address || (user?.latitude ? `📍 ${user.latitude.toFixed(4)}, ${user.longitude.toFixed(4)}` : t.setAddress)}</b>
-          {config.order?.advanceDays > 0 && <small>{t.preorderNote(config.order.advanceDays)}</small>}
-        </span>
-        <ChevronRight size={18} className="muted" />
+      <button type="button" className="search-fake" onClick={() => openCategory('all')}>
+        <Search size={18} /> Kurslarni qidirish...
       </button>
 
       <StoriesRow />
 
-      <div className="quick-grid">
-        <button type="button" onClick={() => setPanel('about')}><Info size={20} /><span>{t.quick.about}</span></button>
-        <button type="button" onClick={() => goTo('courses')}><GraduationCap size={20} /><span>{t.quick.courses}</span></button>
-        <button type="button" onClick={() => goTo('menu', { category: 'fav' })}><Heart size={20} /><span>{t.favorites}</span></button>
-        <button type="button" onClick={() => setScreen('orders')}><ReceiptText size={20} /><span>{t.quick.orders}</span></button>
-      </div>
+      <section className="hero" onClick={() => openCategory('all')}>
+        <div className="hero-text">
+          <span className="chip-light"><Sparkles size={12} /> KURSLAR</span>
+          <h2 className="serif">Qandolatchilik kurslari</h2>
+          <p>Uyda turib professional tortlar va desertlar pishirishni o'rganing</p>
+          <button type="button" className="btn btn-light btn-sm">
+            Kursni tanlash <ArrowRight size={16} />
+          </button>
+        </div>
+        <GraduationCap className="hero-icon" size={64} strokeWidth={1.2} />
+      </section>
 
-      {banners.length > 0 && (
-        <div className="h-scroll banners">
-          {banners.map((b) => (
-            <button key={b.key} type="button" className={`banner ${b.dark ? 'dark' : ''}`} onClick={b.onClick}>
-              <span className="banner-tag">{b.tag}</span>
-              <span className="banner-title serif">{b.title}</span>
-              <span className="banner-text">{b.text}</span>
-              {b.code && <span className="banner-code">{b.code}</span>}
-              {b.icon && <span className="banner-icon">{b.icon}</span>}
-            </button>
-          ))}
+      {categories.length > 1 && (
+        <div className="quick-cats h-scroll">
+          {categories.map((c) => {
+            const cover = courses.find((x) => x.category === c);
+            return (
+              <button key={c} type="button" className="quick-cat" onClick={() => openCategory(c)}>
+                <span className="quick-cat-img"><Img src={cover?.imageUrl} alt="" /></span>
+                <span>{c}</span>
+              </button>
+            );
+          })}
         </div>
       )}
 
-      <section className="hero">
-        <Img src={heroImage} alt="" className="hero-img" eager emoji="🍰" />
-        <div className="hero-content">
-          <h1 className="serif">{t.heroTitle}</h1>
-          <p>{t.heroText}</p>
-          <button type="button" className="btn btn-primary" onClick={() => goTo('menu', { category: 'all' })}>
-            {t.heroBtn}
-          </button>
-        </div>
+      {courses.length > 0 && (
+        <section className="block">
+          <div className="section-row">
+            <h3 className="serif">Mashhur kurslar</h3>
+            <button type="button" className="link-btn" onClick={() => openCategory('all')}>Barchasi</button>
+          </div>
+          <div className="h-scroll cards-row">
+            {courses.slice(0, 6).map((c) => <CourseCard key={c.id} course={c} wide />)}
+          </div>
+        </section>
+      )}
+
+      <section className="stats-strip">
+        <div><b>10 000+</b><span>o'quvchi</span></div>
+        <div><b>{courses.length || '—'}</b><span>kurs</span></div>
+        <div><b>24/7</b><span>darslarga kirish</span></div>
       </section>
 
-      {catalog.categories.length > 0 && (
-        <section className="section">
-          <div className="section-head">
-            <h3 className="serif">{t.categories}</h3>
-            <button type="button" className="link" onClick={() => goTo('menu', { category: 'all' })}>
-              {t.all} <ChevronRight size={16} />
-            </button>
+      {results.length > 0 && (
+        <section className="block">
+          <div className="section-row">
+            <h3 className="serif">O'quvchilar natijalari</h3>
+            <button type="button" className="link-btn" onClick={() => setTab('results')}>Barchasi</button>
           </div>
-          <div className="cat-grid">
-            {catalog.categories.slice(0, 4).map((c) => (
-              <button key={c.id} type="button" className="cat-card" onClick={() => goTo('menu', { category: c.id })}>
-                <Img src={c.imageUrl} alt="" />
-                <span>{loc(c, 'name', lang)}</span>
+          <div className="h-scroll results-row">
+            {results.slice(0, 8).map((r) => (
+              <button key={r.id} type="button" className="result-thumb" onClick={() => setTab('results')}>
+                <Img src={r.imageUrl} alt={r.studentName} />
+                <span>{r.studentName}</span>
               </button>
             ))}
           </div>
         </section>
       )}
 
-      {catalog.courses.length > 0 && (
-        <section className="section">
-          <div className="section-head">
-            <h3 className="serif">{t.homeCourses}</h3>
-            <button type="button" className="link" onClick={() => goTo('courses')}>
-              {t.all} <ChevronRight size={16} />
-            </button>
+      {reviews.length > 0 ? (
+        <section className="block">
+          <div className="section-row">
+            <h3 className="serif">Izohlar</h3>
+            <button type="button" className="link-btn" onClick={() => setTab('results')}>Barchasi</button>
           </div>
-          <div className="h-scroll course-row">
-            {catalog.courses.map((c) => <CourseCard key={c.id} course={c} compact />)}
-          </div>
+          {reviews.slice(0, 2).map((r) => <ReviewItem key={r.id} review={r} showCourse />)}
         </section>
-      )}
-
-      {popular.length > 0 && (
-        <section className="section">
-          <div className="section-head">
-            <h3 className="serif">{t.popular}</h3>
-            <button type="button" className="link" onClick={() => goTo('menu', { category: 'all' })}>
-              {t.more} <ChevronRight size={16} />
-            </button>
+      ) : (
+        <section className="promo-card" onClick={() => setTab('results')}>
+          <Award size={26} />
+          <div>
+            <b>O'quvchilarimiz natijalari</b>
+            <p>Kurslarimizni tamomlaganlar ishlarini ko'ring</p>
           </div>
-          <div className="h-scroll popular-row">
-            {popular.map((p) => <ProductCard key={p.id} product={p} compact />)}
-          </div>
+          <ArrowRight size={18} />
         </section>
       )}
     </div>

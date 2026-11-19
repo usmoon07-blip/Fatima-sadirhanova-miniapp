@@ -1,38 +1,67 @@
 const { prisma } = require('../database/connection');
 
-const ORDER_BY = [{ sortOrder: 'asc' }, { id: 'asc' }];
-const LIST_FIELDS = ['program', 'programRu', 'programEn'];
+/** Mijozlarga ko'rsatiladigan maydonlar (accessLink yashirin) */
+const PUBLIC_SELECT = {
+  id: true,
+  title: true,
+  description: true,
+  imageUrl: true,
+  oldPrice: true,
+  price: true,
+  category: true,
+  program: true,
+  lessonsCount: true,
+  duration: true,
+  level: true,
+  badge: true,
+};
 
-function toData(input) {
-  const data = { ...input };
-  for (const key of LIST_FIELDS) {
-    if (key in data) data[key] = (data[key] || []).map((s) => String(s).trim()).filter(Boolean);
-  }
-  return data;
-}
+const ORDER_BY = [{ sortOrder: 'asc' }, { id: 'asc' }];
 
 const Course = {
-  listActive() {
-    return prisma.course.findMany({ where: { isActive: true }, orderBy: ORDER_BY });
+  async listPublic() {
+    const [courses, ratings] = await Promise.all([
+      prisma.course.findMany({ where: { isActive: true }, select: PUBLIC_SELECT, orderBy: ORDER_BY }),
+      prisma.review.groupBy({
+        by: ['courseId'],
+        where: { isVisible: true },
+        _avg: { rating: true },
+        _count: { _all: true },
+      }),
+    ]);
+    const map = new Map(ratings.map((r) => [r.courseId, r]));
+    return courses.map((c) => {
+      const r = map.get(c.id);
+      return {
+        ...c,
+        rating: r ? Math.round(r._avg.rating * 10) / 10 : null,
+        reviewsCount: r ? r._count._all : 0,
+      };
+    });
   },
+
   listAll() {
-    return prisma.course.findMany({ orderBy: ORDER_BY, include: { _count: { select: { enrollments: true } } } });
+    return prisma.course.findMany({ orderBy: ORDER_BY });
   },
-  findById(id) {
-    return prisma.course.findUnique({ where: { id } });
+
+  findManyActive(ids) {
+    return prisma.course.findMany({ where: { id: { in: ids }, isActive: true } });
   },
+
+  findMany(ids) {
+    return prisma.course.findMany({ where: { id: { in: ids } } });
+  },
+
   create(data) {
-    return prisma.course.create({ data: toData(data) });
+    return prisma.course.create({ data });
   },
+
   update(id, data) {
-    return prisma.course.update({ where: { id }, data: toData(data) });
+    return prisma.course.update({ where: { id }, data });
   },
+
   remove(id) {
     return prisma.course.delete({ where: { id } });
-  },
-  /** Tanlangan format narxi (format mavjud bo'lmasa null) */
-  priceFor(course, format) {
-    return format === 'ONLINE' ? course.onlinePrice : course.offlinePrice;
   },
 };
 

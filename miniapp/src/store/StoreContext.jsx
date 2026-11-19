@@ -1,187 +1,119 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../lib/api';
 import { storage } from '../lib/storage';
-import { haptic, tgUser } from '../lib/telegram';
-import { detectLang, getDict, loc, money as fmtMoney } from '../lib/i18n';
+import { haptic } from '../lib/telegram';
 
 const StoreContext = createContext(null);
 
-export function unitPrice(product, size) {
-  const sizes = Array.isArray(product?.sizes) ? product.sizes : [];
-  if (!sizes.length) return { price: product?.price || 0, size: null };
-  const found = sizes.find((s) => s.label === size) || sizes[0];
-  return { price: found.price, size: found.label };
-}
+const EMPTY_CATALOG = { courses: [], categories: [], stories: [], results: [], reviews: [] };
+const EMPTY_ME = { user: null, purchased: [], pending: [], myCourses: [], reviews: [] };
 
 export function StoreProvider({ children }) {
   const [config, setConfig] = useState(null);
-  const [catalog, setCatalog] = useState({ categories: [], products: [], stories: [], courses: [] });
-  const [user, setUser] = useState(null);
-  const [userStats, setUserStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [catalog, setCatalog] = useState(EMPTY_CATALOG);
+  const [me, setMe] = useState(EMPTY_ME);
+  const [orders, setOrders] = useState([]);
+  const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
 
-  const [lang, setLangState] = useState(() => {
-    const fromUrl = new URLSearchParams(window.location.search).get('lang');
-    return fromUrl || storage.get('lang', null) || detectLang(tgUser()?.language_code);
-  });
-  const [langChosen, setLangChosen] = useState(() => Boolean(storage.get('lang', null) || new URLSearchParams(window.location.search).get('lang')));
-
   const [cart, setCart] = useState(() => storage.get('cart', []));
-  const [favorites, setFavorites] = useState(() => storage.get('favorites', []));
-  const [deliveryType, setDeliveryType] = useState(() => storage.get('checkout', {}).deliveryType || 'DELIVERY');
-
-  // Navigatsiya
-  const [tab, setTab] = useState('home');
-  const [activeCategory, setActiveCategory] = useState('all');
-  const [menuQuery, setMenuQuery] = useState('');
-  const [sheetProductId, setSheetProductId] = useState(null);
+  const [upsell, setUpsell] = useState(false);
+  const [tab, setTabState] = useState('home');
+  const [filter, setFilter] = useState({ category: 'all', query: '' });
   const [courseId, setCourseId] = useState(null);
-  const [screen, setScreen] = useState(null); // 'checkout' | 'success' | 'orders' | 'myCourses'
-  const [panel, setPanel] = useState(null); // 'address' | 'about'
+  const [reviewCourseId, setReviewCourseId] = useState(null);
   const [storyIndex, setStoryIndex] = useState(null);
-  const [lastOrder, setLastOrder] = useState(null);
-  const [toast, setToast] = useState(null);
-
-  const t = getDict(lang);
-  const money = useCallback((n) => fmtMoney(n, lang), [lang]);
+  const [toastMsg, setToastMsg] = useState(null);
+  const toastTimer = useRef(null);
 
   useEffect(() => storage.set('cart', cart), [cart]);
-  useEffect(() => storage.set('favorites', favorites), [favorites]);
-  useEffect(() => {
-    document.documentElement.lang = lang;
-  }, [lang]);
 
-  const refreshMe = useCallback(() => api.me().then((r) => {
-    setUser(r.user);
-    setUserStats(r.stats);
-    return r.user;
-  }).catch(() => null), []);
+  const toast = useCallback((text, tone = 'ok') => {
+    clearTimeout(toastTimer.current);
+    setToastMsg({ text, tone, key: Date.now() });
+    toastTimer.current = setTimeout(() => setToastMsg(null), 2400);
+  }, []);
+
+  const refreshCatalog = useCallback(async () => {
+    const data = await api.catalog();
+    setCatalog(data);
+    return data;
+  }, []);
+
+  const refreshMe = useCallback(async () => {
+    try {
+      const [meData, ordersData] = await Promise.all([api.me(), api.myOrders()]);
+      setMe(meData);
+      setOrders(ordersData);
+    } catch {
+      /* Telegram'dan tashqarida — shaxsiy ma'lumotlarsiz ishlaydi */
+    }
+  }, []);
 
   const load = useCallback(async () => {
-    setLoading(true);
+    setStatus('loading');
     setError('');
     try {
-      const [cfg, cat] = await Promise.all([api.config(), api.catalog()]);
+      const [cfg] = await Promise.all([api.config(), refreshCatalog(), refreshMe()]);
       setConfig(cfg);
-      setCatalog(cat);
-      refreshMe().then((u) => {
-        if (u?.language && !storage.get('lang', null) && !new URLSearchParams(window.location.search).get('lang')) {
-          setLangState(u.language);
-        }
-      });
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
+      setStatus('ready');
+    } catch (err) {
+      setError(err.message);
+      setStatus('error');
     }
-  }, [refreshMe]);
+  }, [refreshCatalog, refreshMe]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const setLang = useCallback((next) => {
-    setLangState(next);
-    setLangChosen(true);
-    storage.set('lang', next);
-    haptic.select();
-    api.updateLanguage(next).catch(() => {});
-  }, []);
-
-  const showToast = useCallback((text, tone = 'ok') => {
-    setToast({ text, tone, id: Date.now() });
-  }, []);
-
+  // Bazadan o'chirilgan kurslarni savatchadan olib tashlash
   useEffect(() => {
-    if (!toast) return undefined;
-    const timer = setTimeout(() => setToast(null), 2200);
-    return () => clearTimeout(timer);
-  }, [toast]);
-
-  const productsById = useMemo(() => new Map(catalog.products.map((p) => [p.id, p])), [catalog.products]);
-
-  const addToCart = useCallback((product, size, quantity = 1, { silent } = {}) => {
-    const resolved = unitPrice(product, size).size;
-    const key = `${product.id}:${resolved || ''}`;
+    if (status !== 'ready') return;
+    const ids = new Set(catalog.courses.map((c) => c.id));
     setCart((prev) => {
-      const found = prev.find((i) => i.key === key);
-      if (found) return prev.map((i) => (i.key === key ? { ...i, quantity: Math.min(i.quantity + quantity, 50) } : i));
-      return [...prev, { key, productId: product.id, size: resolved, quantity }];
+      const next = prev.filter((id) => ids.has(id) && !me.purchased.includes(id));
+      return next.length === prev.length ? prev : next;
     });
-    haptic.light();
-    if (!silent) showToast(getDict(lang).added(loc(product, 'name', lang)));
-  }, [showToast, lang]);
+  }, [status, catalog.courses, me.purchased]);
 
-  const setQuantity = useCallback((key, quantity) => {
-    setCart((prev) => (quantity <= 0
-      ? prev.filter((i) => i.key !== key)
-      : prev.map((i) => (i.key === key ? { ...i, quantity: Math.min(quantity, 50) } : i))));
-    haptic.select();
-  }, []);
+  const courseMap = useMemo(() => new Map(catalog.courses.map((c) => [c.id, c])), [catalog.courses]);
 
-  const removeFromCart = useCallback((key) => setCart((prev) => prev.filter((i) => i.key !== key)), []);
-  const clearCart = useCallback(() => {
-    setCart([]);
-  }, []);
-
-  const toggleFavorite = useCallback((id) => {
-    haptic.select();
-    setFavorites((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  }, []);
-
-  const cartLines = useMemo(() => cart
-    .map((item) => {
-      const product = productsById.get(item.productId);
-      if (!product) return null;
-      const { price } = unitPrice(product, item.size);
-      return { ...item, product, price, total: price * item.quantity };
-    })
-    .filter(Boolean), [cart, productsById]);
-
-  const cartCount = cartLines.reduce((s, l) => s + l.quantity, 0);
-  const subtotal = cartLines.reduce((s, l) => s + l.total, 0);
-
-  const reorder = useCallback((order) => {
-    let added = 0;
-    for (const item of order.items || []) {
-      const product = productsById.get(item.productId);
-      if (product) {
-        addToCart(product, item.size, item.quantity, { silent: true });
-        added += 1;
-      }
-    }
-    const d = getDict(lang);
-    if (added) {
-      showToast(d.reordered);
-      setScreen(null);
-      setTab('cart');
-    } else {
-      showToast(d.unavailable, 'bad');
-    }
-  }, [productsById, addToCart, showToast, lang]);
-
-  const goTo = useCallback((nextTab, opts = {}) => {
-    haptic.select();
-    if (opts.category !== undefined) setActiveCategory(opts.category);
-    if (opts.query !== undefined) setMenuQuery(opts.query);
-    setScreen(null);
-    setTab(nextTab);
+  const setTab = useCallback((next) => {
+    setTabState(next);
     window.scrollTo({ top: 0 });
   }, []);
 
-  const displayName = user?.firstName || tgUser()?.first_name || t.guest;
+  const addToCart = useCallback((id) => {
+    if (me.purchased.includes(id)) {
+      toast('Bu kurs sizda allaqachon bor 🎓');
+      return;
+    }
+    setCart((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    haptic.success();
+    toast("Savatchaga qo'shildi 🧁");
+  }, [me.purchased, toast]);
+
+  const removeFromCart = useCallback((id) => {
+    haptic.light();
+    setCart((prev) => prev.filter((x) => x !== id));
+  }, []);
+
+  const clearCart = useCallback(() => {
+    setCart([]);
+    setUpsell(false);
+  }, []);
+
+  const cartCourses = useMemo(() => cart.map((id) => courseMap.get(id)).filter(Boolean), [cart, courseMap]);
 
   const value = {
-    config, catalog, user, setUser, userStats, refreshMe, loading, error, reload: load, displayName,
-    lang, setLang, langChosen, t, money,
-    cart, cartLines, cartCount, subtotal, addToCart, setQuantity, removeFromCart, clearCart, reorder,
-    deliveryType, setDeliveryType,
-    favorites, toggleFavorite, productsById,
-    tab, goTo, activeCategory, setActiveCategory, menuQuery, setMenuQuery,
-    sheetProductId, openProduct: setSheetProductId, courseId, openCourse: setCourseId,
-    screen, setScreen, panel, setPanel, storyIndex, setStoryIndex, lastOrder, setLastOrder,
-    toast, showToast,
+    config, catalog, me, orders, status, error, load, refreshMe, refreshCatalog,
+    cart, cartCourses, addToCart, removeFromCart, clearCart, setCart, upsell, setUpsell,
+    tab, setTab, filter, setFilter,
+    courseId, openCourse: setCourseId, courseMap,
+    reviewCourseId, openReview: setReviewCourseId,
+    storyIndex, setStoryIndex,
+    toastMsg, toast,
   };
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

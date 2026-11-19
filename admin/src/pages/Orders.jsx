@@ -1,179 +1,73 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Bell, BellOff, ExternalLink, Eye, MapPin, RefreshCw, Search, Trash2,
-} from 'lucide-react';
-import Modal from '../components/Modal';
-import { playSignal, unlockSound } from '../sound';
-import { api, dateTime, money, STATUSES, STATUS_MAP } from '../api';
+import { Bell, BellOff, RefreshCw, Trash2 } from 'lucide-react';
+import { api, dateTime, fullName, money, STATUSES, STATUS_MAP } from '../api';
+import { isSoundReady, playSignal, unlockSound } from '../sound';
 
-const POLL_MS = 5000;
-
-function beep() {
-  unlockSound();
-  playSignal(1);
-}
-
-function StatusSelect({ order, onChange }) {
-  const st = STATUS_MAP[order.status];
-  return (
-    <select className={`status-select tone-${st.tone}`} value={order.status} onChange={(e) => onChange(order, e.target.value)}>
-      {STATUSES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
-    </select>
-  );
-}
-
-function ItemsCell({ items }) {
-  return (
-    <ul className="items-cell">
-      {items.map((i) => (
-        <li key={`${i.productId}-${i.size}`}>
-          {i.name}{i.size ? <span className="muted"> · {i.size}</span> : null} <b>× {i.quantity}</b>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function OrderDetails({ order, onClose, onStatus }) {
-  const mapUrl = order.latitude ? `https://maps.google.com/?q=${order.latitude},${order.longitude}` : null;
-  const yandexUrl = order.latitude ? `https://yandex.uz/maps/?pt=${order.longitude},${order.latitude}&z=17&l=map` : null;
-  return (
-    <Modal title={`Buyurtma #${order.id}`} onClose={onClose} wide>
-      <div className="details-grid">
-        <div>
-          <div className="label">Mijoz</div>
-          <div className="value">{order.customerName}</div>
-          <a href={`tel:${order.phone}`} className="value link">{order.phone}</a>
-          {order.user?.username && (
-            <a className="value link" href={`https://t.me/${order.user.username}`} target="_blank" rel="noreferrer">@{order.user.username}</a>
-          )}
-        </div>
-        <div>
-          <div className="label">Sana</div>
-          <div className="value">{dateTime(order.createdAt)}</div>
-          <div className="label mt">Vaqt</div>
-          <div className="value">{order.deliveryTime || '—'}</div>
-        </div>
-        <div>
-          <div className="label">Turi / To'lov</div>
-          <div className="value">{order.deliveryType === 'DELIVERY' ? '🚚 Yetkazib berish' : '🏪 Olib ketish'}</div>
-          <div className="value">{order.paymentMethod === 'CASH' ? '💵 Naqd' : '💳 Karta'}</div>
-        </div>
-        <div>
-          <div className="label">Holati</div>
-          <StatusSelect order={order} onChange={onStatus} />
-        </div>
-      </div>
-
-      {order.deliveryType === 'DELIVERY' && (
-        <div className="address-box">
-          <div className="label">Manzil</div>
-          <div className="value">{order.address || 'Faqat lokatsiya yuborilgan'}</div>
-          {mapUrl && (
-            <div className="row gap">
-              <a className="btn btn-outline btn-sm" href={mapUrl} target="_blank" rel="noreferrer"><ExternalLink size={14} /> Google Maps</a>
-              <a className="btn btn-outline btn-sm" href={yandexUrl} target="_blank" rel="noreferrer"><ExternalLink size={14} /> Yandex Maps</a>
-            </div>
-          )}
-        </div>
-      )}
-
-      {order.comment && (
-        <div className="comment-box"><div className="label">Izoh</div>{order.comment}</div>
-      )}
-
-      <table className="table compact">
-        <thead><tr><th>Mahsulot</th><th>Narx</th><th>Soni</th><th className="right">Summa</th></tr></thead>
-        <tbody>
-          {order.items.map((i) => (
-            <tr key={`${i.productId}-${i.size}`}>
-              <td>
-                <div className="prod-cell">
-                  <img src={i.imageUrl} alt="" />
-                  <div>{i.name}{i.size && <div className="muted small">{i.size}</div>}</div>
-                </div>
-              </td>
-              <td>{money(i.price)}</td>
-              <td>{i.quantity}</td>
-              <td className="right">{money(i.total)}</td>
-            </tr>
-          ))}
-        </tbody>
-        <tfoot>
-          <tr><td colSpan={3}>Mahsulotlar</td><td className="right">{money(order.subtotal)}</td></tr>
-          <tr className="grand"><td colSpan={3}>Jami</td><td className="right">{money(order.total)}</td></tr>
-        </tfoot>
-      </table>
-    </Modal>
-  );
-}
+const FILTERS = [{ id: 'ALL', label: 'Hammasi' }, ...STATUSES];
+const POLL_MS = 8000;
 
 export default function Orders() {
+  const [filter, setFilter] = useState('ALL');
   const [orders, setOrders] = useState([]);
   const [stats, setStats] = useState(null);
-  const [status, setStatus] = useState('ALL');
-  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedId, setSelectedId] = useState(null);
-  const [sound, setSound] = useState(true);
+  const [sound, setSound] = useState(isSoundReady());
   const [fresh, setFresh] = useState(new Set());
-  const maxIdRef = useRef(null);
-  const soundRef = useRef(sound);
-  soundRef.current = sound;
+  const knownIds = useRef(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
-      const [o, s] = await Promise.all([api.orders({ status, search }), api.stats()]);
-      setOrders(o.orders);
-      setStats(s);
-      setError('');
-      const maxId = o.orders.reduce((m, x) => Math.max(m, x.id), 0);
-      if (maxIdRef.current !== null && maxId > maxIdRef.current) {
-        const newIds = o.orders.filter((x) => x.id > maxIdRef.current).map((x) => x.id);
-        setFresh((prev) => new Set([...prev, ...newIds]));
-        if (soundRef.current) beep();
-        document.title = `(${newIds.length}) Yangi buyurtma!`;
-        setTimeout(() => { document.title = 'Admin Panel'; }, 6000);
+      const [list, st] = await Promise.all([api.orders(filter), api.stats()]);
+      // Yangi buyurtmalarni aniqlash
+      if (knownIds.current) {
+        const newOnes = list.filter((o) => !knownIds.current.has(o.id) && o.status === 'PENDING');
+        if (newOnes.length) {
+          playSignal(1);
+          setFresh(new Set(newOnes.map((o) => o.id)));
+          document.title = `(${newOnes.length}) Yangi buyurtma!`;
+          setTimeout(() => { document.title = 'Admin Panel — Fatima Sadirkhanova'; }, 6000);
+        }
       }
-      if (maxIdRef.current === null || maxId > maxIdRef.current) maxIdRef.current = maxId;
-    } catch (e) {
-      setError(e.message);
+      knownIds.current = new Set([...(knownIds.current || []), ...list.map((o) => o.id)]);
+      setOrders(list);
+      setStats(st);
+      setError('');
+    } catch (err) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [status, search]);
+  }, [filter]);
 
   useEffect(() => {
-    const t = setTimeout(load, search ? 300 : 0);
-    const iv = setInterval(load, POLL_MS);
-    return () => { clearTimeout(t); clearInterval(iv); };
-  }, [load, search]);
+    load();
+    const t = setInterval(() => load(true), POLL_MS);
+    return () => clearInterval(t);
+  }, [load]);
 
-  const changeStatus = async (order, next) => {
-    if (next === 'CANCELLED' && !window.confirm(`#${order.id} buyurtmani bekor qilasizmi? Mijozga xabar boradi.`)) return;
+  const changeStatus = async (order, status) => {
+    if (status === order.status) return;
+    if (status === 'PAID' && !window.confirm(`#${order.id} buyurtma to'landi deb belgilansinmi?\nMijozga botda kursga kirish havolasi yuboriladi.`)) return;
     try {
-      const { order: updated } = await api.setOrderStatus(order.id, next);
-      setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
-      setFresh((prev) => { const n = new Set(prev); n.delete(order.id); return n; });
+      const updated = await api.setOrderStatus(order.id, status);
+      setOrders((list) => list.map((o) => (o.id === order.id ? updated : o)));
       api.stats().then(setStats).catch(() => {});
-    } catch (e) {
-      alert(e.message);
+    } catch (err) {
+      alert(err.message);
     }
   };
 
-  const removeOrder = async (order) => {
-    if (!window.confirm(`#${order.id} buyurtma butunlay o'chirilsinmi? Bu amalni qaytarib bo'lmaydi.`)) return;
+  const remove = async (order) => {
+    if (!window.confirm(`#${order.id} buyurtma butunlay o'chirilsinmi?`)) return;
     try {
       await api.deleteOrder(order.id);
-      setOrders((prev) => prev.filter((o) => o.id !== order.id));
-      api.stats().then(setStats).catch(() => {});
-    } catch (e) {
-      alert(e.message);
+      setOrders((list) => list.filter((o) => o.id !== order.id));
+    } catch (err) {
+      alert(err.message);
     }
   };
-
-  const selected = orders.find((o) => o.id === selectedId);
 
   return (
     <div className="page">
@@ -182,50 +76,42 @@ export default function Orders() {
           <h1>Buyurtmalar</h1>
           <p className="muted">Har {POLL_MS / 1000} soniyada avtomatik yangilanadi</p>
         </div>
-        <div className="row gap">
-          <button type="button" className="btn btn-outline" onClick={() => setSound((s) => !s)} title="Yangi buyurtma ovozi">
-            {sound ? <Bell size={16} /> : <BellOff size={16} />} {sound ? 'Ovoz yoqilgan' : "Ovoz o'chiq"}
+        <div className="head-actions">
+          <button type="button" className={`btn ${sound ? 'btn-soft' : 'btn-outline'}`} onClick={() => setSound(unlockSound())}>
+            {sound ? <Bell size={16} /> : <BellOff size={16} />} {sound ? 'Ovoz yoqilgan' : 'Ovozni yoqish'}
           </button>
-          <button type="button" className="btn btn-outline" onClick={load}><RefreshCw size={16} /> Yangilash</button>
+          <button type="button" className="btn btn-outline" onClick={() => load()}><RefreshCw size={16} /> Yangilash</button>
         </div>
       </div>
 
       {stats && (
         <div className="stats">
-          <div className="stat"><span>Bugungi buyurtmalar</span><b>{stats.todayOrders}</b></div>
-          <div className="stat"><span>Bugungi tushum</span><b>{money(stats.todayRevenue)}</b></div>
-          <div className="stat accent"><span>Yangi (kutilmoqda)</span><b>{stats.newOrders}</b></div>
-          <div className="stat"><span>Jarayonda</span><b>{stats.activeOrders}</b></div>
-          <div className="stat bad"><span>Bugun bekor qilingan</span><b>{money(stats.todayCancelledSum)}</b><small className="muted">{stats.todayCancelled} ta · tushumga kirmaydi</small></div>
-          <div className="stat"><span>Mijozlar</span><b>{stats.customers}</b></div>
+          <div className="stat"><small>To'lov kutilmoqda</small><b className="amber">{stats.pending}</b></div>
+          <div className="stat"><small>To'langan buyurtmalar</small><b>{stats.paid}</b></div>
+          <div className="stat"><small>Tushum</small><b className="rose">{money(stats.revenue)}</b></div>
+          <div className="stat"><small>Bugun</small><b>{stats.today}</b></div>
+          <div className="stat"><small>Foydalanuvchilar</small><b>{stats.students}</b></div>
         </div>
       )}
 
-      <div className="toolbar">
-        <div className="tabs">
-          {[{ id: 'ALL', label: 'Barchasi' }, ...STATUSES].map((s) => (
-            <button key={s.id} type="button" className={status === s.id ? 'active' : ''} onClick={() => setStatus(s.id)}>{s.label}</button>
-          ))}
-        </div>
-        <div className="search-box">
-          <Search size={16} />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Ism, telefon yoki # raqam" />
-        </div>
+      <div className="tabs">
+        {FILTERS.map((f) => (
+          <button key={f.id} type="button" className={filter === f.id ? 'on' : ''} onClick={() => setFilter(f.id)}>{f.label}</button>
+        ))}
       </div>
 
-      {error && <div className="alert">{error}</div>}
+      {error && <div className="error-box">{error}</div>}
 
       <div className="table-wrap">
-        <table className="table">
+        <table>
           <thead>
             <tr>
               <th>#</th>
               <th>Sana</th>
               <th>Mijoz</th>
-              <th>Mahsulotlar</th>
-              <th>Turi</th>
-              <th>To'lov</th>
-              <th className="right">Jami</th>
+              <th>Telefon</th>
+              <th>Kurslar</th>
+              <th>Jami</th>
               <th>Holati</th>
               <th />
             </tr>
@@ -236,38 +122,36 @@ export default function Orders() {
                 <td><b>#{o.id}</b></td>
                 <td className="nowrap">{dateTime(o.createdAt)}</td>
                 <td>
-                  <div className="strong">{o.customerName}</div>
-                  <a href={`tel:${o.phone}`} className="muted small nowrap">{o.phone}</a>
+                  <b>{o.customerName}</b>
+                  <small>{o.user?.username ? `@${o.user.username}` : fullName(o.user)}</small>
+                  {o.comment && <small className="comment">💬 {o.comment}</small>}
                 </td>
-                <td><ItemsCell items={o.items} /></td>
+                <td className="nowrap"><a href={`tel:${o.phone.replace(/\s/g, '')}`}>{o.phone}</a></td>
                 <td>
-                  <div className="nowrap">{o.deliveryType === 'DELIVERY' ? '🚚 Yetkazish' : '🏪 Olib ketish'}</div>
-                  {o.deliveryType === 'DELIVERY' && (o.address || o.latitude) && (
-                    o.latitude
-                      ? <a className="muted small addr-link" href={`https://maps.google.com/?q=${o.latitude},${o.longitude}`} target="_blank" rel="noreferrer"><MapPin size={12} /> {o.address || 'Xaritada'}</a>
-                      : <div className="muted small addr-link">{o.address}</div>
-                  )}
+                  <ul className="items">
+                    {(Array.isArray(o.items) ? o.items : []).map((i, idx) => (
+                      // eslint-disable-next-line react/no-array-index-key
+                      <li key={idx}>{i.type === 'extra' ? '➕ ' : ''}{i.title} <span className="muted">— {money(i.price)}</span></li>
+                    ))}
+                  </ul>
                 </td>
-                <td className="nowrap">{o.paymentMethod === 'CASH' ? '💵 Naqd' : '💳 Karta'}</td>
-                <td className="right nowrap">
-                  <div className={`strong ${o.status === 'CANCELLED' ? 'strike' : ''}`}>{money(o.total)}</div>
-                  {o.status === 'CANCELLED' && <small className="muted">hisobga olinmaydi</small>}
+                <td className="nowrap"><b>{money(o.total)}</b></td>
+                <td>
+                  <select className={`status-select ${STATUS_MAP[o.status]?.tone}`} value={o.status} onChange={(e) => changeStatus(o, e.target.value)}>
+                    {STATUSES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+                  </select>
                 </td>
-                <td><StatusSelect order={o} onChange={changeStatus} /></td>
-                <td className="nowrap">
-                  <button type="button" className="icon-btn" title="Batafsil" onClick={() => setSelectedId(o.id)}><Eye size={17} /></button>
-                  <button type="button" className="icon-btn danger" title="O'chirish" onClick={() => removeOrder(o)}><Trash2 size={16} /></button>
+                <td>
+                  <button type="button" className="icon-btn danger" onClick={() => remove(o)} aria-label="O'chirish"><Trash2 size={16} /></button>
                 </td>
               </tr>
             ))}
-            {!loading && orders.length === 0 && (
-              <tr><td colSpan={9} className="empty-cell">Buyurtmalar topilmadi</td></tr>
+            {!orders.length && !loading && (
+              <tr><td colSpan={8} className="empty-cell">Buyurtmalar yo'q</td></tr>
             )}
           </tbody>
         </table>
       </div>
-
-      {selected && <OrderDetails order={selected} onClose={() => setSelectedId(null)} onStatus={changeStatus} />}
     </div>
   );
 }

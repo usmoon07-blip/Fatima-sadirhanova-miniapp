@@ -1,38 +1,62 @@
-import { Clock } from 'lucide-react';
+import { Check, Plus, PlayCircle, Star } from 'lucide-react';
 import Img from './Img';
 import { useStore } from '../store/StoreContext';
-import { loc } from '../lib/i18n';
+import { discountPercent, lessonsLabel, money } from '../lib/format';
 
-export function minPrice(course) {
-  return Math.min(...[course.onlinePrice, course.offlinePrice].filter(Boolean));
-}
-
-export function FormatTags({ course }) {
-  const { t } = useStore();
+export function PriceBlock({ course, large = false }) {
   return (
-    <div className="format-tags">
-      {course.onlinePrice ? <span className="ftag online">{t.online}</span> : null}
-      {course.offlinePrice ? <span className="ftag offline">{t.offline}</span> : null}
+    <div className={`price ${large ? 'large' : ''}`}>
+      {course.oldPrice > course.price && <s>{money(course.oldPrice)}</s>}
+      <b>{money(course.price)}</b>
     </div>
   );
 }
 
-export default function CourseCard({ course, compact = false }) {
-  const { openCourse, t, lang, money } = useStore();
-  const duration = loc(course, 'duration', lang);
+function CardAction({ course }) {
+  const { cart, me, addToCart, openCourse } = useStore();
+  const owned = me.purchased.includes(course.id);
+  const inCart = cart.includes(course.id);
+
+  if (owned) {
+    return (
+      <button type="button" className="quick-add owned" aria-label="Kursni ochish" onClick={(e) => { e.stopPropagation(); openCourse(course.id); }}>
+        <PlayCircle size={18} />
+      </button>
+    );
+  }
   return (
-    <article className={`course-card ${compact ? 'compact' : ''}`} onClick={() => openCourse(course.id)}>
+    <button
+      type="button"
+      className={`quick-add ${inCart ? 'added' : ''}`}
+      aria-label={inCart ? 'Savatchada' : "Savatchaga qo'shish"}
+      onClick={(e) => { e.stopPropagation(); if (!inCart) addToCart(course.id); }}
+    >
+      {inCart ? <Check size={18} /> : <Plus size={18} />}
+    </button>
+  );
+}
+
+export default function CourseCard({ course, wide = false }) {
+  const { openCourse } = useStore();
+  const off = discountPercent(course.oldPrice, course.price);
+  return (
+    <article className={`course-card ${wide ? 'wide' : ''}`} onClick={() => openCourse(course.id)}>
       <div className="course-media">
-        <Img src={course.imageUrl} alt="" emoji="🎓" />
+        <Img src={course.imageUrl} alt={course.title} />
         {course.badge && <span className="badge">{course.badge}</span>}
+        {off > 0 && <span className="badge off">−{off}%</span>}
       </div>
       <div className="course-body">
-        <FormatTags course={course} />
-        <h3 className="serif">{loc(course, 'title', lang)}</h3>
-        {!compact && <p className="muted course-desc">{loc(course, 'description', lang)}</p>}
+        <h3>{course.title}</h3>
+        <div className="course-meta">
+          {course.lessonsCount > 0 && <span>{lessonsLabel(course.lessonsCount)}</span>}
+          {course.rating && (
+            <span className="rating"><Star size={12} fill="currentColor" /> {course.rating.toFixed(1)}</span>
+          )}
+        </div>
         <div className="course-foot">
-          {duration && <span className="muted small"><Clock size={13} /> {duration}</span>}
-          <b className="new-price">{t.fromPrice(money(minPrice(course)))}</b>
+          <PriceBlock course={course} />
+          <CardAction course={course} />
         </div>
       </div>
     </article>

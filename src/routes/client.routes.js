@@ -1,26 +1,19 @@
 const { Router } = require('express');
-const cartController = require('../controllers/cartController');
-const courseController = require('../controllers/courseController');
-const { telegramAuth, validate } = require('../middlewares/auth.middleware');
+const c = require('../controllers/cartController');
+const { telegramAuth, validate, idParam } = require('../middlewares/auth.middleware');
 
 const router = Router();
 
-// Ochiq yo'llar
-router.get('/config', cartController.getConfig);
-router.get('/catalog', cartController.getCatalog);
+router.get('/config', c.config);
+router.get('/catalog', c.catalog);
+router.get('/reviews', c.reviews);
+router.get('/courses/:id/reviews', idParam, c.courseReviews);
 
-// Telegram orqali tasdiqlangan foydalanuvchi uchun
-router.get('/me', telegramAuth, cartController.getMe);
-router.put('/me/phone', telegramAuth, cartController.updatePhone);
-router.put('/me/language', telegramAuth, cartController.updateLanguage);
-router.put('/me/address', telegramAuth, validate(cartController.addressSchema), cartController.saveAddress);
-router.get('/orders', telegramAuth, cartController.myOrders);
-router.post('/orders', telegramAuth, validate(cartController.orderSchema), cartController.createOrder);
-router.post('/orders/:id/cancel', telegramAuth, cartController.cancelOrder);
-
-// Kurslar
-router.post('/courses/:id/enroll', telegramAuth, validate(courseController.schemas.enroll), courseController.enroll);
-router.get('/enrollments', telegramAuth, courseController.myEnrollments);
-router.post('/enrollments/:id/cancel', telegramAuth, courseController.cancelMine);
+router.use(telegramAuth);
+router.get('/me', c.me);
+router.put('/me/phone', validate(c.schemas.phone), c.updatePhone);
+router.get('/orders', c.myOrders);
+router.post('/orders', validate(c.schemas.order), c.createOrder);
+router.post('/reviews', validate(c.schemas.review), c.addReview);
 
 module.exports = router;

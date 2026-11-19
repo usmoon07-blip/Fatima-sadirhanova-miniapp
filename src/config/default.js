@@ -15,42 +15,32 @@ const config = {
   bot: {
     token: (process.env.BOT_TOKEN || '').trim(),
     webAppUrl: (process.env.WEBAPP_URL || '').trim().replace(/\/+$/, ''),
-    courierChatId: (process.env.COURIER_CHAT_ID || '').trim(),
   },
 
   admin: {
-    password: process.env.ADMIN_PASSWORD || 'admin',
-    // Oshpaz faqat "Oshxona ekrani"ni ko'radi (bo'sh bo'lsa o'chirilgan)
-    kitchenPassword: process.env.KITCHEN_PASSWORD || '',
-    maxLoginAttempts: 5,
-    lockMinutes: 15,
+    password: process.env.ADMIN_PASSWORD || 'fatima2026',
     jwtSecret: process.env.JWT_SECRET || 'change-me-please',
     tokenTtl: '7d',
+    maxLoginAttempts: 5,
+    lockMinutes: 15,
   },
 
   shop: {
-    name: process.env.SHOP_NAME || 'Fatima Sadirhanova',
+    name: process.env.SHOP_NAME || 'Fatima Sadirkhanova',
     tagline: process.env.SHOP_TAGLINE || 'PATISSERIE',
     phone: process.env.SHOP_PHONE || '',
-    address: process.env.SHOP_ADDRESS || '',
-    lat: process.env.SHOP_LAT ? num(process.env.SHOP_LAT, null) : null,
-    lng: process.env.SHOP_LNG ? num(process.env.SHOP_LNG, null) : null,
-    workingHours: process.env.SHOP_WORKING_HOURS || '',
+    adminUsername: (process.env.ADMIN_USERNAME || '').replace(/^@/, '').trim(),
     cardNumber: process.env.CARD_NUMBER || '',
     cardHolder: process.env.CARD_HOLDER || '',
-    about: process.env.SHOP_ABOUT || '',
   },
 
-  delivery: {
-    minOrder: num(process.env.MIN_ORDER_AMOUNT, 0),
-  },
-
-  order: {
-    // Buyurtma necha kun avval berilishi shart (0 — "imkon qadar tezroq" ham mumkin)
-    advanceDays: num(process.env.ORDER_ADVANCE_DAYS, 4),
+  upsell: {
+    title: process.env.UPSELL_TITLE || '',
+    price: num(process.env.UPSELL_PRICE, 0),
   },
 };
 
 config.webAppIsHttps = config.bot.webAppUrl.startsWith('https://');
+config.upsell.enabled = Boolean(config.upsell.title && config.upsell.price > 0);
 
 module.exports = config;

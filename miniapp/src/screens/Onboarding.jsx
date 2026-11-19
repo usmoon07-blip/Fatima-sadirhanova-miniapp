@@ -1,84 +1,81 @@
 import { useRef, useState } from 'react';
-import { ArrowRight, ChevronRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import Img from '../components/Img';
-import { Logo } from '../components/Header';
 import { haptic } from '../lib/telegram';
-import { LANGS } from '../lib/i18n';
-import { useStore } from '../store/StoreContext';
 
-const IMAGES = [
-  { image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=900&q=80', emoji: '🍰' },
-  { image: 'https://images.unsplash.com/photo-1587668178277-295251f900ce?auto=format&fit=crop&w=900&q=80', emoji: '🧁' },
-  { image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=900&q=80', emoji: '🥐' },
+const img = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=800&q=80`;
+
+const SLIDES = [
+  {
+    image: img('1464349095431-e9a21285b5f3'),
+    emoji: '🎂',
+    title: "Shirinlik pishirishni o'rganmoqchimisiz?",
+    text: 'Fatima Sadirkhanova bilan uyda turib professional qandolatchi bo\'ling.',
+  },
+  {
+    image: img('1569864358642-9d1684040f43'),
+    emoji: '🧁',
+    title: 'Bu qanday ishlaydi?',
+    text: "Kursni tanlang, buyurtma bering va darslarni istalgan vaqtda ko'ring.",
+  },
+  {
+    image: img('1606313564200-e75d5e30476c'),
+    emoji: '🌸',
+    title: '10 000+ o\'quvchi allaqachon biz bilan',
+    text: "Ular o'z tortlarini sotib, yaqinlarini xursand qilmoqda. Navbat sizda!",
+  },
 ];
 
-export function LanguagePicker() {
-  const { setLang, config } = useStore();
-  return (
-    <div className="lang-screen">
-      <div className="lang-brand">
-        <Logo size={56} />
-        <div className="brand-name big">{config?.shop.name || ''}</div>
-        <div className="brand-tag">{config?.shop.tagline || ''}</div>
-      </div>
-      <div className="lang-box">
-        <h2 className="serif">Tilni tanlang</h2>
-        <p className="muted">Выберите язык · Choose a language</p>
-        <div className="lang-list">
-          {LANGS.map((l) => (
-            <button key={l.id} type="button" className="lang-item" onClick={() => setLang(l.id)}>
-              <span className="flag">{l.flag}</span>
-              <span>{l.label}</span>
-              <ChevronRight size={18} />
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function Onboarding({ onDone }) {
-  const { t } = useStore();
   const [index, setIndex] = useState(0);
-  const touchX = useRef(null);
-  const slides = t.slides.map((s, i) => ({ ...s, ...IMAGES[i] }));
-  const last = index === slides.length - 1;
+  const trackRef = useRef(null);
 
-  const next = () => {
-    haptic.light();
-    if (last) onDone();
-    else setIndex(index + 1);
+  const goTo = (i) => {
+    const el = trackRef.current;
+    if (el) el.scrollTo({ left: i * el.clientWidth, behavior: 'smooth' });
   };
 
-  const onTouchEnd = (e) => {
-    if (touchX.current == null) return;
-    const dx = e.changedTouches[0].clientX - touchX.current;
-    if (dx < -40 && !last) setIndex(index + 1);
-    if (dx > 40 && index > 0) setIndex(index - 1);
-    touchX.current = null;
+  const onScroll = (e) => {
+    const el = e.currentTarget;
+    const i = Math.round(el.scrollLeft / el.clientWidth);
+    if (i !== index) {
+      setIndex(i);
+      haptic.select();
+    }
   };
+
+  const last = index === SLIDES.length - 1;
 
   return (
-    <div className="onboarding" onTouchStart={(e) => { touchX.current = e.touches[0].clientX; }} onTouchEnd={onTouchEnd}>
-      <button type="button" className="skip" onClick={onDone}>{t.skip}</button>
-      <div className="ob-track" style={{ transform: `translateX(-${index * 100}%)` }}>
-        {slides.map((s) => (
-          <div className="ob-slide" key={s.title}>
-            <div className="ob-image">
-              <Img src={s.image} alt="" emoji={s.emoji} eager />
+    <div className="onboarding">
+      <button type="button" className="skip-btn" onClick={onDone}>O'tkazib yuborish</button>
+
+      <div className="ob-track" ref={trackRef} onScroll={onScroll}>
+        {SLIDES.map((s, i) => (
+          <section key={s.title} className={`ob-slide ${i === index ? 'active' : ''}`}>
+            <div className="ob-visual">
+              <span className="ob-glow" />
+              <div className="ob-arch"><Img src={s.image} alt="" eager emoji={s.emoji} /></div>
+              <span className="ob-float">{s.emoji}</span>
             </div>
             <h1 className="serif">{s.title}</h1>
-            <p className="muted">{s.text}</p>
-          </div>
+            <p>{s.text}</p>
+          </section>
         ))}
       </div>
-      <div className="ob-footer">
+
+      <div className="ob-bottom">
         <div className="dots">
-          {slides.map((s, i) => <span key={s.title} className={i === index ? 'active' : ''} />)}
+          {SLIDES.map((s, i) => (
+            <button key={s.title} type="button" className={i === index ? 'on' : ''} onClick={() => goTo(i)} aria-label={`${i + 1}-slayd`} />
+          ))}
         </div>
-        <button type="button" className={`btn btn-primary ${last ? 'btn-block btn-lg' : 'btn-round'}`} onClick={next}>
-          {last ? t.start : <ArrowRight size={22} />}
+        <button
+          type="button"
+          className="btn btn-primary btn-block btn-lg"
+          onClick={() => { haptic.medium(); if (last) onDone(); else goTo(index + 1); }}
+        >
+          {last ? 'Boshlash' : 'Keyingi'} <ArrowRight size={19} />
         </button>
       </div>
     </div>

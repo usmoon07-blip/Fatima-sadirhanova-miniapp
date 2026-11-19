@@ -1,98 +1,132 @@
-import {
-  ChevronRight, Clock, GraduationCap, Heart, Info, MapPin, Phone, ReceiptText,
-} from 'lucide-react';
+import { useState } from 'react';
+import { ChevronDown, MessageCircle, MessageSquareHeart, Phone, PlayCircle, RotateCcw } from 'lucide-react';
+import Img from '../components/Img';
+import { PageTitle } from '../components/Header';
 import { useStore } from '../store/StoreContext';
-import { formatPhone, shortMoney } from '../lib/format';
-import { currency, LANGS } from '../lib/i18n';
-import { haptic, tgUser } from '../lib/telegram';
-import { Logo } from '../components/Header';
+import { dateTime, initials, money } from '../lib/format';
+import { openLink, tgUser } from '../lib/telegram';
 
-export default function Profile() {
-  const {
-    user, userStats, displayName, config, goTo, setActiveCategory, favorites, t, lang, setLang, setScreen, setPanel, showToast,
-  } = useStore();
-  const photo = tgUser()?.photo_url;
-  const { shop } = config;
+const STATUS = {
+  PENDING: { label: "To'lov kutilmoqda", tone: 'amber' },
+  PAID: { label: "To'landi", tone: 'green' },
+  CANCELLED: { label: 'Bekor qilindi', tone: 'red' },
+};
 
-  const copyPhone = () => {
-    navigator.clipboard?.writeText(shop.phone).then(() => {
-      haptic.success();
-      showToast(t.phoneCopied);
-    }).catch(() => {});
+function OrderCard({ order }) {
+  const { courseMap, me, setCart, setUpsell, setTab, toast } = useStore();
+  const [open, setOpen] = useState(false);
+  const items = Array.isArray(order.items) ? order.items : [];
+  const st = STATUS[order.status] || STATUS.PENDING;
+
+  const reorder = () => {
+    const ids = items.map((i) => i.courseId).filter((id) => id && courseMap.has(id) && !me.purchased.includes(id));
+    const hadExtra = items.some((i) => i.type === 'extra');
+    if (!ids.length && !hadExtra) {
+      toast('Bu kurslar sizda allaqachon bor 🎓');
+      return;
+    }
+    setCart((prev) => [...new Set([...prev, ...ids])]);
+    if (hadExtra) setUpsell(true);
+    setTab('cart');
   };
 
-  const savedAddress = user?.address || (user?.latitude ? `📍 ${user.latitude.toFixed(4)}, ${user.longitude.toFixed(4)}` : null);
+  return (
+    <div className={`order-card ${open ? 'open' : ''}`}>
+      <button type="button" className="order-head" onClick={() => setOpen((v) => !v)}>
+        <div>
+          <b>Buyurtma #{order.id}</b>
+          <small>{dateTime(order.createdAt)}</small>
+        </div>
+        <span className={`status ${st.tone}`}>{st.label}</span>
+        <ChevronDown size={18} className="chev" />
+      </button>
+      {open && (
+        <div className="order-body">
+          {items.map((i, idx) => (
+            // eslint-disable-next-line react/no-array-index-key
+            <div key={idx} className="order-line"><span>{i.title}</span><b>{money(i.price)}</b></div>
+          ))}
+          <div className="order-line total"><span>Jami</span><b>{money(order.total)}</b></div>
+          <button type="button" className="btn btn-soft btn-block btn-sm" onClick={reorder}>
+            <RotateCcw size={15} /> Yana shundan buyurtma qilish
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function Profile() {
+  const { me, orders, config, openReview, setTab } = useStore();
+  const t = tgUser();
+  const name = [me.user?.firstName || t?.first_name, me.user?.lastName || t?.last_name].filter(Boolean).join(' ') || 'Mehmon';
+  const username = me.user?.username || t?.username;
+  const photo = t?.photo_url;
+  const shop = config?.shop || {};
 
   return (
     <div className="page">
-      <div className="profile-head">
-        <div className="avatar">{photo ? <img src={photo} alt="" /> : displayName.slice(0, 1).toUpperCase()}</div>
+      <PageTitle title="Profil" />
+
+      <section className="profile-card">
+        <span className="avatar big">{photo ? <img src={photo} alt="" /> : initials(name)}</span>
         <div>
-          <h2 className="serif">{[user?.firstName || displayName, user?.lastName].filter(Boolean).join(' ')}</h2>
-          {user?.phone && <div className="muted small">{formatPhone(user.phone)}</div>}
-          {user?.username && <div className="muted small">@{user.username}</div>}
+          <b className="serif">{name}</b>
+          {username && <small>@{username}</small>}
+          {me.user?.phone && <small>{me.user.phone}</small>}
         </div>
-      </div>
+      </section>
 
-      <div className="stat-tiles">
-        <div className="card"><b>{userStats?.ordersCount ?? 0}</b><span>{t.ordersStat}</span></div>
-        <div className="card"><b>{shortMoney(userStats?.totalSpent ?? 0)}</b><span>{t.spentStat(currency(lang))}</span></div>
-      </div>
-
-      <h4 className="label-title">{t.language}</h4>
-      <div className="lang-switch">
-        {LANGS.map((l) => (
-          <button key={l.id} type="button" className={lang === l.id ? 'active' : ''} onClick={() => setLang(l.id)}>
-            <span>{l.flag}</span>{l.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="menu-rows card">
-        <button type="button" onClick={() => setScreen('orders')}>
-          <span className="row-icon"><ReceiptText size={18} /></span>
-          <span className="row-text"><b>{t.myOrders}</b><small>{t.myOrdersSub}</small></span>
-          <ChevronRight size={18} />
-        </button>
-        <button type="button" onClick={() => setScreen('myCourses')}>
-          <span className="row-icon"><GraduationCap size={18} /></span>
-          <span className="row-text"><b>{t.myCourses}</b><small>{t.myCoursesSub}</small></span>
-          <ChevronRight size={18} />
-        </button>
-        <button type="button" onClick={() => setPanel('address')}>
-          <span className="row-icon"><MapPin size={18} /></span>
-          <span className="row-text"><b>{t.deliveryAddress}</b><small>{savedAddress || t.noAddress}</small></span>
-          <ChevronRight size={18} />
-        </button>
-        <button type="button" onClick={() => { setActiveCategory('fav'); goTo('menu'); }}>
-          <span className="row-icon"><Heart size={18} /></span>
-          <span className="row-text"><b>{t.favorites}</b><small>{favorites.length}</small></span>
-          <ChevronRight size={18} />
-        </button>
-        {shop.phone && (
-          <button type="button" onClick={copyPhone}>
-            <span className="row-icon"><Phone size={18} /></span>
-            <span className="row-text"><b>{t.contact}</b><small>{shop.phone}</small></span>
-            <ChevronRight size={18} />
-          </button>
-        )}
-        {shop.workingHours && (
-          <div className="row-static">
-            <span className="row-icon"><Clock size={18} /></span>
-            <span className="row-text"><b>{t.hours}</b><small>{shop.workingHours}</small></span>
+      <section className="block">
+        <h3 className="serif">🎓 Mening kurslarim</h3>
+        {me.myCourses.length ? me.myCourses.map((c) => {
+          const reviewed = me.reviews.some((r) => r.courseId === c.id);
+          return (
+            <div key={c.id} className="my-course">
+              <span className="cart-thumb"><Img src={c.imageUrl} alt={c.title} /></span>
+              <div className="my-course-info">
+                <b>{c.title}</b>
+                <div className="my-course-actions">
+                  <button type="button" className="btn btn-primary btn-xs" disabled={!c.accessLink} onClick={() => openLink(c.accessLink)}>
+                    <PlayCircle size={14} /> {c.accessLink ? 'Kursni ochish' : 'Havola tez orada'}
+                  </button>
+                  <button type="button" className="btn btn-soft btn-xs" onClick={() => openReview(c.id)}>
+                    <MessageSquareHeart size={14} /> {reviewed ? 'Izohim' : 'Izoh qoldirish'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        }) : (
+          <div className="empty small">
+            <p>{me.pending.length ? "⏳ To'lovingiz tasdiqlangach, kurslaringiz shu yerda ochiladi." : "Hali kurs sotib olmagansiz."}</p>
+            <button type="button" className="btn btn-soft btn-sm" onClick={() => setTab('courses')}>Kurslarni ko'rish</button>
           </div>
         )}
-        <button type="button" onClick={() => setPanel('about')}>
-          <span className="row-icon"><Info size={18} /></span>
-          <span className="row-text"><b>{t.aboutTitle}</b><small>{shop.address}</small></span>
-          <ChevronRight size={18} />
-        </button>
-      </div>
+      </section>
 
-      <div className="profile-footer">
-        <Logo size={28} />
-        <span>{shop.name}</span>
-      </div>
+      <section className="block">
+        <h3 className="serif">📜 Mening buyurtmalarim</h3>
+        {orders.length ? orders.map((o) => <OrderCard key={o.id} order={o} />) : (
+          <p className="muted small">Buyurtmalar tarixi bo'sh.</p>
+        )}
+      </section>
+
+      {(shop.phone || shop.adminUsername) && (
+        <section className="block">
+          <h3 className="serif">Bog'lanish</h3>
+          <div className="contact-list">
+            {shop.phone && (
+              <a className="contact" href={`tel:${shop.phone.replace(/\s/g, '')}`}><Phone size={18} /> {shop.phone}</a>
+            )}
+            {shop.adminUsername && (
+              <button type="button" className="contact" onClick={() => openLink(`https://t.me/${shop.adminUsername}`)}>
+                <MessageCircle size={18} /> @{shop.adminUsername}
+              </button>
+            )}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

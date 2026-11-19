@@ -1,8 +1,8 @@
 {
-  "name": "fatima-sadirhanova-bakery",
-  "version": "1.0.0",
+  "name": "fatima-sadirhanova-academy",
+  "version": "2.0.0",
   "private": true,
-  "description": "Premium qandolatchilik uchun Telegram Mini App, Bot va Admin Panel",
+  "description": "Fatima Sadirkhanova — qandolatchilik kurslari uchun Telegram Bot, Mini App va Admin Panel",
   "main": "src/index.js",
   "engines": {
     "node": ">=20"
@@ -17,8 +17,7 @@
     "start": "node src/index.js",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "node prisma/seed.js",
-    "db:studio": "prisma studio",
-    "db:menu": "node prisma/seed.js --menu"
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",

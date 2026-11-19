@@ -1,168 +1,145 @@
+const path = require('path');
+const crypto = require('crypto');
+const fs = require('fs');
+const multer = require('multer');
 const { z } = require('zod');
 const config = require('../config/default');
-const Product = require('../models/Product');
-const Category = require('../models/Category');
-const Story = require('../models/Story');
+const Course = require('../models/Course');
 const Order = require('../models/Order');
+const Review = require('../models/Review');
+const Result = require('../models/Result');
+const Story = require('../models/Story');
 const User = require('../models/User');
-const botController = require('./botController');
 const { signAdminToken, safeEqual } = require('../middlewares/auth.middleware');
+const { notifyOrderStatus } = require('./botController');
 
-const imageUrl = z.string().trim().min(1, 'Rasm kerak').max(1000);
-const money = z.coerce.number().int().min(0).max(1_000_000_000);
-const optText = (max) => z.string().trim().max(max).nullish().transform((v) => v || null);
-const lines = z.array(z.string().max(200)).max(40).default([]);
-
-const STATUSES = ['NEW', 'CONFIRMED', 'PREPARING', 'READY', 'ON_THE_WAY', 'DELIVERED', 'CANCELLED'];
+const optText = (max) => z.string().trim().max(max).optional().nullable().transform((v) => v || null);
+const optInt = z.union([z.number().int().min(0), z.null()]).optional().transform((v) => (v ? v : null));
 
 const schemas = {
-  login: z.object({ password: z.string().min(1, 'Parolni kiriting').max(200) }),
-
-  status: z.object({ status: z.enum(STATUSES) }),
-
-  product: z.object({
-    name: z.string().trim().min(1, 'Nomini kiriting').max(120),
-    nameRu: optText(120),
-    nameEn: optText(120),
-    description: z.string().trim().max(2000).default(''),
-    descriptionRu: optText(2000),
-    descriptionEn: optText(2000),
-    imageUrl,
-    price: money.refine((v) => v > 0, 'Narxni kiriting'),
-    oldPrice: money.nullish().transform((v) => (v ? v : null)),
-    categoryId: z.coerce.number().int().positive().nullish(),
-    ingredients: lines,
-    ingredientsRu: lines,
-    ingredientsEn: lines,
-    sizes: z.array(z.object({ label: z.string().max(60), price: money })).max(20).default([]),
-    rating: z.coerce.number().min(0).max(5).default(5),
-    reviewsCount: z.coerce.number().int().min(0).default(0),
+  login: z.object({ password: z.string().min(1, 'Parolni kiriting') }),
+  status: z.object({ status: z.enum(['PENDING', 'PAID', 'CANCELLED']) }),
+  visible: z.object({ isVisible: z.boolean() }),
+  course: z.object({
+    title: z.string().trim().min(2, 'Kurs nomini kiriting').max(120),
+    description: z.string().trim().max(3000).optional().default(''),
+    imageUrl: z.string().trim().min(1, 'Rasm qo\'shing').max(1000),
+    oldPrice: optInt,
+    price: z.number().int().min(0, "Narx noto'g'ri"),
+    category: z.string().trim().min(1, 'Kategoriyani kiriting').max(60),
+    program: z.array(z.string().trim().min(1).max(200)).max(60).optional().default([]),
+    lessonsCount: z.number().int().min(0).optional().default(0),
+    duration: optText(60),
+    level: optText(60),
     badge: optText(30),
-    isPopular: z.boolean().default(false),
-    isAvailable: z.boolean().default(true),
-    sortOrder: z.coerce.number().int().default(0),
+    accessLink: optText(500),
+    isActive: z.boolean().optional().default(true),
+    sortOrder: z.number().int().optional().default(0),
   }),
-
-  category: z.object({
-    name: z.string().trim().min(1, 'Nomini kiriting').max(60),
-    nameRu: optText(60),
-    nameEn: optText(60),
-    imageUrl: optText(1000),
-    sortOrder: z.coerce.number().int().default(0),
-    isActive: z.boolean().default(true),
+  result: z.object({
+    studentName: z.string().trim().min(1, "O'quvchi ismini kiriting").max(80),
+    courseTitle: optText(120),
+    imageUrl: z.string().trim().min(1, "Rasm qo'shing").max(1000),
+    text: optText(1000),
+    isActive: z.boolean().optional().default(true),
+    sortOrder: z.number().int().optional().default(0),
   }),
-
   story: z.object({
-    title: z.string().trim().min(1, 'Sarlavha kiriting').max(40),
-    titleRu: optText(40),
-    titleEn: optText(40),
-    imageUrl,
+    title: z.string().trim().min(1, 'Sarlavhani kiriting').max(40),
+    imageUrl: z.string().trim().min(1, "Rasm qo'shing").max(1000),
     text: optText(500),
-    textRu: optText(500),
-    textEn: optText(500),
-    sortOrder: z.coerce.number().int().default(0),
-    isActive: z.boolean().default(true),
+    isActive: z.boolean().optional().default(true),
+    sortOrder: z.number().int().optional().default(0),
   }),
-
 };
 
-const idParam = (req) => {
-  const id = Number(req.params.id);
-  if (!Number.isInteger(id) || id <= 0) {
-    const err = new Error("Noto'g'ri ID");
-    err.status = 400;
-    throw err;
-  }
-  return id;
-};
+/** Oddiy CRUD handlerlari */
+const crud = (Model) => ({
+  list: async (req, res) => res.json(await Model.listAll()),
+  create: async (req, res) => res.status(201).json(await Model.create(req.body)),
+  update: async (req, res) => res.json(await Model.update(req.id, req.body)),
+  remove: async (req, res) => {
+    await Model.remove(req.id);
+    res.json({ ok: true });
+  },
+});
 
-function crud(model) {
-  return {
-    list: async (req, res) => res.json({ items: await model.listAll() }),
-    create: async (req, res) => res.status(201).json({ item: await model.create(req.body) }),
-    update: async (req, res) => res.json({ item: await model.update(idParam(req), req.body) }),
-    remove: async (req, res) => {
-      await model.remove(idParam(req));
-      res.json({ ok: true });
+// Rasm yuklash
+fs.mkdirSync(config.uploadsDir, { recursive: true });
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: config.uploadsDir,
+    filename: (req, file, cb) => {
+      const ext = (path.extname(file.originalname) || '.jpg').toLowerCase().replace(/[^.a-z0-9]/g, '');
+      cb(null, `${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`);
     },
-  };
-}
+  }),
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (/^image\/(jpeg|png|webp|gif)$/.test(file.mimetype)) return cb(null, true);
+    const err = new Error('Faqat rasm (JPG, PNG, WEBP, GIF) yuklash mumkin');
+    err.status = 400;
+    return cb(err);
+  },
+});
 
 const adminController = {
   schemas,
+  uploadMiddleware: upload.single('file'),
 
   login(req, res) {
-    const { password } = req.body;
-    let role = null;
-    if (safeEqual(password, config.admin.password)) role = 'admin';
-    else if (config.admin.kitchenPassword && safeEqual(password, config.admin.kitchenPassword)) role = 'kitchen';
-
-    if (!role) {
-      const left = req.loginFailed();
-      return res.status(401).json({
-        message: left > 0 ? `Parol noto'g'ri. Yana ${left} ta urinish qoldi.` : `Parol noto'g'ri. Kirish ${config.admin.lockMinutes} daqiqaga bloklandi.`,
-      });
+    if (!safeEqual(req.body.password, config.admin.password)) {
+      req.loginFailed();
+      return res.status(401).json({ message: "Parol noto'g'ri" });
     }
     req.loginSucceeded();
-    return res.json({ token: signAdminToken(role), role });
-  },
-
-  me(req, res) {
-    res.json({ role: req.admin.role, shopName: config.shop.name });
+    return res.json({ token: signAdminToken() });
   },
 
   async stats(req, res) {
-    const [orders, customers] = await Promise.all([Order.stats(), User.count()]);
-    res.json({ ...orders, customers });
+    const [orders, students, reviews] = await Promise.all([Order.stats(), User.count(), Review.count()]);
+    res.json({ ...orders, students, reviews });
   },
 
-  async report(req, res) {
-    const period = ['today', '7', '30', '90', 'all'].includes(req.query.period) ? req.query.period : '30';
-    res.json(await Order.report(period));
+  async orders(req, res) {
+    res.json(await Order.list({ status: req.query.status }));
   },
 
-  async kitchen(req, res) {
-    res.json({ orders: await Order.listActive(), now: new Date().toISOString() });
-  },
-
-  async listOrders(req, res) {
-    const orders = await Order.list({ status: req.query.status, search: req.query.search });
-    res.json({ orders });
-  },
-
-  async getOrder(req, res) {
-    const order = await Order.findById(idParam(req));
-    if (!order) return res.status(404).json({ message: 'Buyurtma topilmadi' });
-    return res.json({ order });
-  },
-
-  async updateOrderStatus(req, res) {
-    const id = idParam(req);
-    const current = await Order.findById(id);
-    if (!current) return res.status(404).json({ message: 'Buyurtma topilmadi' });
-    if (current.status === req.body.status) return res.json({ order: current });
-
-    const extra = req.body.status === 'CANCELLED' ? { cancelledBy: 'restaurant' } : {};
-    const order = await Order.updateStatus(id, req.body.status, extra);
-    botController.notifyStatusChanged(order).catch((err) => console.error('Mijozga xabar yuborilmadi:', err.message));
-    if (order.status === 'ON_THE_WAY') {
-      botController.dispatchToCourier(order).catch((err) => console.error('Kuryerga yuborilmadi:', err.message));
+  async setOrderStatus(req, res) {
+    const before = await Order.findById(req.id);
+    if (!before) return res.status(404).json({ message: 'Buyurtma topilmadi' });
+    const order = await Order.setStatus(req.id, req.body.status);
+    if (before.status !== order.status) {
+      notifyOrderStatus(order).catch((e) => console.error('❌ Bot xabari yuborilmadi:', e.message));
     }
-    return res.json({ order });
+    return res.json(order);
   },
 
   async deleteOrder(req, res) {
-    await Order.remove(idParam(req));
+    await Order.remove(req.id);
     res.json({ ok: true });
   },
 
-  products: crud(Product),
-  categories: crud(Category),
+  courses: crud(Course),
+  results: crud(Result),
   stories: crud(Story),
 
+  async reviews(req, res) {
+    res.json(await Review.listAll());
+  },
+
+  async setReviewVisible(req, res) {
+    res.json(await Review.setVisible(req.id, req.body.isVisible));
+  },
+
+  async deleteReview(req, res) {
+    await Review.remove(req.id);
+    res.json({ ok: true });
+  },
+
   upload(req, res) {
-    if (!req.file) return res.status(400).json({ message: 'Fayl yuklanmadi' });
-    return res.status(201).json({ url: `/uploads/${req.file.filename}` });
+    if (!req.file) return res.status(400).json({ message: 'Fayl tanlanmadi' });
+    return res.json({ url: `/uploads/${req.file.filename}` });
   },
 };
 
