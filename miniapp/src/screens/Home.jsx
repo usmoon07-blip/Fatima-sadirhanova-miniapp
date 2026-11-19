@@ -1,5 +1,5 @@
 import { ArrowRight, Award, GraduationCap, Search, Sparkles } from 'lucide-react';
-import CourseCard from '../components/CourseCard';
+import PopularCarousel from '../components/PopularCarousel';
 import Img from '../components/Img';
 import { StoriesRow } from '../components/Stories';
 import { ReviewItem } from '../components/CourseSheet';
@@ -61,9 +61,7 @@ export default function Home() {
             <h3 className="serif">{t('popular')}</h3>
             <button type="button" className="link-btn" onClick={() => openCategory('all')}>{t('all')}</button>
           </div>
-          <div className="h-scroll cards-row">
-            {courses.slice(0, 6).map((c) => <CourseCard key={c.id} course={c} wide />)}
-          </div>
+          <PopularCarousel courses={courses.slice(0, 8)} />
         </section>
       )}
 

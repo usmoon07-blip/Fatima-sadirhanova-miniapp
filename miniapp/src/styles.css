@@ -474,3 +474,18 @@ h1, h2, h3, h4, p { margin: 0; }
 .order-online { padding: 0 14px 14px; }
 .order-online .online-pay-card { display: none; }
 .order-online .btn-lg { height: 46px; font-size: 14.5px; }
+
+/* ============ Mashhur kurslar karuseli ============ */
+.popular { margin: 0 -16px; }
+.popular-track { display: flex; gap: 0; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+  padding: 10px calc(50% - min(36vw, 135px)) 16px; -webkit-overflow-scrolling: touch; }
+.popular-track::-webkit-scrollbar { display: none; }
+.popular-slide { flex: 0 0 min(72vw, 270px); scroll-snap-align: center; padding: 0 6px;
+  transform: scale(.86); opacity: .55; filter: saturate(.8);
+  transition: transform .45s cubic-bezier(.2,.9,.25,1), opacity .45s, filter .45s; }
+.popular-slide.active { transform: scale(1); opacity: 1; filter: none; z-index: 1; }
+.popular-slide .course-card { width: 100%; }
+.popular-slide.active .course-card { box-shadow: 0 16px 34px rgba(156, 95, 104, .28); border-color: var(--blush); }
+.popular-dots { display: flex; justify-content: center; gap: 6px; margin-top: 2px; }
+.popular-dots button { width: 7px; height: 7px; border-radius: 99px; background: var(--blush); transition: all .3s; }
+.popular-dots button.on { width: 22px; background: var(--mauve); }
