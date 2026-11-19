@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import CourseCard from './CourseCard';
 
-const AUTO_MS = 3500; // har necha ms da keyingisiga suriladi
+const AUTO_MS = 2500; // har necha ms da keyingisiga suriladi
 const RESUME_MS = 6000; // qo'l bilan surilgandan keyin avtomatik qayta boshlanishi
 
 /** «Mashhur kurslar»: o'z-o'zidan yonga suriladigan karusel, markazdagi kurs — asosiy (katta) */

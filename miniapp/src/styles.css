@@ -489,3 +489,13 @@ h1, h2, h3, h4, p { margin: 0; }
 .popular-dots { display: flex; justify-content: center; gap: 6px; margin-top: 2px; }
 .popular-dots button { width: 7px; height: 7px; border-radius: 99px; background: var(--blush); transition: all .3s; }
 .popular-dots button.on { width: 22px; background: var(--mauve); }
+
+/* ============ Bo'limlar: to'xtovsiz suzuvchi qator ============ */
+.quick-cats.marquee { display: block; overflow: hidden; margin: 16px -16px 0; padding: 4px 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%); }
+.marquee-track { display: flex; gap: 12px; width: max-content; padding-left: 16px; animation: marquee linear infinite; }
+.marquee:active .marquee-track, .marquee:hover .marquee-track { animation-play-state: paused; }
+.marquee-track .quick-cat { flex-shrink: 0; }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(calc(-50% - 6px)); } }
+@media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } .quick-cats.marquee { overflow-x: auto; } }

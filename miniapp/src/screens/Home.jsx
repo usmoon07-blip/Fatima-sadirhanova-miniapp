@@ -42,16 +42,19 @@ export default function Home() {
       </section>
 
       {categories.length > 1 && (
-        <div className="quick-cats h-scroll">
-          {categories.map((c) => {
-            const cover = courses.find((x) => x.category === c);
-            return (
-              <button key={c} type="button" className="quick-cat" onClick={() => openCategory(c)}>
-                <span className="quick-cat-img"><Img src={cover?.imageUrl} alt="" /></span>
-                <span>{loc(cover, 'category') || c}</span>
-              </button>
-            );
-          })}
+        // Bo'limlar to'xtovsiz sekin suzib turadi (ro'yxat ikki marta takrorlanadi — uzluksiz aylanish uchun)
+        <div className="quick-cats marquee" aria-label={t('coursesTitle')}>
+          <div className="marquee-track" style={{ animationDuration: `${Math.max(18, categories.length * 6)}s` }}>
+            {[0, 1].map((copy) => categories.map((c) => {
+              const cover = courses.find((x) => x.category === c);
+              return (
+                <button key={`${copy}-${c}`} type="button" className="quick-cat" onClick={() => openCategory(c)} tabIndex={copy ? -1 : 0} aria-hidden={copy ? true : undefined}>
+                  <span className="quick-cat-img"><Img src={cover?.imageUrl} alt="" /></span>
+                  <span>{loc(cover, 'category') || c}</span>
+                </button>
+              );
+            }))}
+          </div>
         </div>
       )}
 
