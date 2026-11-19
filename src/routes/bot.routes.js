@@ -7,7 +7,7 @@ const ALLOWED_UPDATES = ['message', 'callback_query', 'my_chat_member', 'chat_jo
 
 function registerBotRoutes(bot) {
   bot.command('start', botController.start);
-  bot.command('buyurtmalarim', botController.myOrders);
+  bot.command(['arizalarim', 'buyurtmalarim'], botController.myOrders);
   bot.command(['yordam', 'help'], botController.help);
   bot.command('telefon', botController.askPhone);
   bot.command(['til', 'lang', 'language'], botController.chooseLanguage);
@@ -24,7 +24,7 @@ function registerBotRoutes(bot) {
 async function setupBotUi(bot) {
   const commands = (lang) => [
     { command: 'start', description: { uz: 'Bosh menyu', ru: 'Главное меню', en: 'Main menu' }[lang] },
-    { command: 'buyurtmalarim', description: { uz: 'Mening buyurtmalarim', ru: 'Мои заказы', en: 'My orders' }[lang] },
+    { command: 'arizalarim', description: { uz: 'Mening arizalarim', ru: 'Мои заявки', en: 'My enrollments' }[lang] },
     { command: 'til', description: { uz: "Tilni o'zgartirish", ru: 'Сменить язык', en: 'Change language' }[lang] },
     { command: 'yordam', description: { uz: "Bog'lanish", ru: 'Контакты', en: 'Contacts' }[lang] },
   ];

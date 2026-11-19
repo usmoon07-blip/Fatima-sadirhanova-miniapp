@@ -62,7 +62,7 @@ async function analytics(periodParam) {
   summary.paidChange = prev ? change(summary.paid, prev.paid) : null;
   summary.ordersChange = prev ? change(summary.orders, prev.orders) : null;
 
-  // To'lovni tasdiqlash vaqti (soat): buyurtmadan "To'landi" gacha
+  // To'lovni tasdiqlash vaqti (soat): arizadan "To'landi" gacha
   const payHours = orders.filter((o) => o.status === 'PAID').map((o) => (new Date(o.updatedAt) - new Date(o.createdAt)) / 3600000);
   summary.medianPayHours = payHours.length ? Math.round(median(payHours) * 10) / 10 : null;
 
@@ -139,11 +139,11 @@ async function analytics(periodParam) {
     languages: ['uz', 'ru', 'en'].map((l) => ({ lang: l, count: users.filter((u) => (u.language || 'uz') === l).length })),
   };
 
-  // Voronka (davr ichida): yangi foydalanuvchi → buyurtma → chek → to'lov
+  // Voronka (davr ichida): yangi foydalanuvchi → ariza → chek → to'lov
   const uniq = (arr) => new Set(arr).size;
   const funnel = [
     { key: 'visitors', label: 'Botga kirgan (yangi)', value: newUsers },
-    { key: 'ordered', label: 'Buyurtma bergan', value: uniq(orders.map((o) => o.userId)) },
+    { key: 'ordered', label: 'Kursga yozilgan', value: uniq(orders.map((o) => o.userId)) },
     { key: 'receipt', label: 'Chek yuborgan', value: uniq(orders.filter((o) => o.receiptUrl || o.status === 'PAID').map((o) => o.userId)) },
     { key: 'paid', label: "To'lagan", value: uniq(orders.filter((o) => o.status === 'PAID').map((o) => o.userId)) },
   ];

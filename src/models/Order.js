@@ -38,7 +38,7 @@ const Order = {
     });
   },
 
-  /** Foydalanuvchining chek yuborilmagan oxirgi kutilayotgan buyurtmasi */
+  /** Foydalanuvchining chek yuborilmagan oxirgi kutilayotgan arizasi */
   latestAwaitingReceipt(userId) {
     return prisma.order.findFirst({
       where: { userId, status: 'PENDING', receiptUrl: null }, orderBy: { createdAt: 'desc' },

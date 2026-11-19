@@ -130,7 +130,7 @@ const botController = {
     return ctx.reply(t(langOf(user, ctx.from), 'phoneSaved'), { reply_markup: { remove_keyboard: true } });
   },
 
-  /** Mijoz chatga chek rasmini yuborsa — oxirgi to'lanmagan buyurtmaga biriktiriladi */
+  /** Mijoz chatga chek rasmini yuborsa — oxirgi to'lanmagan arizaga biriktiriladi */
   async receiptPhoto(ctx) {
     const msg = ctx.message;
     const doc = msg.document && /^image\//.test(msg.document.mime_type || '') ? msg.document : null;
@@ -155,12 +155,12 @@ const botController = {
     return undefined;
   },
 
-  /** Egasi Telegram'dan buyurtmani tasdiqlaydi / bekor qiladi */
+  /** Egasi Telegram'dan arizani tasdiqlaydi / bekor qiladi */
   async ownerOrderAction(ctx) {
     if (!isOwner(ctx.from.id)) return ctx.answerCallbackQuery({ text: "Ruxsat yo'q", show_alert: true });
     const [, status, id] = ctx.match;
     const order = await changeOrderStatus(Number(id), status);
-    if (!order) return ctx.answerCallbackQuery({ text: 'Buyurtma topilmadi', show_alert: true });
+    if (!order) return ctx.answerCallbackQuery({ text: 'Ariza topilmadi', show_alert: true });
     await ctx.answerCallbackQuery({ text: status === 'PAID' ? "To'landi — kurs ochildi" : 'Bekor qilindi' });
     const mark = status === 'PAID' ? "\n\n✅ To'landi deb belgilandi. Mijozga kursga kirish havolasi yuborildi." : '\n\n❌ Bekor qilindi.';
     const msg = ctx.callbackQuery.message;
@@ -204,7 +204,7 @@ const botController = {
   },
 };
 
-/** Buyurtma holatini o'zgartiradi va mijozga xabar yuboradi (Admin Panel va Telegram tugmalari uchun) */
+/** Ariza holatini o'zgartiradi va mijozga xabar yuboradi (Admin Panel va Telegram tugmalari uchun) */
 async function changeOrderStatus(id, status) {
   const before = await Order.findById(id);
   if (!before) return null;
@@ -214,7 +214,7 @@ async function changeOrderStatus(id, status) {
   return order;
 }
 
-/** Mini App'dan buyurtma tushganda mijozga va egasiga xabar */
+/** Mini App'dan kursga yozilish arizasi tushganda mijozga va egasiga xabar */
 async function notifyOrderCreated(order) {
   if (!bot) return;
   const user = await User.findById(order.userId);
@@ -243,7 +243,7 @@ async function notifyOrderCreated(order) {
     lines.push('', t(lang, 'cardLater'));
   }
   await bot.api.sendMessage(order.user.telegramId, lines.join('\n'), { parse_mode: 'HTML' });
-  await toOwner(`${ownerOrderText(order, 'Yangi buyurtma')}\n\nTo'lov cheki kelishi kutilmoqda.`);
+  await toOwner(`${ownerOrderText(order, 'Kursga yangi ariza')}\n\nTo'lov cheki kelishi kutilmoqda.`);
 }
 
 /** Chek qabul qilinganda mijozga tasdiq, egasiga chek rasmi tugmalar bilan */
@@ -254,7 +254,7 @@ async function notifyReceiptReceived(order, imageBuffer) {
   await bot.api.sendMessage(order.user.telegramId, t(lang, 'receiptReceived', { id: order.id }));
 
   if (!config.bot.ownerId) return;
-  const caption = `${ownerOrderText(order, "Chek keldi — buyurtma")}\n\nSummani tekshiring va tasdiqlang:`;
+  const caption = `${ownerOrderText(order, "Chek keldi — ariza")}\n\nSummani tekshiring va tasdiqlang:`;
   const opts = { caption, parse_mode: 'HTML', reply_markup: ownerOrderButtons(order.id) };
   try {
     if (imageBuffer) await bot.api.sendPhoto(config.bot.ownerId, new InputFile(imageBuffer, 'chek.jpg'), opts);
@@ -264,7 +264,7 @@ async function notifyReceiptReceived(order, imageBuffer) {
   }
 }
 
-/** Buyurtma holati o'zgarganda mijozga xabar. To'landi — bir martalik havolalar */
+/** Ariza holati o'zgarganda mijozga xabar. To'landi — bir martalik havolalar */
 async function notifyOrderStatus(order) {
   if (!bot || !order.user?.telegramId) return;
   const chatId = order.user.telegramId;

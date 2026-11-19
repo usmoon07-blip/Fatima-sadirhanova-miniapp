@@ -91,7 +91,7 @@ const STORY_COLUMNS = [
 
 const PAGES = [
   { id: 'analytics', label: 'Statistika', short: 'Stat', Icon: BarChart3 },
-  { id: 'orders', label: 'Buyurtmalar', short: 'Buyurtma', Icon: ReceiptText },
+  { id: 'orders', label: 'Arizalar', short: 'Arizalar', Icon: ReceiptText },
   { id: 'courses', label: 'Kurslar', short: 'Kurslar', Icon: GraduationCap },
   { id: 'results', label: 'Natijalar', short: 'Natija', Icon: Award },
   { id: 'reviews', label: 'Izohlar', short: 'Izoh', Icon: MessageSquareHeart },

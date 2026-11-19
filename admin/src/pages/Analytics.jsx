@@ -81,7 +81,7 @@ function RevenueChart({ data }) {
   const labelEvery = Math.ceil(data.length / Math.max(2, Math.floor(innerW / 70)));
   const total = data.reduce((s, d) => s + d.revenue, 0);
 
-  if (!total) return <div className="chart-empty">Bu davrda to'langan buyurtmalar yo'q</div>;
+  if (!total) return <div className="chart-empty">Bu davrda to'langan arizalar yo'q</div>;
 
   const h = hover != null ? data[hover] : null;
   const hx = hover != null ? pad.l + slot * hover + slot / 2 : 0;
@@ -118,7 +118,7 @@ function RevenueChart({ data }) {
         <div className="tooltip" style={{ left: Math.min(Math.max(hx, 90), width - 90), top: Math.max(y(h.revenue) - 74, 0) }}>
           <b>{dayLabel(h.date)}</b>
           <span>Tushum: <b>{money(h.revenue)}</b></span>
-          <span>Buyurtmalar: {h.orders} · to'langan: {h.paid}</span>
+          <span>Arizalar: {h.orders} · to'langan: {h.paid}</span>
         </div>
       )}
     </div>
@@ -148,7 +148,7 @@ function MiniColumns({ rows, labelOf, every = 1 }) {
   return (
     <div className="mini-cols">
       {rows.map((r, i) => (
-        <div key={i} className="mini-col" title={`${labelOf(r)}: ${r.orders} ta buyurtma`}>
+        <div key={i} className="mini-col" title={`${labelOf(r)}: ${r.orders} ta ariza`}>
           <span className="mini-col-bar"><i className={r === peak && r.orders ? 'peak' : ''} style={{ height: `${(r.orders / max) * 100}%` }} /></span>
           <small>{i % every === 0 ? labelOf(r) : ''}</small>
         </div>
@@ -222,25 +222,25 @@ export default function Analytics() {
         <>
           <div className="kpis">
             <Tile accent label="Tushum" value={money(data.summary.revenue)} change={data.summary.revenueChange} sub={data.period !== 'all' ? 'oldingi davrga nisbatan' : null} />
-            <Tile label="Sotilgan buyurtmalar" value={fmt(data.summary.paid)} change={data.summary.paidChange} sub={`jami ${data.summary.orders} ta buyurtmadan`} />
+            <Tile label="Sotilgan kurslar (to'langan arizalar)" value={fmt(data.summary.paid)} change={data.summary.paidChange} sub={`jami ${data.summary.orders} ta arizadan`} />
             <Tile label="O'rtacha chek" value={money(data.summary.avgCheck)} />
-            <Tile label="Konversiya" value={`${data.summary.conversion}%`} sub="buyurtmadan to'lovgacha" />
-            <Tile label="Bekor qilingan" value={`${data.summary.cancelled} ta`} sub={`${data.summary.cancelRate}% buyurtmalar`} />
+            <Tile label="Konversiya" value={`${data.summary.conversion}%`} sub="arizadan to'lovgacha" />
+            <Tile label="Bekor qilingan" value={`${data.summary.cancelled} ta`} sub={`${data.summary.cancelRate}% arizalar`} />
             <Tile label="To'lov qilmay qolganlar" value={`${data.summary.abandoned} ta`} sub="24 soatdan beri chek yo'q" />
             <Tile label="Kutilayotgan pul" value={money(data.summary.pendingAmount)} sub={`${data.summary.pendingWithReceipt} ta chek tekshirilmagan`} />
-            <Tile label="Tasdiqlash vaqti" value={data.summary.medianPayHours != null ? `${data.summary.medianPayHours} soat` : '—'} sub="buyurtmadan to'lovgacha (mediana)" />
+            <Tile label="Tasdiqlash vaqti" value={data.summary.medianPayHours != null ? `${data.summary.medianPayHours} soat` : '—'} sub="arizadan to'lovgacha (mediana)" />
           </div>
 
           <section className="panel">
             <div className="panel-head">
               <h3>Kunlik tushum</h3>
-              <small className="muted">{data.period === 'all' ? 'oxirgi 90 kun' : `oxirgi ${data.period} kun`} · to'langan buyurtmalar</small>
+              <small className="muted">{data.period === 'all' ? 'oxirgi 90 kun' : `oxirgi ${data.period} kun`} · to'langan arizalar</small>
             </div>
             <RevenueChart data={data.daily} />
             <details className="table-toggle">
               <summary>Jadval ko'rinishi</summary>
               <table>
-                <thead><tr><th>Sana</th><th>Buyurtmalar</th><th>To'langan</th><th>Tushum</th></tr></thead>
+                <thead><tr><th>Sana</th><th>Arizalar</th><th>To'langan</th><th>Tushum</th></tr></thead>
                 <tbody>
                   {[...data.daily].reverse().filter((d) => d.orders).map((d) => (
                     <tr key={d.date}><td>{dayLabel(d.date)}</td><td>{d.orders}</td><td>{d.paid}</td><td>{money(d.revenue)}</td></tr>
@@ -259,7 +259,7 @@ export default function Analytics() {
               <table>
                 <thead>
                   <tr>
-                    <th>#</th><th>Kurs</th><th>Sotildi</th><th>Tushum</th><th>Buyurtmalar</th><th>Konversiya</th><th>Bekor</th><th>Kutilmoqda</th><th>Reyting</th>
+                    <th>#</th><th>Kurs</th><th>Sotildi</th><th>Tushum</th><th>Arizalar</th><th>Konversiya</th><th>Bekor</th><th>Kutilmoqda</th><th>Reyting</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -304,7 +304,7 @@ export default function Analytics() {
             </section>
 
             <section className="panel">
-              <div className="panel-head"><h3>Buyurtmalar holati</h3><small className="muted">{data.summary.orders} ta buyurtma</small></div>
+              <div className="panel-head"><h3>Arizalar holati</h3><small className="muted">{data.summary.orders} ta ariza</small></div>
               <StatusBar s={data.summary} />
               <div className="mini-kpis">
                 <div><small>Qo'shimcha taklif (PDF) olingan</small><b>{data.upsell.takeRate}%</b><span>{data.upsell.paid} ta sotuv · {money(data.upsell.revenue)}</span></div>
@@ -324,7 +324,7 @@ export default function Analytics() {
             </section>
 
             <section className="panel">
-              <div className="panel-head"><h3>Faol vaqtlar</h3><small className="muted">buyurtmalar, Toshkent vaqti</small></div>
+              <div className="panel-head"><h3>Faol vaqtlar</h3><small className="muted">arizalar, Toshkent vaqti</small></div>
               <h4 className="sub-h">Soatlar</h4>
               <MiniColumns rows={data.hours} labelOf={(r) => `${r.hour}`} every={3} />
               <h4 className="sub-h">Hafta kunlari</h4>

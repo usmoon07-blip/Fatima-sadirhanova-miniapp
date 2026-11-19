@@ -123,7 +123,7 @@ const adminController = {
 
   async setOrderStatus(req, res) {
     const order = await changeOrderStatus(req.id, req.body.status);
-    if (!order) return res.status(404).json({ message: 'Buyurtma topilmadi' });
+    if (!order) return res.status(404).json({ message: 'Ariza topilmadi' });
     return res.json(await Order.findById(req.id));
   },
 

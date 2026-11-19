@@ -15,7 +15,7 @@ export function isSoundReady() {
   return Boolean(ctx && ctx.state === 'running');
 }
 
-/** Yangi buyurtma signali (uch notali "ding-ding-ding") */
+/** Yangi ariza signali (uch notali "ding-ding-ding") */
 export function playSignal(times = 1) {
   if (!ctx) return;
   for (let r = 0; r < times; r += 1) {

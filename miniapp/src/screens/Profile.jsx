@@ -148,7 +148,7 @@ export default function Profile() {
             </button>
             <button type="button" className="contact" onClick={() => openLink(`https://instagram.com/${authorIg}`)}>
               <Instagram size={18} />
-              <span><small>Instagram</small>instagram.com/{authorIg}</span>
+              <span><small>Instagram</small>{authorIg}</span>
             </button>
             {shop.phone && (
               <a className="contact" href={`tel:${shop.phone.replace(/\s/g, '')}`}>
@@ -160,7 +160,7 @@ export default function Profile() {
         </div>
       </section>
 
-      <p className="made-by">{t('madeBy')}</p>
+      <button type="button" className="made-by" onClick={() => openLink('https://t.me/usmoai')}>{t('madeBy')}</button>
     </div>
   );
 }

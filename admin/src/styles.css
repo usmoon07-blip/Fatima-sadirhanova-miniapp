@@ -165,20 +165,19 @@ tr.fresh { animation: freshRow 2.5s ease-out 3; }
 
 /* ============ Bo'limlar menyusi (Mini App uslubidagi animatsiya) ============ */
 :root { --chart: #B4536A; --st-good: #3F8C65; --st-warn: #C98A3A; --st-bad: #C23B52; }
-.section-list { position: relative; display: flex; flex-direction: column; gap: 6px; flex: 1; }
-.section-item { position: relative; z-index: 1; display: flex; align-items: center; gap: 14px; height: 48px; padding: 0 14px 0 22px; border-radius: 14px; font-weight: 700; color: #8D7A7E; text-align: left; transition: color .35s; }
+:root { --rail: #7E4652; --rail-icon: #F2D3CB; --rail-active: #F6C77D; }
+.section-list { position: relative; display: flex; flex-direction: column; gap: 4px; flex: 1; padding: 6px 0; }
+.rail-shape { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; filter: drop-shadow(0 8px 16px rgba(126, 70, 82, .22)); }
+.rail-shape path { fill: var(--rail); }
+.rail-ball { position: absolute; z-index: 2; border-radius: 50%; display: grid; place-items: center; color: var(--rail-active); background: var(--rail); pointer-events: none; box-shadow: 0 5px 12px rgba(126, 70, 82, .3); }
+.rail-ball > svg { position: absolute; }
+.rail-ball.landed { animation: railLand .4s cubic-bezier(.3,1.5,.5,1); }
+@keyframes railLand { 0% { scale: 0.94 1.06; } 60% { scale: 1.03 0.98; } 100% { scale: 1 1; } }
+.section-item { position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; height: 50px; padding-right: 10px; border-radius: 12px; font-weight: 700; color: #8D7A7E; text-align: left; transition: color .3s; }
 .section-item:hover:not(.active) { color: var(--ink); }
 .section-item.active { color: var(--mauve-dark); font-weight: 800; }
-.section-icon { width: 18px; display: inline-grid; place-items: center; transition: opacity .2s; }
+.rail-icon { position: absolute; top: 50%; margin-top: -9px; width: 18px; height: 18px; display: grid; place-items: center; color: var(--rail-icon); }
 .section-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.section-pill { position: absolute; left: 0; right: 0; z-index: 0; border-radius: 14px; pointer-events: none;
-  background: linear-gradient(90deg, #FBE3DC 0%, #FBEDE8 70%, rgba(251, 237, 232, .4) 100%); box-shadow: inset 0 0 0 1px #F2D6CD; }
-.section-ball { position: absolute; left: 0; top: 0; z-index: 2; border-radius: 50%; display: grid; place-items: center; color: #fff; pointer-events: none; will-change: transform;
-  background: radial-gradient(circle at 30% 25%, #E9BFB3 0%, #C98E8F 45%, #9C5F68 100%);
-  box-shadow: 0 8px 16px rgba(156, 95, 104, .4), inset 0 -2px 5px rgba(0,0,0,.12), inset 0 2px 4px rgba(255,255,255,.35); }
-.section-ball > svg { position: absolute; }
-.section-ball.landed { animation: ballLand .42s cubic-bezier(.3,1.5,.5,1); }
-@keyframes ballLand { 0% { scale: 1.12 0.86; } 55% { scale: 0.95 1.06; } 100% { scale: 1 1; } }
 .side-badge { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--red); color: #fff; font-size: 11px; font-weight: 800; display: grid; place-items: center; }
 .mobile-top, .menu-backdrop, .menu-drawer { display: none; }
 

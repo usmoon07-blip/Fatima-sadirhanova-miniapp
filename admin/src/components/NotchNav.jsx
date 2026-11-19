@@ -1,19 +1,51 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
-/* Bo'limlar menyusi.
-   Faol bo'lim ostida yumshoq "suyuq" fon, ikonka o'rnida gradient doira (Mini App uslubida).
-   Bo'lim almashganda doira bo'lim yozuvlari ustidan yoy bo'ylab uchib o'tadi,
-   fon esa cho'zilib, yangi bo'limga oqib boradi.
+/* Bo'limlar menyusi — Mini App'dagi videodagi uslubning vertikal ko'rinishi:
+   chapda to'q tasma, faol bo'lim qarshisida chuqur U shaklidagi o'yiq va ichida tasma rangidagi doira.
+   Bo'lim almashganda doira va o'yiq birga yuqoriga/pastga suriladi (oxirida yengil prujina).
    Kompyuterda — chap panel, telefonda — tepadagi ☰ tugmasi bilan ochiladigan ro'yxat. */
 
-const DURATION = 620;
-const BALL = 34;
-const ARC = 64; // doira yozuvlar ustidan qancha o'ngga uchadi
+const RAIL_W = 60;
+const RAIL_R = 22;
+const BALL_R = 21;
+const GAP = 5;
+const DEPTH = 44;
+const NOTCH_R = BALL_R + GAP;
+const BALL_C = DEPTH - NOTCH_R; // doira markazi tasmaning o'ng chetidan chapga
+const WALL = 2.1;
+const SHOULDER = 16;
+const DURATION = 560;
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
-const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
-const easeOut = (t) => 1 - (1 - t) ** 3;
-const easeIn = (t) => t * t * t;
+function easeOutBack(t) {
+  const c1 = 1.25;
+  return 1 + (c1 + 1) * (t - 1) ** 3 + c1 * (t - 1) ** 2;
+}
+function smax(a, b, k) {
+  const h = clamp01(0.5 + (0.5 * (b - a)) / k);
+  return a + (b - a) * h + k * h * (1 - h);
+}
+function notchDepth(d) {
+  const a = Math.abs(d);
+  const u = a <= NOTCH_R ? BALL_C + Math.sqrt(NOTCH_R * NOTCH_R - a * a) : BALL_C - WALL * (a - NOTCH_R);
+  return smax(0, u, SHOULDER);
+}
+
+/** Vertikal tasma: o'ng chetida o'yiq (cy — o'yiq markazi) */
+function railPath(H, cy) {
+  const W = RAIL_W;
+  const R = RAIL_R;
+  const corner = (y) => {
+    if (y < R) return R - Math.sqrt(Math.max(0, R * R - (R - y) ** 2));
+    if (y > H - R) return R - Math.sqrt(Math.max(0, R * R - (y - (H - R)) ** 2));
+    return 0;
+  };
+  const xAt = (y) => (W - smax(corner(y), notchDepth(y - cy), 9)).toFixed(2);
+  let d = `M${R} 0 L${xAt(0)} 0`;
+  for (let y = 0.5; y < H; y += y < R || y > H - R ? 0.5 : 1.5) d += ` L${xAt(y)} ${y.toFixed(1)}`;
+  d += ` L${xAt(H)} ${H} L${R} ${H} Q0 ${H} 0 ${H - R} L0 ${R} Q0 0 ${R} 0 Z`;
+  return d;
+}
 
 function useMedia(query) {
   const [match, setMatch] = useState(() => window.matchMedia(query).matches);
@@ -29,9 +61,9 @@ function useMedia(query) {
 function SectionList({ items, active, onChange }) {
   const listRef = useRef(null);
   const rowRefs = useRef([]);
-  const [rows, setRows] = useState([]); // [{top, height}]
+  const [geo, setGeo] = useState({ h: 0, centers: [] });
   const activeIndex = Math.max(0, items.findIndex((i) => i.id === active));
-  const [anim, setAnim] = useState({ from: activeIndex, to: activeIndex, t: 1, landed: 0 });
+  const [anim, setAnim] = useState({ y: null, t: 1, from: activeIndex, to: activeIndex, landed: 0 });
   const animRef = useRef(anim);
   animRef.current = anim;
   const raf = useRef(0);
@@ -39,7 +71,10 @@ function SectionList({ items, active, onChange }) {
   useLayoutEffect(() => {
     const el = listRef.current;
     if (!el) return undefined;
-    const measure = () => setRows(rowRefs.current.map((n) => (n ? { top: n.offsetTop, height: n.offsetHeight } : { top: 0, height: 0 })));
+    const measure = () => setGeo({
+      h: el.offsetHeight,
+      centers: rowRefs.current.map((n) => (n ? n.offsetTop + n.offsetHeight / 2 : 0)),
+    });
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
@@ -47,77 +82,58 @@ function SectionList({ items, active, onChange }) {
   }, [items.length]);
 
   useEffect(() => {
+    if (!geo.h) return undefined;
+    const target = geo.centers[activeIndex];
     const cur = animRef.current;
-    if (cur.to === activeIndex) return undefined;
+    if (cur.y == null || (cur.to === activeIndex && cur.t >= 1)) {
+      setAnim({ y: target, t: 1, from: activeIndex, to: activeIndex, landed: 0 });
+      return undefined;
+    }
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    const from = cur.t >= 1 ? cur.to : cur.to; // davom etayotgan bo'lsa ham oxirgi nishondan boshlaymiz
+    const fromY = cur.y;
+    const fromIndex = cur.t >= 1 ? cur.to : cur.from;
     const start = performance.now();
     const duration = reduce ? 1 : DURATION;
     cancelAnimationFrame(raf.current);
     const tick = (now) => {
       const t = clamp01((now - start) / duration);
-      setAnim({ from, to: activeIndex, t, landed: t >= 1 ? Date.now() : 0 });
+      setAnim({ y: fromY + (target - fromY) * easeOutBack(t), t, from: fromIndex, to: activeIndex, landed: t >= 1 ? Date.now() : 0 });
       if (t < 1) raf.current = requestAnimationFrame(tick);
     };
     raf.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf.current);
-  }, [activeIndex]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex, geo]);
 
-  const A = rows[anim.from];
-  const B = rows[anim.to];
-  let pill = null;
-  let ball = null;
-  if (A && B) {
-    const down = B.top >= A.top;
-    // Suyuq fon: oldingi cheti tez, orqa cheti sekin — cho'zilib oqadi
-    const lead = easeOut(anim.t);
-    const trail = easeIn(anim.t);
-    const aTop = A.top; const aBot = A.top + A.height;
-    const bTop = B.top; const bBot = B.top + B.height;
-    const top = down ? aTop + (bTop - aTop) * trail : aTop + (bTop - aTop) * lead;
-    const bottom = down ? aBot + (bBot - aBot) * lead : aBot + (bBot - aBot) * trail;
-    pill = { top, height: Math.max(bottom - top, 10) };
-    // Doira: vertikal silliq, gorizontal yoy (yozuvlar ustidan)
-    const e = easeInOut(anim.t);
-    const cyA = A.top + A.height / 2;
-    const cyB = B.top + B.height / 2;
-    ball = { x: 14 + ARC * Math.sin(Math.PI * anim.t), y: cyA + (cyB - cyA) * e, lift: Math.sin(Math.PI * anim.t) };
-  }
-
-  const moving = anim.t < 1 && anim.from !== anim.to;
-  const fromOp = moving ? 1 - clamp01(anim.t / 0.3) : 0;
-  const toOp = moving ? clamp01((anim.t - 0.6) / 0.4) : 1;
+  const cy = anim.y ?? geo.centers[activeIndex] ?? 0;
+  const moving = anim.from !== anim.to && anim.t < 1;
+  const fromOp = moving ? 1 - clamp01(anim.t / 0.22) : 0;
+  const toOp = moving ? clamp01((anim.t - 0.6) / 0.35) : 1;
   const From = items[anim.from]?.Icon;
   const To = items[anim.to]?.Icon;
 
   return (
     <nav className="section-list" ref={listRef}>
-      {pill && <span className="section-pill" style={{ top: pill.top, height: pill.height }} aria-hidden />}
-      {ball && (
+      {geo.h > 0 && (
+        <svg className="rail-shape" width={RAIL_W} height={geo.h} viewBox={`0 0 ${RAIL_W} ${geo.h}`} aria-hidden>
+          <path d={railPath(geo.h, cy)} />
+        </svg>
+      )}
+      {geo.h > 0 && (
         <span
           key={anim.landed || 'ball'}
-          className={`section-ball ${anim.landed ? 'landed' : ''}`}
-          style={{
-            width: BALL,
-            height: BALL,
-            transform: `translate(${ball.x}px, ${ball.y - BALL / 2}px) scale(${1 + ball.lift * 0.12})`,
-          }}
+          className={`rail-ball ${anim.landed ? 'landed' : ''}`}
+          style={{ width: BALL_R * 2, height: BALL_R * 2, left: RAIL_W - BALL_C - BALL_R, top: cy - BALL_R }}
           aria-hidden
         >
-          {From && fromOp > 0 && <From size={17} strokeWidth={2.2} style={{ opacity: fromOp }} />}
-          {To && <To size={17} strokeWidth={2.2} style={{ opacity: toOp }} />}
+          {From && fromOp > 0 && <From size={18} strokeWidth={2.2} style={{ opacity: fromOp }} />}
+          {To && <To size={18} strokeWidth={2.2} style={{ opacity: toOp }} />}
         </span>
       )}
       {items.map(({ id, label, Icon, badge }, i) => {
         const isActive = i === activeIndex;
-        // Doira ustidan o'tayotgan qatorning ikonkasi biroz so'nadi
-        let hide = 0;
-        if (i === anim.to) hide = moving ? clamp01((anim.t - 0.8) / 0.2) : 1; // doira qo'nganda yashiriladi
-        else if (i === anim.from && moving) hide = 1 - clamp01(anim.t / 0.2); // doira ketishi bilan qaytadi
-        else if (ball && rows[i]) {
-          const dy = Math.abs(ball.y - (rows[i].top + rows[i].height / 2));
-          hide = clamp01(1 - dy / 30) * 0.35;
-        }
+        const dy = geo.centers[i] != null ? Math.abs(cy - geo.centers[i]) : 999;
+        const hide = clamp01(1 - (dy - BALL_R * 0.5) / (NOTCH_R + 12 - BALL_R * 0.5));
         return (
           <button
             key={id}
@@ -126,8 +142,9 @@ function SectionList({ items, active, onChange }) {
             className={`section-item ${isActive ? 'active' : ''}`}
             onClick={() => id !== active && onChange(id)}
             aria-current={isActive ? 'page' : undefined}
+            style={{ paddingLeft: RAIL_W + 22 }}
           >
-            <span className="section-icon" style={{ opacity: 1 - hide }}><Icon size={18} /></span>
+            <span className="rail-icon" style={{ left: RAIL_W / 2 - 9, opacity: 1 - hide, transform: `scale(${1 - hide * 0.35})` }}><Icon size={18} /></span>
             <span className="section-label">{label}</span>
             {badge > 0 && <span className="side-badge">{badge}</span>}
           </button>
@@ -163,7 +180,7 @@ function TopMenu({ items, active, onChange, brand, actions }) {
 
   const pick = (id) => {
     onChange(id);
-    setTimeout(() => setOpen(false), DURATION + 80); // animatsiyani ko'rib, keyin yopiladi
+    setTimeout(() => setOpen(false), DURATION + 120); // animatsiyani ko'rib, keyin yopiladi
   };
 
   return (

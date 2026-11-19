@@ -22,13 +22,13 @@ export default function Orders() {
     if (!silent) setLoading(true);
     try {
       const [list, st] = await Promise.all([api.orders(filter), api.stats()]);
-      // Yangi buyurtmalarni aniqlash
+      // Yangi arizalarni aniqlash
       if (knownIds.current) {
         const newOnes = list.filter((o) => !knownIds.current.has(o.id) && o.status === 'PENDING');
         if (newOnes.length) {
           playSignal(1);
           setFresh(new Set(newOnes.map((o) => o.id)));
-          document.title = `(${newOnes.length}) Yangi buyurtma!`;
+          document.title = `(${newOnes.length}) Yangi ariza!`;
           setTimeout(() => { document.title = 'Admin Panel — Fatima Sadirkhanova'; }, 6000);
         }
       }
@@ -61,7 +61,7 @@ export default function Orders() {
 
   const changeStatus = async (order, status) => {
     if (status === order.status) return;
-    if (status === 'PAID' && !window.confirm(`#${order.id} buyurtma to'landi deb belgilansinmi?\nMijozga botda kursga kirish havolasi yuboriladi.`)) return;
+    if (status === 'PAID' && !window.confirm(`#${order.id}-ariza to'landi deb belgilansinmi?\nMijozga botda kursga kirish havolasi yuboriladi.`)) return;
     try {
       const updated = await api.setOrderStatus(order.id, status);
       setOrders((list) => list.map((o) => (o.id === order.id ? updated : o)));
@@ -72,7 +72,7 @@ export default function Orders() {
   };
 
   const remove = async (order) => {
-    if (!window.confirm(`#${order.id} buyurtma butunlay o'chirilsinmi?`)) return;
+    if (!window.confirm(`#${order.id}-ariza butunlay o'chirilsinmi?`)) return;
     try {
       await api.deleteOrder(order.id);
       setOrders((list) => list.filter((o) => o.id !== order.id));
@@ -85,7 +85,7 @@ export default function Orders() {
     <div className="page">
       <div className="page-head">
         <div>
-          <h1>Buyurtmalar</h1>
+          <h1>Arizalar</h1>
           <p className="muted">Har {POLL_MS / 1000} soniyada avtomatik yangilanadi</p>
         </div>
         <div className="head-actions">
@@ -100,7 +100,7 @@ export default function Orders() {
         <div className="stats">
           <div className="stat"><small>To'lov kutilmoqda</small><b className="amber">{stats.pending}</b></div>
           <div className="stat"><small>Chek yuborilgan (tekshiring)</small><b className="rose">{stats.receipts}</b></div>
-          <div className="stat"><small>To'langan buyurtmalar</small><b>{stats.paid}</b></div>
+          <div className="stat"><small>To'langan arizalar</small><b>{stats.paid}</b></div>
           <div className="stat"><small>Tushum</small><b className="rose">{money(stats.revenue)}</b></div>
           <div className="stat"><small>Bugun</small><b>{stats.today}</b></div>
           <div className="stat"><small>Foydalanuvchilar</small><b>{stats.students}</b></div>
@@ -168,7 +168,7 @@ export default function Orders() {
               </tr>
             ))}
             {!orders.length && !loading && (
-              <tr><td colSpan={9} className="empty-cell">Buyurtmalar yo'q</td></tr>
+              <tr><td colSpan={9} className="empty-cell">Arizalar yo'q</td></tr>
             )}
           </tbody>
         </table>
@@ -178,7 +178,7 @@ export default function Orders() {
         <div className="modal-backdrop" onMouseDown={() => setReceipt(null)}>
           <div className="receipt-modal" onMouseDown={(e) => e.stopPropagation()}>
             <div className="modal-head">
-              <h3><ReceiptText size={20} /> Buyurtma #{receipt.id} cheki</h3>
+              <h3><ReceiptText size={20} /> Ariza #{receipt.id} cheki</h3>
               <button type="button" className="icon-btn" onClick={() => setReceipt(null)} aria-label="Yopish"><X size={18} /></button>
             </div>
             <a href={receipt.receiptUrl} target="_blank" rel="noreferrer"><img src={receipt.receiptUrl} alt="Chek" /></a>

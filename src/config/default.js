@@ -20,7 +20,7 @@ const config = {
 
   bot: {
     token: (process.env.BOT_TOKEN || '').trim(),
-    /** Bot egasi (Telegram user ID) — yangi buyurtma va cheklar shu odamga keladi */
+    /** Bot egasi (Telegram user ID) — yangi arizalar va cheklar shu odamga keladi */
     ownerId: (process.env.OWNER_ID || '8823567005').trim(),
     webAppUrl: (process.env.WEBAPP_URL || '').trim().replace(/\/+$/, ''),
   },

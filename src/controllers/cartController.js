@@ -21,7 +21,7 @@ const schemas = {
   language: z.object({ language: z.enum(LANGS) }),
   order: z.object({
     courseIds: z.array(z.number().int().positive()).min(1, 'err.cartEmpty').max(30),
-    /** Mini App'dagi kurs nomlari — eski nusxadan noto'g'ri kurs buyurtma qilinmasligi uchun */
+    /** Mini App'dagi kurs nomlari — eski nusxadan noto'g'ri kursga yozilmaslik uchun */
     titles: z.record(z.string(), z.string().max(200)).optional(),
     upsell: z.boolean().optional().default(false),
     customerName: z.string().trim().min(2, 'err.name').max(80),
