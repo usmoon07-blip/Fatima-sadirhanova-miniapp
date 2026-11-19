@@ -104,9 +104,9 @@ function Steps({ browser, onClose }) {
 }
 
 /** "Ilovani o'rnatish": brauzer taklif qilsa — bir bosishda, aks holda — shu brauzer uchun yo'riqnoma */
-export default function InstallButton({ variant = 'side' }) {
+export default function InstallButton({ variant = 'side', onClose }) {
   const [, force] = useState(0);
-  const [help, setHelp] = useState(false);
+  const [help, setHelp] = useState(variant === 'auto');
   useEffect(() => subscribe(() => force((n) => n + 1)), []);
 
   if (isStandalone()) return null;
@@ -128,6 +128,7 @@ export default function InstallButton({ variant = 'side' }) {
     side: (
       <button type="button" className="install-btn" onClick={onClick}><Download size={18} /> <span>Ilovani o'rnatish</span></button>
     ),
+    auto: null,
     card: (
       <button type="button" className="install-card" onClick={onClick}>
         <Download size={18} />
@@ -140,14 +141,14 @@ export default function InstallButton({ variant = 'side' }) {
     <>
       {button}
       {help && (
-        <div className="modal-backdrop" onMouseDown={() => setHelp(false)}>
+        <div className="modal-backdrop" onMouseDown={() => { setHelp(false); onClose?.(); }}>
           <div className="modal" onMouseDown={(e) => e.stopPropagation()}>
             <div className="modal-head">
               <h3>Ilovani o'rnatish</h3>
-              <button type="button" className="icon-btn" onClick={() => setHelp(false)} aria-label="Yopish"><X size={18} /></button>
+              <button type="button" className="icon-btn" onClick={() => { setHelp(false); onClose?.(); }} aria-label="Yopish"><X size={18} /></button>
             </div>
             <div className="modal-body ios-steps">
-              <Steps browser={browser} onClose={() => setHelp(false)} />
+              <Steps browser={browser} onClose={() => { setHelp(false); onClose?.(); }} />
             </div>
           </div>
         </div>

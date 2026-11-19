@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Award, BarChart3, Clapperboard, GraduationCap, LogOut, MessageSquareHeart, ReceiptText, Settings as SettingsIcon } from 'lucide-react';
 import NotchNav from './components/NotchNav';
 import InstallButton from './components/InstallButton';
+import InstallPrompt from './components/InstallPrompt';
 import Analytics from './pages/Analytics';
 import Login from './pages/Login';
 import Orders from './pages/Orders';
@@ -101,6 +102,7 @@ const PAGES = [
 
 export default function App() {
   const [authed, setAuthed] = useState(Boolean(auth.token));
+  const [askInstall, setAskInstall] = useState(false);
   const [page, setPage] = useState(() => {
     const h = window.location.hash.slice(1);
     return PAGES.some((p) => p.id === h) ? h : 'analytics';
@@ -109,7 +111,7 @@ export default function App() {
   useEffect(() => setUnauthorizedHandler(() => setAuthed(false)), []);
   useEffect(() => { window.location.hash = page; }, [page]);
 
-  if (!authed) return <Login onSuccess={() => setAuthed(true)} />;
+  if (!authed) return <Login onSuccess={() => { setAuthed(true); setAskInstall(true); }} />;
 
   const logout = () => {
     auth.clear();
@@ -146,6 +148,7 @@ export default function App() {
         )}
       />
 
+      {askInstall && <InstallPrompt onDone={() => setAskInstall(false)} />}
       <main key={page} className="content">
         {page === 'analytics' && <Analytics />}
         {page === 'orders' && <Orders />}
