@@ -61,6 +61,7 @@ app.get('/api/health', (req, res) => res.json({
     callbackUrl: config.publicUrl ? `${config.publicUrl}/api/payments/multicard/callback` : null,
   },
   version: process.env.RENDER_GIT_COMMIT ? process.env.RENDER_GIT_COMMIT.slice(0, 7) : null,
+  service: process.env.RENDER_SERVICE_ID || null,
 }));
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
