@@ -15,14 +15,22 @@ export function Brand() {
 }
 
 export default function Header() {
-  const { cart, setTab, t } = useStore();
+  const { cart, setTab, t, config } = useStore();
   return (
-    <header className="top-bar">
-      <Brand />
-      <button type="button" className="icon-btn" onClick={() => setTab('cart')} aria-label={t('nav_cart')}>
-        <ShoppingBag size={19} />
-        {cart.length > 0 && <span className="dot-badge">{cart.length}</span>}
-      </button>
+    <header className="app-top">
+      <div className="app-top-row">
+        <button type="button" className="app-top-logo" onClick={() => setTab('home')} aria-label={t('nav_home')}>
+          <img src="/fs-logo.png" alt="" />
+        </button>
+        <div className="app-top-title">
+          <small>{config?.shop?.tagline || 'PATISSERIE'}</small>
+          <b className="serif">{config?.shop?.name || 'Fatima Sadirkhanova'}</b>
+        </div>
+        <button type="button" className="app-top-btn" onClick={() => setTab('cart')} aria-label={t('nav_cart')}>
+          <ShoppingBag size={21} />
+          {cart.length > 0 && <span className="dot-badge">{cart.length}</span>}
+        </button>
+      </div>
     </header>
   );
 }

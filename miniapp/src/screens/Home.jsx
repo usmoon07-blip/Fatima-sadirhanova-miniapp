@@ -1,5 +1,4 @@
 import { ArrowRight, Award, GraduationCap, Search, Sparkles } from 'lucide-react';
-import Header from '../components/Header';
 import CourseCard from '../components/CourseCard';
 import Img from '../components/Img';
 import { StoriesRow } from '../components/Stories';
@@ -19,8 +18,6 @@ export default function Home() {
 
   return (
     <div className="page">
-      <Header />
-
       <div className="greeting">
         <h1 className="serif">{t('greeting', { name })}</h1>
         <p>{t('greetingSub')}</p>

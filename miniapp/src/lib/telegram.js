@@ -2,6 +2,7 @@ export const tg = window.Telegram?.WebApp;
 export const isTelegram = Boolean(tg && tg.initData);
 
 const BG = '#FFF8F4';
+const TOP = '#A9686F'; // yuqori panel rangi (to'liq ekranda Telegram tugmalari shu fonda turadi)
 
 function safe(fn) {
   try {
@@ -22,9 +23,13 @@ export function initTelegram() {
   safe(() => tg.onEvent('viewportChanged', (e) => { if (e?.isStateStable) expand(); }));
   safe(() => tg.onEvent('activated', expand));
   if (tg.isVersionAtLeast?.('6.1')) {
-    safe(() => tg.setHeaderColor(BG));
+    safe(() => tg.setHeaderColor(TOP));
     safe(() => tg.setBackgroundColor(BG));
   }
+  // To'liq ekran (Kremm Bakery'dagidek): telefonda ilova soat qatorigacha egallaydi,
+  // Telegram faqat «Yopish» va «⋮» tugmalarini yuqori panel ustida ko'rsatadi
+  const mobile = ['android', 'ios'].includes(tg.platform);
+  if (mobile && tg.isVersionAtLeast?.('8.0') && !tg.isFullscreen) safe(() => tg.requestFullscreen());
   if (tg.isVersionAtLeast?.('7.10')) safe(() => tg.setBottomBarColor('#FFFFFF'));
   if (tg.isVersionAtLeast?.('7.7')) safe(() => tg.disableVerticalSwipes());
 }

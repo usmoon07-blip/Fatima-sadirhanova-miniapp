@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import BottomNav from './components/BottomNav';
+import Header from './components/Header';
 import CourseSheet from './components/CourseSheet';
 import ReviewSheet from './components/ReviewSheet';
 import BottomSheet from './components/BottomSheet';
@@ -60,6 +61,7 @@ export default function App() {
 
   return (
     <div className="app">
+      <Header />
       <main key={`${tab}-${lang}`} className="screen">
         <Screen />
       </main>
