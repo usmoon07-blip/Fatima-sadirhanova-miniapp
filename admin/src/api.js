@@ -47,6 +47,7 @@ const resource = (name) => ({
 export const api = {
   login: (password) => request('/login', { method: 'POST', body: { password } }),
   stats: () => request('/stats'),
+  analytics: (period) => request(`/analytics?period=${period}`),
   orders: (status = 'ALL') => request(`/orders?${new URLSearchParams({ status })}`),
   setOrderStatus: (id, status) => request(`/orders/${id}/status`, { method: 'PATCH', body: { status } }),
   deleteOrder: (id) => request(`/orders/${id}`, { method: 'DELETE' }),

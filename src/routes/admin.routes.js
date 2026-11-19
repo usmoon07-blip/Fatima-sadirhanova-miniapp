@@ -8,6 +8,7 @@ router.post('/login', loginGuard, validate(a.schemas.login), a.login);
 
 router.use(adminAuth);
 router.get('/stats', a.stats);
+router.get('/analytics', a.analytics);
 
 router.get('/orders', a.orders);
 router.patch('/orders/:id/status', idParam, validate(a.schemas.status), a.setOrderStatus);

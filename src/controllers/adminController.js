@@ -12,6 +12,7 @@ const Setting = require('../models/Setting');
 const { signAdminToken, safeEqual } = require('../middlewares/auth.middleware');
 const { changeOrderStatus } = require('./botController');
 const Channel = require('../models/Channel');
+const { analytics } = require('../services/analytics');
 
 const optText = (max) => z.string().trim().max(max).optional().nullable().transform((v) => v || null);
 const optInt = z.union([z.number().int().min(0), z.null()]).optional().transform((v) => (v ? v : null));
@@ -124,6 +125,10 @@ const adminController = {
     const order = await changeOrderStatus(req.id, req.body.status);
     if (!order) return res.status(404).json({ message: 'Buyurtma topilmadi' });
     return res.json(await Order.findById(req.id));
+  },
+
+  async analytics(req, res) {
+    res.json(await analytics(String(req.query.period || '30')));
   },
 
   async channels(req, res) {

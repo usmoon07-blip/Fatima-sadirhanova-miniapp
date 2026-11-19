@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Award, Clapperboard, GraduationCap, LogOut, MessageSquareHeart, ReceiptText, Settings as SettingsIcon } from 'lucide-react';
+import { Award, BarChart3, Clapperboard, GraduationCap, LogOut, MessageSquareHeart, ReceiptText, Settings as SettingsIcon } from 'lucide-react';
+import NotchNav from './components/NotchNav';
+import Analytics from './pages/Analytics';
 import Login from './pages/Login';
 import Orders from './pages/Orders';
 import CrudPage from './pages/CrudPage';
@@ -87,17 +89,21 @@ const STORY_COLUMNS = [
 ];
 
 const PAGES = [
-  { id: 'orders', label: 'Buyurtmalar', Icon: ReceiptText },
-  { id: 'courses', label: 'Kurslar', Icon: GraduationCap },
-  { id: 'results', label: 'Natijalar', Icon: Award },
-  { id: 'reviews', label: 'Izohlar', Icon: MessageSquareHeart },
-  { id: 'stories', label: 'Stories', Icon: Clapperboard },
-  { id: 'settings', label: "Sozlamalar (karta)", Icon: SettingsIcon },
+  { id: 'analytics', label: 'Statistika', short: 'Stat', Icon: BarChart3 },
+  { id: 'orders', label: 'Buyurtmalar', short: 'Buyurtma', Icon: ReceiptText },
+  { id: 'courses', label: 'Kurslar', short: 'Kurslar', Icon: GraduationCap },
+  { id: 'results', label: 'Natijalar', short: 'Natija', Icon: Award },
+  { id: 'reviews', label: 'Izohlar', short: 'Izoh', Icon: MessageSquareHeart },
+  { id: 'stories', label: 'Stories', short: 'Story', Icon: Clapperboard },
+  { id: 'settings', label: 'Sozlamalar (karta)', short: 'Karta', Icon: SettingsIcon },
 ];
 
 export default function App() {
   const [authed, setAuthed] = useState(Boolean(auth.token));
-  const [page, setPage] = useState(() => window.location.hash.slice(1) || 'orders');
+  const [page, setPage] = useState(() => {
+    const h = window.location.hash.slice(1);
+    return PAGES.some((p) => p.id === h) ? h : 'analytics';
+  });
 
   useEffect(() => setUnauthorizedHandler(() => setAuthed(false)), []);
   useEffect(() => { window.location.hash = page; }, [page]);
@@ -111,25 +117,29 @@ export default function App() {
 
   return (
     <div className="layout">
-      <aside className="sidebar">
-        <div className="brand">
-          <span className="brand-logo">🧁</span>
-          <div>
-            <b>Fatima Sadirkhanova</b>
-            <small>ADMIN PANEL</small>
+      <header className="mobile-top">
+        <span className="brand-logo">🧁</span>
+        <b>Fatima Sadirkhanova</b>
+        <button type="button" className="icon-btn" onClick={logout} aria-label="Chiqish"><LogOut size={17} /></button>
+      </header>
+      <NotchNav
+        items={PAGES}
+        active={page}
+        onChange={setPage}
+        header={(
+          <div className="brand">
+            <span className="brand-logo">🧁</span>
+            <div>
+              <b>Fatima Sadirkhanova</b>
+              <small>ADMIN PANEL</small>
+            </div>
           </div>
-        </div>
-        <nav>
-          {PAGES.map(({ id, label, Icon }) => (
-            <button key={id} type="button" className={page === id ? 'active' : ''} onClick={() => setPage(id)}>
-              <Icon size={18} /> <span>{label}</span>
-            </button>
-          ))}
-        </nav>
-        <button type="button" className="logout" onClick={logout}><LogOut size={18} /> <span>Chiqish</span></button>
-      </aside>
+        )}
+        footer={<button type="button" className="logout" onClick={logout}><LogOut size={18} /> <span>Chiqish</span></button>}
+      />
 
-      <main className="content">
+      <main key={page} className="content">
+        {page === 'analytics' && <Analytics />}
         {page === 'orders' && <Orders />}
         {page === 'courses' && (
           <CrudPage
