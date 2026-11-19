@@ -1,12 +1,14 @@
 import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from 'react';
 import { X } from 'lucide-react';
 import { setBackButton } from '../lib/telegram';
+import { useStore } from '../store/StoreContext';
 
 /**
  * Pastdan chiquvchi oyna. Pastga surib (swipe) yoki fonga bosib yopiladi.
  * ref.current.close() — animatsiya bilan yopish.
  */
 const BottomSheet = forwardRef(function BottomSheet({ onClose, children, footer, hero, title, className = '' }, ref) {
+  const { t } = useStore();
   const [closing, setClosing] = useState(false);
   const [drag, setDrag] = useState(0);
   const startY = useRef(null);
@@ -56,7 +58,7 @@ const BottomSheet = forwardRef(function BottomSheet({ onClose, children, footer,
         style={drag ? { transform: `translateY(${drag}px)`, transition: 'none' } : undefined}
       >
         <div className="sheet-handle" />
-        <button type="button" className="sheet-close" onClick={close} aria-label="Yopish"><X size={18} /></button>
+        <button type="button" className="sheet-close" onClick={close} aria-label={t('close')}><X size={18} /></button>
         <div className="sheet-scroll" ref={scrollRef}>
           {hero}
           {title && !hero && <h3 className="sheet-title serif">{title}</h3>}

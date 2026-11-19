@@ -8,6 +8,7 @@ import { api } from '../api';
 function emptyForm(fields) {
   const form = {};
   for (const f of fields) {
+    if (f.type === 'heading') continue;
     if (f.type === 'toggle') form[f.name] = f.default ?? true;
     else if (f.type === 'lines') form[f.name] = '';
     else form[f.name] = f.default ?? '';
@@ -18,6 +19,7 @@ function emptyForm(fields) {
 function toForm(item, fields) {
   const form = {};
   for (const f of fields) {
+    if (f.type === 'heading') continue;
     const v = item[f.name];
     if (f.type === 'lines') form[f.name] = (v || []).join('\n');
     else if (f.type === 'toggle') form[f.name] = Boolean(v);
@@ -29,6 +31,7 @@ function toForm(item, fields) {
 function toPayload(form, fields) {
   const data = {};
   for (const f of fields) {
+    if (f.type === 'heading') continue;
     const v = form[f.name];
     if (f.type === 'number') data[f.name] = v === '' || v == null ? (f.required ? 0 : null) : Number(v);
     else if (f.type === 'lines') data[f.name] = String(v || '').split('\n').map((s) => s.trim()).filter(Boolean);
@@ -47,6 +50,7 @@ export default function CrudPage({ title, subtitle, resource, fields, columns, i
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
   const [courseTitles, setCourseTitles] = useState([]);
+  const [channels, setChannels] = useState([]);
 
   const load = async () => {
     setLoading(true);
@@ -62,6 +66,9 @@ export default function CrudPage({ title, subtitle, resource, fields, columns, i
 
   useEffect(() => {
     load();
+    if (fields.some((f) => f.options === 'channels')) {
+      api.channels().then(setChannels).catch(() => {});
+    }
     if (fields.some((f) => f.datalist === 'courses')) {
       api.courses.list().then((list) => setCourseTitles(list.map((c) => c.title))).catch(() => {});
     }
@@ -79,6 +86,13 @@ export default function CrudPage({ title, subtitle, resource, fields, columns, i
     setEditing('new');
   };
 
+  const selectOptions = (f) => {
+    if (f.options === 'channels') {
+      return channels.map((c) => ({ value: c.id, label: `${c.title}${c.canInvite ? '' : " — «Invite users» huquqi yo'q!"}` }));
+    }
+    return f.options || [];
+  };
+
   const openEdit = (item) => {
     setForm(toForm(item, fields));
     setFormError('');
@@ -88,6 +102,7 @@ export default function CrudPage({ title, subtitle, resource, fields, columns, i
   const save = async () => {
     setFormError('');
     for (const f of fields) {
+      if (f.type === 'heading') continue;
       if ((f.required || f.type === 'image') && (form[f.name] === '' || form[f.name] == null)) {
         setFormError(`«${f.label}» maydonini to'ldiring`);
         return;
@@ -185,9 +200,20 @@ export default function CrudPage({ title, subtitle, resource, fields, columns, i
           )}
         >
           <div className="form-grid">
-            {fields.map((f) => (
+            {fields.map((f) => (f.type === 'heading' ? (
+              <div key={f.label} className="form-heading full">
+                <b>{f.label}</b>
+                {f.hint && <small>{f.hint}</small>}
+              </div>
+            ) : (
               <div key={f.name} className={`form-field ${f.full ? 'full' : ''}`}>
                 {f.type !== 'toggle' && <label htmlFor={`f-${f.name}`}>{f.label}{f.required && ' *'}</label>}
+                {f.type === 'select' && (
+                  <select id={`f-${f.name}`} value={form[f.name] || ''} onChange={(e) => set(f.name)(e.target.value)}>
+                    <option value="">{f.placeholder || '— tanlanmagan —'}</option>
+                    {selectOptions(f).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                )}
                 {f.type === 'image' && <ImageInput value={form[f.name]} onChange={set(f.name)} />}
                 {f.type === 'toggle' && <Toggle checked={form[f.name]} onChange={set(f.name)} label={f.label} />}
                 {(f.type === 'textarea' || f.type === 'lines') && (
@@ -211,8 +237,9 @@ export default function CrudPage({ title, subtitle, resource, fields, columns, i
                     )}
                   </>
                 )}
+                {f.hint && <small className="field-hint">{f.hint}</small>}
               </div>
-            ))}
+            )))}
           </div>
           {formError && <div className="error-box">{formError}</div>}
         </Modal>

@@ -1,28 +1,27 @@
 import { useState } from 'react';
-import { ChevronDown, CreditCard, MessageCircle, MessageSquareHeart, Phone, PlayCircle, ReceiptText, RotateCcw } from 'lucide-react';
+import {
+  ChevronDown, CreditCard, Instagram, MessageSquareHeart, Phone, ReceiptText, RotateCcw, Send,
+} from 'lucide-react';
 import Img from '../components/Img';
+import AccessButton from '../components/AccessButton';
 import { PageTitle } from '../components/Header';
 import { useStore } from '../store/StoreContext';
-import { dateTime, initials, money } from '../lib/format';
-import { openLink, tgUser } from '../lib/telegram';
+import { LANGS } from '../lib/i18n';
+import { dateTime, initials } from '../lib/format';
+import { haptic, openLink, tgUser } from '../lib/telegram';
 
-const STATUS = {
-  PENDING: { label: "To'lov kutilmoqda", tone: 'amber' },
-  PAID: { label: "To'landi", tone: 'green' },
-  CANCELLED: { label: 'Bekor qilindi', tone: 'red' },
-};
+const STATUS_TONE = { PENDING: 'amber', PAID: 'green', CANCELLED: 'red' };
 
 function OrderCard({ order }) {
-  const { courseMap, me, setCart, setUpsell, setTab, toast, openPayment } = useStore();
+  const { courseMap, me, setCart, setUpsell, setTab, toast, openPayment, t, lang, loc, money } = useStore();
   const [open, setOpen] = useState(false);
   const items = Array.isArray(order.items) ? order.items : [];
-  const st = STATUS[order.status] || STATUS.PENDING;
 
   const reorder = () => {
     const ids = items.map((i) => i.courseId).filter((id) => id && courseMap.has(id) && !me.purchased.includes(id));
     const hadExtra = items.some((i) => i.type === 'extra');
     if (!ids.length && !hadExtra) {
-      toast('Bu kurslar sizda allaqachon bor 🎓');
+      toast(t('ownedAll'));
       return;
     }
     setCart((prev) => [...new Set([...prev, ...ids])]);
@@ -34,18 +33,18 @@ function OrderCard({ order }) {
     <div className={`order-card ${open ? 'open' : ''}`}>
       <button type="button" className="order-head" onClick={() => setOpen((v) => !v)}>
         <div>
-          <b>Buyurtma #{order.id}</b>
-          <small>{dateTime(order.createdAt)}</small>
+          <b>{t('orderN', { id: order.id })}</b>
+          <small>{dateTime(order.createdAt, lang)}</small>
         </div>
-        <span className={`status ${st.tone}`}>{st.label}</span>
+        <span className={`status ${STATUS_TONE[order.status] || 'amber'}`}>{t(`status_${order.status}`)}</span>
         <ChevronDown size={18} className="chev" />
       </button>
       {order.status === 'PENDING' && (
         order.receiptUrl
-          ? <div className="order-pay done"><ReceiptText size={15} /> Chek yuborilgan — tekshirilmoqda</div>
+          ? <div className="order-pay done"><ReceiptText size={15} /> {t('receiptSent')}</div>
           : (
             <button type="button" className="order-pay" onClick={() => openPayment(order)}>
-              <CreditCard size={15} /> Karta orqali to'lash va chek yuklash
+              <CreditCard size={15} /> {t('payAndUpload')}
             </button>
           )
       )}
@@ -53,11 +52,11 @@ function OrderCard({ order }) {
         <div className="order-body">
           {items.map((i, idx) => (
             // eslint-disable-next-line react/no-array-index-key
-            <div key={idx} className="order-line"><span>{i.title}</span><b>{money(i.price)}</b></div>
+            <div key={idx} className="order-line"><span>{(i.courseId && loc(courseMap.get(i.courseId), 'title')) || i.title}</span><b>{money(i.price)}</b></div>
           ))}
-          <div className="order-line total"><span>Jami</span><b>{money(order.total)}</b></div>
+          <div className="order-line total"><span>{t('total')}</span><b>{money(order.total)}</b></div>
           <button type="button" className="btn btn-soft btn-block btn-sm" onClick={reorder}>
-            <RotateCcw size={15} /> Yana shundan buyurtma qilish
+            <RotateCcw size={15} /> {t('reorder')}
           </button>
         </div>
       )}
@@ -66,16 +65,18 @@ function OrderCard({ order }) {
 }
 
 export default function Profile() {
-  const { me, orders, config, openReview, setTab } = useStore();
-  const t = tgUser();
-  const name = [me.user?.firstName || t?.first_name, me.user?.lastName || t?.last_name].filter(Boolean).join(' ') || 'Mehmon';
-  const username = me.user?.username || t?.username;
-  const photo = t?.photo_url;
+  const { me, orders, config, openReview, setTab, t, loc, lang, setLang } = useStore();
+  const tu = tgUser();
+  const name = [me.user?.firstName || tu?.first_name, me.user?.lastName || tu?.last_name].filter(Boolean).join(' ') || t('guest');
+  const username = me.user?.username || tu?.username;
+  const photo = tu?.photo_url;
   const shop = config?.shop || {};
+  const authorTg = shop.authorTelegram || 'fatima_sadirkhanova';
+  const authorIg = shop.authorInstagram || 'fatima_sadirkhanova';
 
   return (
     <div className="page">
-      <PageTitle title="Profil" />
+      <PageTitle title={t('profile')} />
 
       <section className="profile-card">
         <span className="avatar big">{photo ? <img src={photo} alt="" /> : initials(name)}</span>
@@ -87,20 +88,18 @@ export default function Profile() {
       </section>
 
       <section className="block">
-        <h3 className="serif">🎓 Mening kurslarim</h3>
+        <h3 className="serif">{t('myCourses')}</h3>
         {me.myCourses.length ? me.myCourses.map((c) => {
           const reviewed = me.reviews.some((r) => r.courseId === c.id);
           return (
             <div key={c.id} className="my-course">
-              <span className="cart-thumb"><Img src={c.imageUrl} alt={c.title} /></span>
+              <span className="cart-thumb"><Img src={c.imageUrl} alt={loc(c, 'title')} /></span>
               <div className="my-course-info">
-                <b>{c.title}</b>
+                <b>{loc(c, 'title')}</b>
                 <div className="my-course-actions">
-                  <button type="button" className="btn btn-primary btn-xs" disabled={!c.accessLink} onClick={() => openLink(c.accessLink)}>
-                    <PlayCircle size={14} /> {c.accessLink ? 'Kursni ochish' : 'Havola tez orada'}
-                  </button>
+                  <AccessButton courseId={c.id} size="xs" />
                   <button type="button" className="btn btn-soft btn-xs" onClick={() => openReview(c.id)}>
-                    <MessageSquareHeart size={14} /> {reviewed ? 'Izohim' : 'Izoh qoldirish'}
+                    <MessageSquareHeart size={14} /> {reviewed ? t('myReview') : t('leaveReview')}
                   </button>
                 </div>
               </div>
@@ -108,34 +107,60 @@ export default function Profile() {
           );
         }) : (
           <div className="empty small">
-            <p>{me.pending.length ? "⏳ To'lovingiz tasdiqlangach, kurslaringiz shu yerda ochiladi." : "Hali kurs sotib olmagansiz."}</p>
-            <button type="button" className="btn btn-soft btn-sm" onClick={() => setTab('courses')}>Kurslarni ko'rish</button>
+            <p>{me.pending.length ? t('awaitingCourses') : t('noCourses')}</p>
+            <button type="button" className="btn btn-soft btn-sm" onClick={() => setTab('courses')}>{t('viewCourses')}</button>
           </div>
         )}
       </section>
 
       <section className="block">
-        <h3 className="serif">📜 Mening buyurtmalarim</h3>
+        <h3 className="serif">{t('myOrders')}</h3>
         {orders.length ? orders.map((o) => <OrderCard key={o.id} order={o} />) : (
-          <p className="muted small">Buyurtmalar tarixi bo'sh.</p>
+          <p className="muted small">{t('noOrders')}</p>
         )}
       </section>
 
-      {(shop.phone || shop.adminUsername) && (
-        <section className="block">
-          <h3 className="serif">Bog'lanish</h3>
+      <section className="block">
+        <h3 className="serif">{t('language')}</h3>
+        <div className="lang-switch">
+          {LANGS.map((l) => (
+            <button key={l.id} type="button" className={lang === l.id ? 'on' : ''} onClick={() => { haptic.select(); setLang(l.id); }}>
+              {l.label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="block">
+        <h3 className="serif">{t('author')}</h3>
+        <div className="author-card">
+          <div className="author-head">
+            <span className="avatar big">FS</span>
+            <div>
+              <b className="serif">{shop.name || 'Fatima Sadirkhanova'}</b>
+              <small>{shop.tagline || 'PATISSERIE'}</small>
+            </div>
+          </div>
           <div className="contact-list">
+            <button type="button" className="contact" onClick={() => openLink(`https://t.me/${authorTg}`)}>
+              <Send size={18} />
+              <span><small>Telegram</small>@{authorTg}</span>
+            </button>
+            <button type="button" className="contact" onClick={() => openLink(`https://instagram.com/${authorIg}`)}>
+              <Instagram size={18} />
+              <span><small>Instagram</small>instagram.com/{authorIg}</span>
+            </button>
             {shop.phone && (
-              <a className="contact" href={`tel:${shop.phone.replace(/\s/g, '')}`}><Phone size={18} /> {shop.phone}</a>
-            )}
-            {shop.adminUsername && (
-              <button type="button" className="contact" onClick={() => openLink(`https://t.me/${shop.adminUsername}`)}>
-                <MessageCircle size={18} /> @{shop.adminUsername}
-              </button>
+              <a className="contact" href={`tel:${shop.phone.replace(/\s/g, '')}`}>
+                <Phone size={18} />
+                <span><small>{t('contacts')}</small>{shop.phone}</span>
+              </a>
             )}
           </div>
-        </section>
-      )}
+        </div>
+      </section>
+
+      <p className="made-by">{t('madeBy')}</p>
     </div>
   );
 }

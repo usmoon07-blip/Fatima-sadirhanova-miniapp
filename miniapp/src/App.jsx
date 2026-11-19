@@ -30,7 +30,7 @@ function Splash() {
 }
 
 export default function App() {
-  const { status, error, load, tab, setTab, courseId, reviewCourseId, storyIndex, paymentOrder, openPayment, toast } = useStore();
+  const { status, error, load, tab, setTab, courseId, reviewCourseId, storyIndex, paymentOrder, openPayment, toast, t, lang } = useStore();
   const [onboarded, setOnboarded] = useState(() => storage.get('onboarded', false));
 
   // Telegram "Orqaga" tugmasi: boshqa tabdan bosh sahifaga
@@ -48,10 +48,10 @@ export default function App() {
   if (status === 'error') {
     return (
       <div className="splash">
-        <span className="brand-logo big">🥺</span>
-        <b>Ulanishda xatolik</b>
+        <span className="brand-logo big">🧁</span>
+        <b>{t('connError')}</b>
         <small className="muted">{error}</small>
-        <button type="button" className="btn btn-primary" onClick={load}>Qayta urinish</button>
+        <button type="button" className="btn btn-primary" onClick={load}>{t('retry')}</button>
       </div>
     );
   }
@@ -60,18 +60,18 @@ export default function App() {
 
   return (
     <div className="app">
-      <main key={tab} className="screen">
+      <main key={`${tab}-${lang}`} className="screen">
         <Screen />
       </main>
       <BottomNav />
       {courseId != null && <CourseSheet />}
       {reviewCourseId != null && <ReviewSheet key={reviewCourseId} />}
       {paymentOrder && (
-        <BottomSheet title="Karta orqali to'lov" onClose={() => openPayment(null)}>
+        <BottomSheet title={t('payByCardTitle')} onClose={() => openPayment(null)}>
           <div className="sheet-pad">
             <PaymentPanel
               order={paymentOrder}
-              onUploaded={() => { openPayment(null); toast("Chek yuborildi! Tez orada tasdiqlaymiz 🧁"); }}
+              onUploaded={() => { openPayment(null); toast(t('receiptSentToast')); }}
             />
           </div>
         </BottomSheet>

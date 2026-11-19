@@ -21,34 +21,52 @@ model User {
   lastName   String?
   username   String?
   phone      String?
+  /// Tanlangan til: uz | ru | en
+  language   String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   orders     Order[]
   reviews    Review[]
+  accesses   CourseAccess[]
 }
 
 /// Kurs (mahsulot)
 model Course {
   id           Int      @id @default(autoincrement())
   title        String
+  titleRu      String?
+  titleEn      String?
   description  String   @default("")
+  descriptionRu String?
+  descriptionEn String?
   imageUrl     String
   oldPrice     Int?
   price        Int
   category     String   @default("Tortlar")
+  categoryRu   String?
+  categoryEn   String?
   /// Kurs dasturi — har bir element alohida mavzu
   program      String[] @default([])
+  programRu    String[] @default([])
+  programEn    String[] @default([])
   lessonsCount Int      @default(0)
   duration     String?
+  durationRu   String?
+  durationEn   String?
   level        String?
+  levelRu      String?
+  levelEn      String?
   badge        String?
-  /// Yopiq kanal / guruh havolasi — to'lov tasdiqlangach o'quvchiga yuboriladi
+  /// Yopiq kanal (bot admin qilingan). To'lovdan keyin har bir o'quvchiga bir martalik havola yaratiladi
+  channelId    String?
+  /// Ochiq havola — kanal tanlanmagan bo'lsa yuboriladi (himoyasiz, eski usul)
   accessLink   String?
   isActive     Boolean  @default(true)
   sortOrder    Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   reviews      Review[]
+  accesses     CourseAccess[]
 }
 
 model Order {
@@ -105,8 +123,12 @@ model Result {
 model Story {
   id        Int      @id @default(autoincrement())
   title     String
+  titleRu   String?
+  titleEn   String?
   imageUrl  String
   text      String?
+  textRu    String?
+  textEn    String?
   sortOrder Int      @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -126,4 +148,30 @@ model Setting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+/// Bot admin qilingan Telegram kanallar (bot o'zi yozib boradi)
+model Channel {
+  id        String   @id
+  title     String
+  username  String?
+  canInvite Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+}
+
+/// O'quvchining kursga kirish havolasi: bir martalik, faqat shu o'quvchi uchun
+model CourseAccess {
+  id         Int       @id @default(autoincrement())
+  userId     Int
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId   Int
+  course     Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  channelId  String
+  inviteLink String
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@unique([userId, courseId])
+  @@index([inviteLink])
 }

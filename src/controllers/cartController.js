@@ -8,27 +8,30 @@ const Story = require('../models/Story');
 const User = require('../models/User');
 const Setting = require('../models/Setting');
 const Upload = require('../models/Upload');
-const { notifyOrderCreated, notifyReceiptReceived } = require('./botController');
+const { notifyOrderCreated, notifyReceiptReceived, setUserMenuButton } = require('./botController');
+const { ensureAccess, accessMap } = require('../services/access');
+const { t, LANGS } = require('../utils/i18n');
 
 const PHONE_RE = /^\+?[0-9\s\-()]{9,20}$/;
 
 const schemas = {
   phone: z.object({
-    phone: z.string().trim().regex(PHONE_RE, "Telefon raqam noto'g'ri"),
+    phone: z.string().trim().regex(PHONE_RE, 'err.phone'),
   }),
+  language: z.object({ language: z.enum(LANGS) }),
   order: z.object({
-    courseIds: z.array(z.number().int().positive()).min(1, "Savatcha bo'sh").max(30),
+    courseIds: z.array(z.number().int().positive()).min(1, 'err.cartEmpty').max(30),
     /** Mini App'dagi kurs nomlari — eski nusxadan noto'g'ri kurs buyurtma qilinmasligi uchun */
     titles: z.record(z.string(), z.string().max(200)).optional(),
     upsell: z.boolean().optional().default(false),
-    customerName: z.string().trim().min(2, 'Ismingizni kiriting').max(80),
-    phone: z.string().trim().regex(PHONE_RE, "Telefon raqam noto'g'ri"),
+    customerName: z.string().trim().min(2, 'err.name').max(80),
+    phone: z.string().trim().regex(PHONE_RE, 'err.phone'),
     comment: z.string().trim().max(500).optional().nullable(),
   }),
   review: z.object({
     courseId: z.number().int().positive(),
     rating: z.number().int().min(1).max(5),
-    text: z.string().trim().min(3, 'Izoh juda qisqa').max(1000, 'Izoh juda uzun'),
+    text: z.string().trim().min(3, 'err.reviewShort').max(1000, 'err.reviewLong'),
   }),
 };
 
@@ -43,6 +46,8 @@ const cartController = {
         tagline: config.shop.tagline,
         phone: config.shop.phone,
         adminUsername: config.shop.adminUsername,
+        authorTelegram: config.shop.authorTelegram,
+        authorInstagram: config.shop.authorInstagram,
       },
       upsell: config.upsell.enabled ? { title: config.upsell.title, price: config.upsell.price } : null,
     });
@@ -61,20 +66,50 @@ const cartController = {
 
   async me(req, res) {
     const u = req.user;
-    const [{ paid, pending }, reviews] = await Promise.all([
+    const [{ paid, pending }, reviews, accesses] = await Promise.all([
       Order.courseIdsByUser(u.id),
       Review.listByUser(u.id),
+      accessMap(u.id),
     ]);
     const owned = paid.length ? await Course.findMany(paid) : [];
     res.json({
-      user: { id: u.id, firstName: u.firstName, lastName: u.lastName, username: u.username, phone: u.phone },
+      user: {
+        id: u.id, firstName: u.firstName, lastName: u.lastName, username: u.username, phone: u.phone, language: u.language,
+      },
       purchased: paid,
       pending,
-      myCourses: owned.map((c) => ({
-        id: c.id, title: c.title, imageUrl: c.imageUrl, lessonsCount: c.lessonsCount, accessLink: c.accessLink,
-      })),
+      myCourses: owned.map((c) => {
+        const a = accesses.get(c.id);
+        let access = null;
+        if (c.channelId) access = { protected: true, used: Boolean(a?.usedAt), ready: Boolean(a) };
+        else if (c.accessLink) access = { protected: false, link: c.accessLink };
+        return {
+          id: c.id, title: c.title, titleRu: c.titleRu, titleEn: c.titleEn, imageUrl: c.imageUrl, lessonsCount: c.lessonsCount, access,
+        };
+      }),
       reviews,
     });
+  },
+
+  async setLanguage(req, res) {
+    const user = await User.setLanguage(req.user.id, req.body.language);
+    setUserMenuButton(user.telegramId, user.language).catch(() => {});
+    res.json({ language: user.language });
+  },
+
+  /** Bir martalik kanal havolasini beradi (kerak bo'lsa yaratadi) */
+  async courseAccess(req, res) {
+    const { paid } = await Order.courseIdsByUser(req.user.id);
+    if (!paid.includes(req.id)) return res.status(403).json({ message: t(req.lang, 'err.notBought') });
+    const course = await Course.findById(req.id);
+    try {
+      const access = await ensureAccess(req.user, course);
+      if (!access) return res.status(404).json({ message: t(req.lang, 'err.accessFailed') });
+      return res.json(access);
+    } catch (e) {
+      console.error(`❌ Havola yaratilmadi (kurs #${req.id}):`, e.message);
+      return res.status(500).json({ message: t(req.lang, 'err.accessFailed') });
+    }
   },
 
   async updatePhone(req, res) {
@@ -91,17 +126,17 @@ const cartController = {
     const ids = [...new Set(courseIds)];
     const courses = await Course.findManyActive(ids);
     if (courses.length !== ids.length) {
-      return res.status(400).json({ message: "Savatchadagi ba'zi kurslar endi mavjud emas. Savatchani yangilang." });
+      return res.status(400).json({ message: t(req.lang, 'err.coursesGone') });
     }
     const changed = titles && courses.find((c) => titles[c.id] && titles[c.id] !== c.title);
     if (changed) {
-      return res.status(409).json({ message: "Kurslar ro'yxati yangilandi. Ilovani qayta oching va savatchani tekshiring." });
+      return res.status(409).json({ message: t(req.lang, 'err.menuChanged') });
     }
 
     const { paid } = await Order.courseIdsByUser(req.user.id);
     const owned = courses.filter((c) => paid.includes(c.id));
     if (owned.length) {
-      return res.status(400).json({ message: `«${owned[0].title}» kursi sizda allaqachon bor` });
+      return res.status(400).json({ message: t(req.lang, 'err.owned', { title: owned[0].title }) });
     }
 
     const items = courses.map((c) => ({
@@ -122,13 +157,13 @@ const cartController = {
   },
 
   async uploadReceipt(req, res) {
-    if (!req.file) return res.status(400).json({ message: 'Chek rasmini tanlang' });
+    if (!req.file) return res.status(400).json({ message: t(req.lang, 'err.receiptMissing') });
     const order = await Order.findById(req.id);
-    if (!order || order.userId !== req.user.id) return res.status(404).json({ message: 'Buyurtma topilmadi' });
-    if (order.status !== 'PENDING') return res.status(400).json({ message: "Bu buyurtma uchun chek kerak emas" });
+    if (!order || order.userId !== req.user.id) return res.status(404).json({ message: t(req.lang, 'err.orderNotFound') });
+    if (order.status !== 'PENDING') return res.status(400).json({ message: t(req.lang, 'err.receiptNotNeeded') });
     const saved = await Upload.create({ mimeType: req.file.mimetype, data: req.file.buffer });
     const updated = await Order.setReceipt(order.id, `/uploads/${saved.id}`);
-    notifyReceiptReceived(updated).catch((e) => console.error('❌ Bot xabari yuborilmadi:', e.message));
+    notifyReceiptReceived(updated, req.file.buffer).catch((e) => console.error('❌ Bot xabari yuborilmadi:', e.message));
     return res.json(updated);
   },
 
@@ -144,7 +179,7 @@ const cartController = {
     const { courseId, rating, text } = req.body;
     const { paid } = await Order.courseIdsByUser(req.user.id);
     if (!paid.includes(courseId)) {
-      return res.status(403).json({ message: "Izoh qoldirish uchun avval kursni sotib olishingiz kerak" });
+      return res.status(403).json({ message: t(req.lang, 'err.reviewNotBought') });
     }
     await Review.upsert(req.user.id, courseId, { rating, text });
     return res.status(201).json({ ok: true });

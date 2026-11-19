@@ -8,7 +8,7 @@ import { haptic } from '../lib/telegram';
 const DURATION = 5000;
 
 export function StoriesRow() {
-  const { catalog, setStoryIndex } = useStore();
+  const { catalog, setStoryIndex, loc } = useStore();
   const seen = storage.get('seenStories', []);
   if (!catalog.stories.length) return null;
   return (
@@ -16,7 +16,7 @@ export function StoriesRow() {
       {catalog.stories.map((s, i) => (
         <button key={s.id} type="button" className={`story ${seen.includes(s.id) ? 'seen' : ''}`} onClick={() => setStoryIndex(i)}>
           <span className="story-ring"><Img src={s.imageUrl} alt="" /></span>
-          <span className="story-title">{s.title}</span>
+          <span className="story-title">{loc(s, 'title')}</span>
         </button>
       ))}
     </div>
@@ -24,7 +24,7 @@ export function StoriesRow() {
 }
 
 export function StoryViewer() {
-  const { catalog, storyIndex, setStoryIndex, setTab } = useStore();
+  const { catalog, storyIndex, setStoryIndex, setTab, loc, t } = useStore();
   const stories = catalog.stories;
   const [progress, setProgress] = useState(0);
   const paused = useRef(false);
@@ -76,14 +76,14 @@ export function StoryViewer() {
           <span key={s.id}><i style={{ width: `${i < storyIndex ? 100 : i === storyIndex ? progress * 100 : 0}%` }} /></span>
         ))}
       </div>
-      <button type="button" className="story-close" aria-label="Yopish" onClick={() => setStoryIndex(null)}><X size={22} /></button>
-      <button type="button" className="story-tap left" aria-label="Oldingi" onClick={() => go(-1)} />
-      <button type="button" className="story-tap right" aria-label="Keyingi" onClick={() => go(1)} />
+      <button type="button" className="story-close" aria-label={t('close')} onClick={() => setStoryIndex(null)}><X size={22} /></button>
+      <button type="button" className="story-tap left" aria-label="<" onClick={() => go(-1)} />
+      <button type="button" className="story-tap right" aria-label=">" onClick={() => go(1)} />
       <div className="story-content">
-        <h2 className="serif">{story.title}</h2>
-        {story.text && <p>{story.text}</p>}
+        <h2 className="serif">{loc(story, 'title')}</h2>
+        {story.text && <p>{loc(story, 'text')}</p>}
         <button type="button" className="btn btn-light" onClick={() => { setStoryIndex(null); setTab('courses'); }}>
-          Kurslarni ko'rish
+          {t('viewCourses')}
         </button>
       </div>
     </div>

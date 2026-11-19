@@ -165,3 +165,11 @@ tr.fresh { animation: freshRow 2.5s ease-out 3; }
 .card-preview b { font-size: 24px; letter-spacing: 2px; }
 .card-preview span { font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
 @media (max-width: 860px) { .settings-grid { grid-template-columns: 1fr; } }
+
+.form-heading { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 3px; margin-top: 10px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.form-heading b { font-size: 15px; color: var(--mauve-dark); }
+.form-heading small, .field-hint { color: var(--muted); font-size: 12.5px; line-height: 1.4; }
+.form-field select { width: 100%; border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; background: var(--soft); outline: none; }
+.tag { display: inline-block; padding: 3px 9px; border-radius: 99px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+.tag.ok { background: #E8F4EC; color: var(--green); }
+.tag.warn { background: #FBF1E3; color: var(--amber); }

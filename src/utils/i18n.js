@@ -1,0 +1,211 @@
+/* Bot va API matnlari: o'zbek, rus, ingliz */
+const LANGS = ['uz', 'ru', 'en'];
+
+/** Telegram language_code → uz | ru | en */
+function normalizeLang(code) {
+  const c = String(code || '').toLowerCase().slice(0, 2);
+  if (c === 'ru' || c === 'uk' || c === 'be' || c === 'kk') return 'ru';
+  if (c === 'en') return 'en';
+  return 'uz';
+}
+
+/** Tarjima maydonini oladi: loc(course, 'title', 'ru') → course.titleRu || course.title */
+function loc(obj, field, lang) {
+  if (!obj) return '';
+  if (lang === 'ru' && obj[`${field}Ru`]) return obj[`${field}Ru`];
+  if (lang === 'en' && obj[`${field}En`]) return obj[`${field}En`];
+  return obj[field];
+}
+
+const T = {
+  uz: {
+    langName: "O'zbekcha",
+    chooseLang: 'Tilni tanlang / Выберите язык / Choose language:',
+    langSaved: "Til o'zgartirildi: O'zbekcha",
+    greeting: 'Assalomu alaykum, {name}!',
+    startBody: "{shop} qandolatchilik kurslariga xush kelibsiz.\n\nUyda turib professional tortlar, desertlar va makaronlar pishirishni o'rganing. Darslarni istalgan vaqtda ko'rasiz, savollaringizga javob beramiz.\n\nPastdagi tugmani bosing va o'zingizga mos kursni tanlang.",
+    openApp: "Kurslarni ko'rish",
+    menuButton: 'Kurslar',
+    appNotReady: 'Mini App hali ulanmagan.',
+    noOrders: "Sizda hali buyurtmalar yo'q. Kurslarni ko'rish uchun tugmani bosing.",
+    order: 'Buyurtma',
+    total: 'Jami',
+    status_PENDING: "To'lov kutilmoqda",
+    status_PAID: "To'landi",
+    status_CANCELLED: 'Bekor qilindi',
+    contacts: "Bog'lanish:",
+    phone: 'Telefon',
+    helpCommands: '/start — Bosh menyu\n/buyurtmalarim — Mening buyurtmalarim\n/til — Tilni o\'zgartirish',
+    askPhone: 'Telefon raqamingizni yuboring:',
+    sendPhone: 'Raqamni yuborish',
+    phoneSaved: 'Raqamingiz saqlandi. Rahmat!',
+    orderAccepted: "Buyurtmangiz muvaffaqiyatli qabul qilindi! Kuratorimiz tez orada bog'lanadi.",
+    payByCard: "To'lov — karta orqali:",
+    amount: 'Summa',
+    sendReceipt: "To'lagach, <b>chek rasmini (skrinshot) shu chatga yuboring</b>.",
+    receiptAlready: "Chekingiz qabul qilindi. To'lov tekshirilgach, kursga kirish havolasi shu yerga keladi.",
+    cardLater: "To'lov karta orqali. Kuratorimiz karta ma'lumotlarini yuboradi.",
+    receiptReceived: "Buyurtma #{id} uchun chekingiz qabul qilindi!\nTo'lov tekshirilgach, kursga kirish havolasini shu yerga yuboramiz.",
+    noPendingOrder: "Sizda to'lovi kutilayotgan buyurtma yo'q.",
+    photoTooBig: 'Rasm juda katta. Iltimos, skrinshot yuboring.',
+    paidTitle: "To'lovingiz tasdiqlandi! (buyurtma #{id})",
+    coursesOpened: 'Kurslaringiz ochildi:',
+    oneTimeNote: "Har bir havola faqat siz uchun va faqat <b>1 marta</b> ishlaydi. Uni boshqalarga bermang.",
+    joinBtn: 'Kanalga kirish',
+    curatorWillSend: 'Kurator sizga darslarga kirish havolasini yuboradi.',
+    leaveReview: "Kursni tugatgach, Mini App'da izoh qoldirishni unutmang.",
+    cancelled: "Buyurtma #{id} bekor qilindi. Savollar bo'lsa, biz bilan bog'laning.",
+    joinApproved: '«{title}» kanaliga xush kelibsiz! Havola endi yopildi.',
+    joinDenied: "Bu havola sizga tegishli emas yoki allaqachon ishlatilgan. Kursni sotib olish uchun botga kiring.",
+  },
+  ru: {
+    langName: 'Русский',
+    chooseLang: 'Tilni tanlang / Выберите язык / Choose language:',
+    langSaved: 'Язык изменён: Русский',
+    greeting: 'Ассалому алайкум, {name}!',
+    startBody: 'Добро пожаловать на кондитерские курсы {shop}.\n\nНаучитесь готовить профессиональные торты, десерты и макаруны, не выходя из дома. Смотрите уроки в любое время — мы ответим на все ваши вопросы.\n\nНажмите кнопку ниже и выберите подходящий курс.',
+    openApp: 'Смотреть курсы',
+    menuButton: 'Курсы',
+    appNotReady: 'Mini App ещё не подключён.',
+    noOrders: 'У вас пока нет заказов. Нажмите кнопку, чтобы посмотреть курсы.',
+    order: 'Заказ',
+    total: 'Итого',
+    status_PENDING: 'Ожидает оплаты',
+    status_PAID: 'Оплачен',
+    status_CANCELLED: 'Отменён',
+    contacts: 'Контакты:',
+    phone: 'Телефон',
+    helpCommands: '/start — Главное меню\n/buyurtmalarim — Мои заказы\n/til — Сменить язык',
+    askPhone: 'Отправьте ваш номер телефона:',
+    sendPhone: 'Отправить номер',
+    phoneSaved: 'Номер сохранён. Спасибо!',
+    orderAccepted: 'Ваш заказ успешно принят! Наш куратор скоро свяжется с вами.',
+    payByCard: 'Оплата — картой:',
+    amount: 'Сумма',
+    sendReceipt: 'После оплаты <b>отправьте фото чека (скриншот) в этот чат</b>.',
+    receiptAlready: 'Чек получен. После проверки оплаты ссылка на курс придёт сюда.',
+    cardLater: 'Оплата картой. Куратор отправит вам реквизиты.',
+    receiptReceived: 'Чек по заказу #{id} получен!\nПосле проверки оплаты мы пришлём сюда ссылку на курс.',
+    noPendingOrder: 'У вас нет заказов, ожидающих оплаты.',
+    photoTooBig: 'Изображение слишком большое. Пожалуйста, отправьте скриншот.',
+    paidTitle: 'Оплата подтверждена! (заказ #{id})',
+    coursesOpened: 'Ваши курсы открыты:',
+    oneTimeNote: 'Каждая ссылка — только для вас и работает <b>1 раз</b>. Не передавайте её другим.',
+    joinBtn: 'Войти в канал',
+    curatorWillSend: 'Куратор отправит вам ссылку на уроки.',
+    leaveReview: 'После прохождения курса не забудьте оставить отзыв в Mini App.',
+    cancelled: 'Заказ #{id} отменён. Если есть вопросы — свяжитесь с нами.',
+    joinApproved: 'Добро пожаловать в канал «{title}»! Ссылка теперь закрыта.',
+    joinDenied: 'Эта ссылка не принадлежит вам или уже использована. Чтобы купить курс, откройте бота.',
+  },
+  en: {
+    langName: 'English',
+    chooseLang: 'Tilni tanlang / Выберите язык / Choose language:',
+    langSaved: 'Language changed: English',
+    greeting: 'Assalomu alaykum, {name}!',
+    startBody: "Welcome to {shop}'s pastry courses.\n\nLearn to bake professional cakes, desserts and macarons from home. Watch the lessons any time — we'll answer all your questions.\n\nTap the button below and choose the course that suits you.",
+    openApp: 'View courses',
+    menuButton: 'Courses',
+    appNotReady: 'The Mini App is not connected yet.',
+    noOrders: "You don't have any orders yet. Tap the button to view the courses.",
+    order: 'Order',
+    total: 'Total',
+    status_PENDING: 'Awaiting payment',
+    status_PAID: 'Paid',
+    status_CANCELLED: 'Cancelled',
+    contacts: 'Contacts:',
+    phone: 'Phone',
+    helpCommands: '/start — Main menu\n/buyurtmalarim — My orders\n/til — Change language',
+    askPhone: 'Please send your phone number:',
+    sendPhone: 'Send number',
+    phoneSaved: 'Your number has been saved. Thank you!',
+    orderAccepted: 'Your order has been received! Our curator will contact you shortly.',
+    payByCard: 'Payment — by card:',
+    amount: 'Amount',
+    sendReceipt: 'After paying, <b>send a photo of the receipt (screenshot) to this chat</b>.',
+    receiptAlready: 'Your receipt has been received. Once the payment is verified, the course link will arrive here.',
+    cardLater: 'Payment by card. Our curator will send you the card details.',
+    receiptReceived: 'Receipt for order #{id} received!\nOnce the payment is verified, we will send the course link here.',
+    noPendingOrder: 'You have no orders awaiting payment.',
+    photoTooBig: 'The image is too large. Please send a screenshot.',
+    paidTitle: 'Payment confirmed! (order #{id})',
+    coursesOpened: 'Your courses are now open:',
+    oneTimeNote: 'Each link is for you only and works <b>once</b>. Do not share it.',
+    joinBtn: 'Join the channel',
+    curatorWillSend: 'Our curator will send you the link to the lessons.',
+    leaveReview: "When you finish the course, don't forget to leave a review in the Mini App.",
+    cancelled: 'Order #{id} has been cancelled. If you have questions, please contact us.',
+    joinApproved: 'Welcome to «{title}»! The link is now closed.',
+    joinDenied: 'This link does not belong to you or has already been used. Open the bot to buy the course.',
+  },
+};
+
+/** API xatoliklari */
+const ERR = {
+  uz: {
+    'err.phone': "Telefon raqam noto'g'ri",
+    'err.name': 'Ismingizni kiriting',
+    'err.cartEmpty': "Savatcha bo'sh",
+    'err.reviewShort': 'Izoh juda qisqa',
+    'err.reviewLong': 'Izoh juda uzun',
+    'err.invalid': "Ma'lumotlar noto'g'ri",
+    'err.coursesGone': "Savatchadagi ba'zi kurslar endi mavjud emas. Savatchani yangilang.",
+    'err.menuChanged': "Kurslar ro'yxati yangilandi. Ilovani qayta oching va savatchani tekshiring.",
+    'err.owned': '«{title}» kursi sizda allaqachon bor',
+    'err.reviewNotBought': 'Izoh qoldirish uchun avval kursni sotib olishingiz kerak',
+    'err.receiptMissing': 'Chek rasmini tanlang',
+    'err.orderNotFound': 'Buyurtma topilmadi',
+    'err.receiptNotNeeded': 'Bu buyurtma uchun chek kerak emas',
+    'err.openInTelegram': 'Ilovani Telegram bot ichidan oching.',
+    'err.notBought': 'Bu kurs sizda yo\'q',
+    'err.accessFailed': "Havola yaratib bo'lmadi. Kuratorga murojaat qiling.",
+  },
+  ru: {
+    'err.phone': 'Неверный номер телефона',
+    'err.name': 'Введите ваше имя',
+    'err.cartEmpty': 'Корзина пуста',
+    'err.reviewShort': 'Отзыв слишком короткий',
+    'err.reviewLong': 'Отзыв слишком длинный',
+    'err.invalid': 'Неверные данные',
+    'err.coursesGone': 'Некоторые курсы из корзины больше недоступны. Обновите корзину.',
+    'err.menuChanged': 'Список курсов обновился. Откройте приложение заново и проверьте корзину.',
+    'err.owned': 'Курс «{title}» у вас уже есть',
+    'err.reviewNotBought': 'Чтобы оставить отзыв, сначала купите курс',
+    'err.receiptMissing': 'Выберите фото чека',
+    'err.orderNotFound': 'Заказ не найден',
+    'err.receiptNotNeeded': 'Для этого заказа чек не нужен',
+    'err.openInTelegram': 'Откройте приложение через Telegram-бота.',
+    'err.notBought': 'У вас нет этого курса',
+    'err.accessFailed': 'Не удалось создать ссылку. Обратитесь к куратору.',
+  },
+  en: {
+    'err.phone': 'Invalid phone number',
+    'err.name': 'Please enter your name',
+    'err.cartEmpty': 'Your cart is empty',
+    'err.reviewShort': 'The review is too short',
+    'err.reviewLong': 'The review is too long',
+    'err.invalid': 'Invalid data',
+    'err.coursesGone': 'Some courses in your cart are no longer available. Please refresh your cart.',
+    'err.menuChanged': 'The course list has been updated. Reopen the app and check your cart.',
+    'err.owned': 'You already own «{title}»',
+    'err.reviewNotBought': 'You need to buy the course before leaving a review',
+    'err.receiptMissing': 'Please choose a receipt photo',
+    'err.orderNotFound': 'Order not found',
+    'err.receiptNotNeeded': 'This order does not need a receipt',
+    'err.openInTelegram': 'Please open the app from the Telegram bot.',
+    'err.notBought': "You don't own this course",
+    'err.accessFailed': 'Could not create the link. Please contact the curator.',
+  },
+};
+
+function fill(str, params = {}) {
+  return String(str).replace(/\{(\w+)\}/g, (m, k) => (params[k] != null ? params[k] : m));
+}
+
+function t(lang, key, params) {
+  const l = LANGS.includes(lang) ? lang : 'uz';
+  const str = T[l][key] ?? ERR[l][key] ?? T.uz[key] ?? ERR.uz[key] ?? key;
+  return fill(str, params);
+}
+
+module.exports = { LANGS, normalizeLang, loc, t };

@@ -8,9 +8,10 @@ import { useStore } from '../store/StoreContext';
 import { api } from '../lib/api';
 
 function Lightbox({ result, onClose }) {
+  const { t } = useStore();
   return (
     <div className="lightbox" onClick={onClose}>
-      <button type="button" className="story-close" aria-label="Yopish"><X size={22} /></button>
+      <button type="button" className="story-close" aria-label={t('close')}><X size={22} /></button>
       <div className="lightbox-card" onClick={(e) => e.stopPropagation()}>
         <Img src={result.imageUrl} alt={result.studentName} eager />
         <div className="lightbox-text">
@@ -24,7 +25,7 @@ function Lightbox({ result, onClose }) {
 }
 
 export default function Results() {
-  const { catalog, me, openReview, setTab } = useStore();
+  const { catalog, me, openReview, setTab, t } = useStore();
   const [view, setView] = useState('works');
   const [reviews, setReviews] = useState(catalog.reviews);
   const [open, setOpen] = useState(null);
@@ -38,12 +39,12 @@ export default function Results() {
 
   return (
     <div className="page">
-      <PageTitle title="O'quvchilar natijalari" subtitle="Kurslarimizni tamomlaganlar ishlari va fikrlari" />
+      <PageTitle title={t('resultsTitle')} subtitle={t('resultsSub')} />
 
       <div className="segmented">
-        <button type="button" className={view === 'works' ? 'on' : ''} onClick={() => setView('works')}>Ishlar</button>
+        <button type="button" className={view === 'works' ? 'on' : ''} onClick={() => setView('works')}>{t('works')}</button>
         <button type="button" className={view === 'reviews' ? 'on' : ''} onClick={() => setView('reviews')}>
-          Izohlar {reviews.length > 0 && <small>{reviews.length}</small>}
+          {t('reviews')} {reviews.length > 0 && <small>{reviews.length}</small>}
         </button>
       </div>
 
@@ -63,8 +64,8 @@ export default function Results() {
         ) : (
           <div className="empty">
             <span className="empty-emoji">🎂</span>
-            <b>Tez orada</b>
-            <p>Bu yerda o'quvchilarimizning ishlari paydo bo'ladi</p>
+            <b>{t('soon')}</b>
+            <p>{t('soonSub')}</p>
           </div>
         )
       )}
@@ -76,7 +77,7 @@ export default function Results() {
               <div className="avg">
                 <b className="serif">{avg.toFixed(1)}</b>
                 <Stars value={avg} />
-                <small>{reviews.length} ta izoh</small>
+                <small>{t('reviewsCount', { n: reviews.length })}</small>
               </div>
             )}
             <button
@@ -84,14 +85,14 @@ export default function Results() {
               className="btn btn-primary btn-sm"
               onClick={() => (canReview ? openReview(me.myCourses.length === 1 ? me.myCourses[0].id : 'pick') : setTab('courses'))}
             >
-              <MessageSquareHeart size={16} /> {canReview ? 'Izoh qoldirish' : 'Kurs tanlash'}
+              <MessageSquareHeart size={16} /> {canReview ? t('leaveReview') : t('chooseCourseBtn')}
             </button>
           </div>
-          {!canReview && <p className="muted small center">Izohni faqat kursni sotib olgan o'quvchilar qoldira oladi.</p>}
+          {!canReview && <p className="muted small center">{t('onlyBuyers')}</p>}
           {reviews.length ? reviews.map((r) => <ReviewItem key={r.id} review={r} showCourse />) : (
             <div className="empty">
               <span className="empty-emoji">💬</span>
-              <b>Hali izohlar yo'q</b>
+              <b>{t('noReviews')}</b>
             </div>
           )}
         </>

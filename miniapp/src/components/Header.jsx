@@ -15,11 +15,11 @@ export function Brand() {
 }
 
 export default function Header() {
-  const { cart, setTab } = useStore();
+  const { cart, setTab, t } = useStore();
   return (
     <header className="top-bar">
       <Brand />
-      <button type="button" className="icon-btn" onClick={() => setTab('cart')} aria-label="Savatcha">
+      <button type="button" className="icon-btn" onClick={() => setTab('cart')} aria-label={t('nav_cart')}>
         <ShoppingBag size={19} />
         {cart.length > 0 && <span className="dot-badge">{cart.length}</span>}
       </button>

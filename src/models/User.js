@@ -1,4 +1,5 @@
 const { prisma } = require('../database/connection');
+const { normalizeLang, LANGS } = require('../utils/i18n');
 
 const User = {
   /** Telegram foydalanuvchisini bazaga yozadi yoki yangilaydi */
@@ -11,7 +12,7 @@ const User = {
     return prisma.user.upsert({
       where: { telegramId: String(tg.id) },
       update: data,
-      create: { telegramId: String(tg.id), ...data },
+      create: { telegramId: String(tg.id), ...data, language: normalizeLang(tg.language_code) },
     });
   },
 
@@ -21,6 +22,14 @@ const User = {
 
   setPhone(id, phone) {
     return prisma.user.update({ where: { id }, data: { phone } });
+  },
+
+  setLanguage(id, language) {
+    return prisma.user.update({ where: { id }, data: { language: LANGS.includes(language) ? language : 'uz' } });
+  },
+
+  findById(id) {
+    return prisma.user.findUnique({ where: { id } });
   },
 
   count() {

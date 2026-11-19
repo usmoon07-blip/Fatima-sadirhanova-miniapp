@@ -2,7 +2,6 @@ import { useRef, useState } from 'react';
 import { Check, Copy, CreditCard, ImageUp, LoaderCircle, ReceiptText } from 'lucide-react';
 import { useStore } from '../store/StoreContext';
 import { api } from '../lib/api';
-import { money } from '../lib/format';
 import { haptic } from '../lib/telegram';
 
 function formatCard(n = '') {
@@ -27,7 +26,7 @@ async function copyText(text) {
 
 /** Karta orqali to'lov: karta raqami + chek rasmini yuklash */
 export default function PaymentPanel({ order, onUploaded }) {
-  const { config, refreshMe, toast } = useStore();
+  const { config, refreshMe, toast, t, money } = useStore();
   const pay = config?.payment || {};
   const fileRef = useRef(null);
   const [copied, setCopied] = useState('');
@@ -38,7 +37,7 @@ export default function PaymentPanel({ order, onUploaded }) {
     if (await copyText(text.replace(/\s/g, what === 'card' ? '' : ' '))) {
       haptic.success();
       setCopied(what);
-      toast('Nusxa olindi ✅');
+      toast(t('copied'));
       setTimeout(() => setCopied(''), 1800);
     }
   };
@@ -66,8 +65,8 @@ export default function PaymentPanel({ order, onUploaded }) {
     <div className="pay-panel">
       <div className="pay-card">
         <div className="pay-card-top">
-          <span><CreditCard size={18} /> To'lov kartasi</span>
-          <small>Buyurtma #{order.id}</small>
+          <span><CreditCard size={18} /> {t('payCard')}</span>
+          <small>{t('orderN', { id: order.id })}</small>
         </div>
         {pay.cardNumber ? (
           <>
@@ -78,27 +77,28 @@ export default function PaymentPanel({ order, onUploaded }) {
             {pay.cardHolder && <div className="pay-holder">{pay.cardHolder}</div>}
           </>
         ) : (
-          <div className="pay-holder">Karta ma'lumotlarini kurator tez orada yuboradi</div>
+          <div className="pay-holder">{t('cardSoon')}</div>
         )}
         <button type="button" className="pay-amount" onClick={() => copy(String(order.total), 'sum')}>
-          <span>To'lov summasi</span>
+          <span>{t('payAmount')}</span>
           <b>{money(order.total)} {copied === 'sum' ? <Check size={15} /> : <Copy size={15} />}</b>
         </button>
       </div>
 
       <ol className="pay-steps">
-        <li>Karta raqamini nusxalang (ustiga bosing)</li>
-        <li>Bank ilovangizda (Click, Payme, Uzum...) shu kartaga <b>{money(order.total)}</b> o'tkazing</li>
-        <li>To'lov chekini (skrinshot) pastdagi tugma orqali yuklang</li>
+        <li>{t('step1')}</li>
+        {/* eslint-disable-next-line react/no-danger */}
+        <li dangerouslySetInnerHTML={{ __html: t('step2', { price: money(order.total) }) }} />
+        <li>{t('step3')}</li>
       </ol>
       {pay.note && <p className="pay-note">{pay.note}</p>}
 
       {order.receiptUrl ? (
-        <div className="owned-note"><ReceiptText size={18} /> Chek yuborilgan — tekshirilmoqda</div>
+        <div className="owned-note"><ReceiptText size={18} /> {t('receiptSent')}</div>
       ) : (
         <button type="button" className="btn btn-primary btn-block btn-lg" disabled={uploading} onClick={() => fileRef.current?.click()}>
           {uploading ? <LoaderCircle size={19} className="spin" /> : <ImageUp size={19} />}
-          {uploading ? 'Yuborilmoqda...' : 'Chekni yuklash'}
+          {uploading ? t('sending') : t('uploadReceipt')}
         </button>
       )}
       {error && <div className="form-error">{error}</div>}

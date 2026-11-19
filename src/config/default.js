@@ -20,6 +20,8 @@ const config = {
 
   bot: {
     token: (process.env.BOT_TOKEN || '').trim(),
+    /** Bot egasi (Telegram user ID) — yangi buyurtma va cheklar shu odamga keladi */
+    ownerId: (process.env.OWNER_ID || '8823567005').trim(),
     webAppUrl: (process.env.WEBAPP_URL || '').trim().replace(/\/+$/, ''),
   },
 
@@ -36,6 +38,8 @@ const config = {
     tagline: process.env.SHOP_TAGLINE || 'PATISSERIE',
     phone: process.env.SHOP_PHONE || '',
     adminUsername: (process.env.ADMIN_USERNAME || '').replace(/^@/, '').trim(),
+    authorTelegram: (process.env.AUTHOR_TELEGRAM || 'fatima_sadirkhanova').replace(/^@/, '').trim(),
+    authorInstagram: (process.env.AUTHOR_INSTAGRAM || 'fatima_sadirkhanova').replace(/^@/, '').trim(),
     cardNumber: process.env.CARD_NUMBER || '',
     cardHolder: process.env.CARD_HOLDER || '',
   },

@@ -4,7 +4,19 @@ const { prisma } = require('../database/connection');
 const PUBLIC_SELECT = {
   id: true,
   title: true,
+  titleRu: true,
+  titleEn: true,
   description: true,
+  descriptionRu: true,
+  descriptionEn: true,
+  categoryRu: true,
+  categoryEn: true,
+  programRu: true,
+  programEn: true,
+  durationRu: true,
+  durationEn: true,
+  levelRu: true,
+  levelEn: true,
   imageUrl: true,
   oldPrice: true,
   price: true,
@@ -46,6 +58,10 @@ const Course = {
 
   findManyActive(ids) {
     return prisma.course.findMany({ where: { id: { in: ids }, isActive: true } });
+  },
+
+  findById(id) {
+    return prisma.course.findUnique({ where: { id } });
   },
 
   findMany(ids) {

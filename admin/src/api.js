@@ -53,6 +53,7 @@ export const api = {
   courses: resource('courses'),
   results: resource('results'),
   stories: resource('stories'),
+  channels: () => request('/channels'),
   settings: () => request('/settings'),
   saveSettings: (data) => request('/settings', { method: 'PUT', body: data }),
   reviews: () => request('/reviews'),

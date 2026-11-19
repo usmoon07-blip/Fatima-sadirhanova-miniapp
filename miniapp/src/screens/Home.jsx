@@ -8,8 +8,8 @@ import { useStore } from '../store/StoreContext';
 import { tgUser } from '../lib/telegram';
 
 export default function Home() {
-  const { catalog, me, setTab, setFilter } = useStore();
-  const name = me.user?.firstName || tgUser()?.first_name || 'Mehmon';
+  const { catalog, me, setTab, setFilter, t, loc } = useStore();
+  const name = me.user?.firstName || tgUser()?.first_name || t('guest');
   const { courses, categories, results, reviews } = catalog;
 
   const openCategory = (category) => {
@@ -22,23 +22,23 @@ export default function Home() {
       <Header />
 
       <div className="greeting">
-        <h1 className="serif">Assalomu alaykum, {name} 👋</h1>
-        <p>Bugun qaysi shirinlikni birga o'rganamiz?</p>
+        <h1 className="serif">{t('greeting', { name })}</h1>
+        <p>{t('greetingSub')}</p>
       </div>
 
       <button type="button" className="search-fake" onClick={() => openCategory('all')}>
-        <Search size={18} /> Kurslarni qidirish...
+        <Search size={18} /> {t('searchCourses')}
       </button>
 
       <StoriesRow />
 
       <section className="hero" onClick={() => openCategory('all')}>
         <div className="hero-text">
-          <span className="chip-light"><Sparkles size={12} /> KURSLAR</span>
-          <h2 className="serif">Qandolatchilik kurslari</h2>
-          <p>Uyda turib professional tortlar va desertlar pishirishni o'rganing</p>
+          <span className="chip-light"><Sparkles size={12} /> {t('heroTag')}</span>
+          <h2 className="serif">{t('heroTitle')}</h2>
+          <p>{t('heroText')}</p>
           <button type="button" className="btn btn-light btn-sm">
-            Kursni tanlash <ArrowRight size={16} />
+            {t('heroBtn')} <ArrowRight size={16} />
           </button>
         </div>
         <GraduationCap className="hero-icon" size={64} strokeWidth={1.2} />
@@ -51,7 +51,7 @@ export default function Home() {
             return (
               <button key={c} type="button" className="quick-cat" onClick={() => openCategory(c)}>
                 <span className="quick-cat-img"><Img src={cover?.imageUrl} alt="" /></span>
-                <span>{c}</span>
+                <span>{loc(cover, 'category') || c}</span>
               </button>
             );
           })}
@@ -61,8 +61,8 @@ export default function Home() {
       {courses.length > 0 && (
         <section className="block">
           <div className="section-row">
-            <h3 className="serif">Mashhur kurslar</h3>
-            <button type="button" className="link-btn" onClick={() => openCategory('all')}>Barchasi</button>
+            <h3 className="serif">{t('popular')}</h3>
+            <button type="button" className="link-btn" onClick={() => openCategory('all')}>{t('all')}</button>
           </div>
           <div className="h-scroll cards-row">
             {courses.slice(0, 6).map((c) => <CourseCard key={c.id} course={c} wide />)}
@@ -71,16 +71,16 @@ export default function Home() {
       )}
 
       <section className="stats-strip">
-        <div><b>10 000+</b><span>o'quvchi</span></div>
-        <div><b>{courses.length || '—'}</b><span>kurs</span></div>
-        <div><b>24/7</b><span>darslarga kirish</span></div>
+        <div><b>10 000+</b><span>{t('statStudents')}</span></div>
+        <div><b>{courses.length || '—'}</b><span>{t('statCourses')}</span></div>
+        <div><b>24/7</b><span>{t('statAccess')}</span></div>
       </section>
 
       {results.length > 0 && (
         <section className="block">
           <div className="section-row">
-            <h3 className="serif">O'quvchilar natijalari</h3>
-            <button type="button" className="link-btn" onClick={() => setTab('results')}>Barchasi</button>
+            <h3 className="serif">{t('studentResults')}</h3>
+            <button type="button" className="link-btn" onClick={() => setTab('results')}>{t('all')}</button>
           </div>
           <div className="h-scroll results-row">
             {results.slice(0, 8).map((r) => (
@@ -96,8 +96,8 @@ export default function Home() {
       {reviews.length > 0 ? (
         <section className="block">
           <div className="section-row">
-            <h3 className="serif">Izohlar</h3>
-            <button type="button" className="link-btn" onClick={() => setTab('results')}>Barchasi</button>
+            <h3 className="serif">{t('reviews')}</h3>
+            <button type="button" className="link-btn" onClick={() => setTab('results')}>{t('all')}</button>
           </div>
           {reviews.slice(0, 2).map((r) => <ReviewItem key={r.id} review={r} showCourse />)}
         </section>
@@ -105,8 +105,8 @@ export default function Home() {
         <section className="promo-card" onClick={() => setTab('results')}>
           <Award size={26} />
           <div>
-            <b>O'quvchilarimiz natijalari</b>
-            <p>Kurslarimizni tamomlaganlar ishlarini ko'ring</p>
+            <b>{t('promoTitle')}</b>
+            <p>{t('promoText')}</p>
           </div>
           <ArrowRight size={18} />
         </section>

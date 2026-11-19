@@ -10,7 +10,8 @@ const User = require('../models/User');
 const Upload = require('../models/Upload');
 const Setting = require('../models/Setting');
 const { signAdminToken, safeEqual } = require('../middlewares/auth.middleware');
-const { notifyOrderStatus } = require('./botController');
+const { changeOrderStatus } = require('./botController');
+const Channel = require('../models/Channel');
 
 const optText = (max) => z.string().trim().max(max).optional().nullable().transform((v) => v || null);
 const optInt = z.union([z.number().int().min(0), z.null()]).optional().transform((v) => (v ? v : null));
@@ -26,7 +27,20 @@ const schemas = {
   }),
   course: z.object({
     title: z.string().trim().min(2, 'Kurs nomini kiriting').max(120),
+    titleRu: optText(120),
+    titleEn: optText(120),
     description: z.string().trim().max(3000).optional().default(''),
+    descriptionRu: optText(3000),
+    descriptionEn: optText(3000),
+    categoryRu: optText(60),
+    categoryEn: optText(60),
+    programRu: z.array(z.string().trim().min(1).max(200)).max(60).optional().default([]),
+    programEn: z.array(z.string().trim().min(1).max(200)).max(60).optional().default([]),
+    durationRu: optText(60),
+    durationEn: optText(60),
+    levelRu: optText(60),
+    levelEn: optText(60),
+    channelId: optText(40),
     imageUrl: z.string().trim().min(1, 'Rasm qo\'shing').max(1000),
     oldPrice: optInt,
     price: z.number().int().min(0, "Narx noto'g'ri"),
@@ -50,6 +64,10 @@ const schemas = {
   }),
   story: z.object({
     title: z.string().trim().min(1, 'Sarlavhani kiriting').max(40),
+    titleRu: optText(40),
+    titleEn: optText(40),
+    textRu: optText(500),
+    textEn: optText(500),
     imageUrl: z.string().trim().min(1, "Rasm qo'shing").max(1000),
     text: optText(500),
     isActive: z.boolean().optional().default(true),
@@ -103,13 +121,13 @@ const adminController = {
   },
 
   async setOrderStatus(req, res) {
-    const before = await Order.findById(req.id);
-    if (!before) return res.status(404).json({ message: 'Buyurtma topilmadi' });
-    const order = await Order.setStatus(req.id, req.body.status);
-    if (before.status !== order.status) {
-      notifyOrderStatus(order).catch((e) => console.error('❌ Bot xabari yuborilmadi:', e.message));
-    }
-    return res.json(order);
+    const order = await changeOrderStatus(req.id, req.body.status);
+    if (!order) return res.status(404).json({ message: 'Buyurtma topilmadi' });
+    return res.json(await Order.findById(req.id));
+  },
+
+  async channels(req, res) {
+    res.json(await Channel.listActive());
   },
 
   async deleteOrder(req, res) {

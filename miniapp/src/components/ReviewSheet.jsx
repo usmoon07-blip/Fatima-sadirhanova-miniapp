@@ -5,10 +5,9 @@ import { useStore } from '../store/StoreContext';
 import { api } from '../lib/api';
 import { haptic } from '../lib/telegram';
 
-const HINTS = ['', 'Yomon', 'Qoniqarli', 'Yaxshi', 'Juda yaxshi', 'Ajoyib!'];
 
 export default function ReviewSheet() {
-  const { reviewCourseId, openReview, me, courseMap, refreshMe, refreshCatalog, toast } = useStore();
+  const { reviewCourseId, openReview, me, courseMap, refreshMe, refreshCatalog, toast, t, loc } = useStore();
   const existing = me.reviews.find((r) => r.courseId === reviewCourseId);
   const [courseId, setCourseId] = useState(reviewCourseId);
   const [rating, setRating] = useState(existing?.rating || 5);
@@ -23,15 +22,15 @@ export default function ReviewSheet() {
   const course = courseMap.get(selectedId) || me.myCourses.find((c) => c.id === selectedId);
 
   const submit = async () => {
-    if (!selectedId || selectedId === 'pick') return setError('Kursni tanlang');
-    if (text.trim().length < 3) return setError('Fikringizni yozing');
+    if (!selectedId || selectedId === 'pick') return setError(t('chooseCourse'));
+    if (text.trim().length < 3) return setError(t('writeOpinion'));
     setSending(true);
     setError('');
     try {
       await api.addReview({ courseId: selectedId, rating, text: text.trim() });
       haptic.success();
       await Promise.all([refreshMe(), refreshCatalog()]);
-      toast('Rahmat! Izohingiz saqlandi 🌸');
+      toast(t('reviewThanks'));
       sheetRef.current?.close();
     } catch (err) {
       haptic.error();
@@ -46,40 +45,40 @@ export default function ReviewSheet() {
     <BottomSheet
       ref={sheetRef}
       onClose={() => openReview(null)}
-      title="Izoh qoldirish"
+      title={t('reviewTitle')}
       footer={() => (
         <button type="button" className="btn btn-primary btn-block" disabled={sending} onClick={submit}>
-          {sending ? 'Yuborilmoqda...' : 'Izohni yuborish'}
+          {sending ? t('sending') : t('sendReview')}
         </button>
       )}
     >
       <div className="sheet-pad">
         {picking ? (
           <div className="field">
-            <label htmlFor="rv-course">Qaysi kurs haqida?</label>
+            <label htmlFor="rv-course">{t('whichCourse')}</label>
             <select id="rv-course" value={courseId === 'pick' ? '' : courseId || ''} onChange={(e) => setCourseId(Number(e.target.value))}>
-              <option value="" disabled>Kursni tanlang</option>
-              {me.myCourses.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
+              <option value="" disabled>{t('chooseCourse')}</option>
+              {me.myCourses.map((c) => <option key={c.id} value={c.id}>{loc(c, 'title')}</option>)}
             </select>
           </div>
         ) : (
-          <p className="muted">{course?.title}</p>
+          <p className="muted">{loc(course, 'title')}</p>
         )}
 
         <div className="rate-box">
           <Stars value={rating} size={34} onChange={(n) => { haptic.select(); setRating(n); }} />
-          <span>{HINTS[rating]}</span>
+          <span>{t(`rate${rating}`)}</span>
         </div>
 
         <div className="field">
-          <label htmlFor="rv-text">Fikringiz</label>
+          <label htmlFor="rv-text">{t('yourOpinion')}</label>
           <textarea
             id="rv-text"
             rows={5}
             maxLength={1000}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Kurs sizga nima berdi? Natijangiz qanday?"
+            placeholder={t('opinionPh')}
           />
         </div>
         {error && <div className="form-error">{error}</div>}

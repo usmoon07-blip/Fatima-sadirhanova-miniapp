@@ -1,4 +1,10 @@
 import { tg } from './telegram';
+import { translate } from './i18n';
+
+let LANG = 'uz';
+export function setApiLang(lang) {
+  LANG = lang;
+}
 
 /** Server manzili: lokalda '/api' (Vite proxy), serverda — VITE_API_URL (masalan, https://xxx.onrender.com/api) */
 export const API_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '');
@@ -18,12 +24,13 @@ async function request(path, { method = 'GET', body } = {}) {
       headers: {
         'Content-Type': 'application/json',
         'X-Telegram-Init-Data': tg?.initData || '',
+        'X-Lang': LANG,
         'ngrok-skip-browser-warning': 'true',
       },
       body: body ? JSON.stringify(body) : undefined,
     });
   } catch {
-    throw new Error("Internet bilan aloqa yo'q");
+    throw new Error(translate(LANG, 'noInternet'));
   }
   let data = null;
   try {
@@ -32,8 +39,8 @@ async function request(path, { method = 'GET', body } = {}) {
     /* bo'sh javob */
   }
   if (!res.ok) {
-    if (!data && res.status >= 500) throw new Error("Server uyg'onmoqda, bir oz kuting va qayta urinib ko'ring");
-    const err = new Error(data?.message || "Server bilan bog'lanib bo'lmadi");
+    if (!data && res.status >= 500) throw new Error(translate(LANG, 'serverWaking'));
+    const err = new Error(data?.message || translate(LANG, 'serverError'));
     err.field = data?.field;
     throw err;
   }
@@ -64,15 +71,15 @@ async function upload(path, file) {
   try {
     res = await fetch(`${API_URL}${path}`, {
       method: 'POST',
-      headers: { 'X-Telegram-Init-Data': tg?.initData || '', 'ngrok-skip-browser-warning': 'true' },
+      headers: { 'X-Telegram-Init-Data': tg?.initData || '', 'X-Lang': LANG, 'ngrok-skip-browser-warning': 'true' },
       body: form,
     });
   } catch {
-    throw new Error("Internet bilan aloqa yo'q");
+    throw new Error(translate(LANG, 'noInternet'));
   }
   let data = null;
   try { data = await res.json(); } catch { /* */ }
-  if (!res.ok) throw new Error(data?.message || "Chekni yuborib bo'lmadi");
+  if (!res.ok) throw new Error(data?.message || translate(LANG, 'serverError'));
   return data;
 }
 
@@ -81,6 +88,8 @@ export const api = {
   config: () => request('/config'),
   catalog: () => request('/catalog'),
   me: () => request('/me'),
+  setLanguage: (language) => request('/me/language', { method: 'PUT', body: { language } }),
+  courseAccess: (id) => request(`/courses/${id}/access`, { method: 'POST' }),
   updatePhone: (phone) => request('/me/phone', { method: 'PUT', body: { phone } }),
   myOrders: () => request('/orders'),
   createOrder: (payload) => request('/orders', { method: 'POST', body: payload }),

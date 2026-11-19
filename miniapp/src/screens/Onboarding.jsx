@@ -1,32 +1,20 @@
 import { useRef, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import Img from '../components/Img';
+import { useStore } from '../store/StoreContext';
+import { LANGS } from '../lib/i18n';
 import { haptic } from '../lib/telegram';
 
 const img = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=800&q=80`;
 
 const SLIDES = [
-  {
-    image: img('1464349095431-e9a21285b5f3'),
-    emoji: '🎂',
-    title: "Shirinlik pishirishni o'rganmoqchimisiz?",
-    text: 'Fatima Sadirkhanova bilan uyda turib professional qandolatchi bo\'ling.',
-  },
-  {
-    image: img('1569864358642-9d1684040f43'),
-    emoji: '🧁',
-    title: 'Bu qanday ishlaydi?',
-    text: "Kursni tanlang, buyurtma bering va darslarni istalgan vaqtda ko'ring.",
-  },
-  {
-    image: img('1606313564200-e75d5e30476c'),
-    emoji: '🌸',
-    title: '10 000+ o\'quvchi allaqachon biz bilan',
-    text: "Ular o'z tortlarini sotib, yaqinlarini xursand qilmoqda. Navbat sizda!",
-  },
+  { image: img('1464349095431-e9a21285b5f3'), emoji: '🎂', key: 'ob1' },
+  { image: img('1569864358642-9d1684040f43'), emoji: '🧁', key: 'ob2' },
+  { image: img('1606313564200-e75d5e30476c'), emoji: '🌸', key: 'ob3' },
 ];
 
 export default function Onboarding({ onDone }) {
+  const { t, lang, setLang } = useStore();
   const [index, setIndex] = useState(0);
   const trackRef = useRef(null);
 
@@ -48,18 +36,25 @@ export default function Onboarding({ onDone }) {
 
   return (
     <div className="onboarding">
-      <button type="button" className="skip-btn" onClick={onDone}>O'tkazib yuborish</button>
+      <div className="ob-top">
+        <div className="lang-switch small">
+          {LANGS.map((l) => (
+            <button key={l.id} type="button" className={lang === l.id ? 'on' : ''} onClick={() => setLang(l.id)}>{l.short}</button>
+          ))}
+        </div>
+        <button type="button" className="skip-btn" onClick={onDone}>{t('skip')}</button>
+      </div>
 
       <div className="ob-track" ref={trackRef} onScroll={onScroll}>
         {SLIDES.map((s, i) => (
-          <section key={s.title} className={`ob-slide ${i === index ? 'active' : ''}`}>
+          <section key={s.key} className={`ob-slide ${i === index ? 'active' : ''}`}>
             <div className="ob-visual">
               <span className="ob-glow" />
               <div className="ob-arch"><Img src={s.image} alt="" eager emoji={s.emoji} /></div>
               <span className="ob-float">{s.emoji}</span>
             </div>
-            <h1 className="serif">{s.title}</h1>
-            <p>{s.text}</p>
+            <h1 className="serif">{t(`${s.key}Title`)}</h1>
+            <p>{t(`${s.key}Text`)}</p>
           </section>
         ))}
       </div>
@@ -67,7 +62,7 @@ export default function Onboarding({ onDone }) {
       <div className="ob-bottom">
         <div className="dots">
           {SLIDES.map((s, i) => (
-            <button key={s.title} type="button" className={i === index ? 'on' : ''} onClick={() => goTo(i)} aria-label={`${i + 1}-slayd`} />
+            <button key={s.key} type="button" className={i === index ? 'on' : ''} onClick={() => goTo(i)} aria-label={t('slide', { n: i + 1 })} />
           ))}
         </div>
         <button
@@ -75,7 +70,7 @@ export default function Onboarding({ onDone }) {
           className="btn btn-primary btn-block btn-lg"
           onClick={() => { haptic.medium(); if (last) onDone(); else goTo(index + 1); }}
         >
-          {last ? 'Boshlash' : 'Keyingi'} <ArrowRight size={19} />
+          {last ? t('start') : t('next')} <ArrowRight size={19} />
         </button>
       </div>
     </div>

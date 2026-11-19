@@ -2,6 +2,14 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const config = require('../config/default');
 const User = require('../models/User');
+const { normalizeLang, LANGS, t } = require('../utils/i18n');
+
+/** So'rov tili: X-Lang sarlavhasi yoki foydalanuvchi tanlagan til */
+function requestLang(req) {
+  const h = req.get('X-Lang');
+  if (h && LANGS.includes(h)) return h;
+  return req.user?.language || normalizeLang(req.get('Accept-Language'));
+}
 
 const INIT_DATA_MAX_AGE_SEC = 24 * 60 * 60;
 const DEV_USER = { id: 100000001, first_name: 'Mehmon', username: 'dev_user' };
@@ -44,10 +52,11 @@ async function telegramAuth(req, res, next) {
     let tgUser = verifyInitData(initData, config.bot.token);
     if (!tgUser && !initData && config.devAllowBrowser) tgUser = DEV_USER;
     if (!tgUser) {
-      return res.status(401).json({ message: 'Ilovani Telegram bot ichidan oching.' });
+      return res.status(401).json({ message: t(requestLang(req), 'err.openInTelegram') });
     }
     req.tgUser = tgUser;
     req.user = await User.upsertFromTelegram(tgUser);
+    req.lang = requestLang(req);
     return next();
   } catch (err) {
     return next(err);
@@ -99,7 +108,9 @@ function validate(schema) {
     const result = schema.safeParse(req.body);
     if (!result.success) {
       const first = result.error.issues[0];
-      return res.status(400).json({ message: first?.message || "Ma'lumotlar noto'g'ri", field: first?.path?.join('.') });
+      const lang = req.lang || requestLang(req);
+      const msg = first?.message?.startsWith('err.') ? t(lang, first.message) : first?.message || t(lang, 'err.invalid');
+      return res.status(400).json({ message: msg, field: first?.path?.join('.') });
     }
     req.body = result.data;
     return next();
@@ -121,5 +132,6 @@ function safeEqual(a, b) {
 }
 
 module.exports = {
+  requestLang,
   telegramAuth, adminAuth, loginGuard, validate, idParam, signAdminToken, safeEqual,
 };

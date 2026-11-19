@@ -2,7 +2,7 @@ const { prisma } = require('../database/connection');
 
 const PUBLIC_INCLUDE = {
   user: { select: { firstName: true, lastName: true, username: true } },
-  course: { select: { id: true, title: true } },
+  course: { select: { id: true, title: true, titleRu: true, titleEn: true } },
 };
 
 const toPublic = (r) => ({
@@ -12,6 +12,8 @@ const toPublic = (r) => ({
   createdAt: r.createdAt,
   courseId: r.course?.id,
   courseTitle: r.course?.title,
+  courseTitleRu: r.course?.titleRu,
+  courseTitleEn: r.course?.titleEn,
   author: [r.user?.firstName, r.user?.lastName].filter(Boolean).join(' ') || r.user?.username || "O'quvchi",
 });
 

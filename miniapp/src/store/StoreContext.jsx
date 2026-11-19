@@ -1,7 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { api } from '../lib/api';
+import { api, setApiLang } from '../lib/api';
+import { L, detectLang, translate } from '../lib/i18n';
+import { money as fmtMoney } from '../lib/format';
 import { storage } from '../lib/storage';
-import { haptic } from '../lib/telegram';
+import { haptic, isTelegram } from '../lib/telegram';
 import snapshot from '../snapshot.json';
 
 const StoreContext = createContext(null);
@@ -14,6 +16,11 @@ const SNAP_CATALOG = { ...EMPTY_CATALOG, ...(snapshot?.catalog || {}) };
 const HAS_SNAPSHOT = SNAP_CATALOG.courses.length > 0;
 
 export function StoreProvider({ children }) {
+  const [lang, setLangState] = useState(() => {
+    const l = storage.get('lang', null) || detectLang();
+    setApiLang(l);
+    return l;
+  });
   const [config, setConfig] = useState(snapshot?.config || null);
   const [catalog, setCatalog] = useState(SNAP_CATALOG);
   const [me, setMe] = useState(EMPTY_ME);
@@ -34,6 +41,18 @@ export function StoreProvider({ children }) {
 
   useEffect(() => storage.set('cart', cart), [cart]);
 
+  const t = useCallback((key, params) => translate(lang, key, params), [lang]);
+  const loc = useCallback((obj, field) => L(obj, field, lang), [lang]);
+  const money = useCallback((n) => fmtMoney(n, lang), [lang]);
+
+  const setLang = useCallback((next) => {
+    setLangState(next);
+    setApiLang(next);
+    storage.set('lang', next);
+    document.documentElement.lang = next;
+    if (isTelegram) api.setLanguage(next).catch(() => {});
+  }, []);
+
   const toast = useCallback((text, tone = 'ok') => {
     clearTimeout(toastTimer.current);
     setToastMsg({ text, tone, key: Date.now() });
@@ -50,6 +69,11 @@ export function StoreProvider({ children }) {
     try {
       const [meData, ordersData] = await Promise.all([api.me(), api.myOrders()]);
       setMe(meData);
+      const serverLang = meData?.user?.language;
+      if (serverLang && !storage.get('lang', null)) {
+        setLangState(serverLang);
+        setApiLang(serverLang);
+      }
       setOrders(ordersData);
     } catch {
       /* Telegram'dan tashqarida — shaxsiy ma'lumotlarsiz ishlaydi */
@@ -98,13 +122,13 @@ export function StoreProvider({ children }) {
 
   const addToCart = useCallback((id) => {
     if (me.purchased.includes(id)) {
-      toast('Bu kurs sizda allaqachon bor 🎓');
+      toast(translate(lang, 'alreadyOwned'));
       return;
     }
     setCart((prev) => (prev.includes(id) ? prev : [...prev, id]));
     haptic.success();
-    toast("Savatchaga qo'shildi 🧁");
-  }, [me.purchased, toast]);
+    toast(translate(lang, 'added'));
+  }, [me.purchased, toast, lang]);
 
   const removeFromCart = useCallback((id) => {
     haptic.light();
@@ -119,6 +143,7 @@ export function StoreProvider({ children }) {
   const cartCourses = useMemo(() => cart.map((id) => courseMap.get(id)).filter(Boolean), [cart, courseMap]);
 
   const value = {
+    lang, setLang, t, loc, money,
     config, catalog, me, orders, status, error, load, refreshMe, refreshCatalog,
     cart, cartCourses, addToCart, removeFromCart, clearCart, setCart, upsell, setUpsell,
     tab, setTab, filter, setFilter,

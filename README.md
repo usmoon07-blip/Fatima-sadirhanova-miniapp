@@ -136,3 +136,21 @@ Tekshirish: `https://fatima-sadirhanova-api.onrender.com/api/health` → `{"ok":
 - Vercel manzilini Render → Environment → `WEBAPP_URL` va `CORS_ORIGINS` ga yozing.
 
 > ⚠️ Server ishlayotganda botni kompyuterda (`npm run dev`) ishga tushirmang — bitta bot ikki joyda ishlay olmaydi.
+
+---
+
+## 🔐 Kursga bir martalik kirish havolasi
+
+1. Telegram'da kurs kanalingizni oching → **Administratorlar → Admin qo'shish** → botingizni tanlang.
+2. **«Foydalanuvchilarni qo'shish / Invite users via link»** huquqini yoqing va saqlang.
+3. Bot sizga (egasiga) «kanalga admin qilindi» deb yozadi.
+4. Admin Panel → **Kurslar** → kursni tahrirlang → **«Yopiq kanal»** ro'yxatidan kanalni tanlang → Saqlash.
+
+To'lov tasdiqlanganda bot o'quvchiga **faqat o'zi uchun** havola yuboradi. Havola orqali kirish so'rovini bot
+faqat shu o'quvchidan qabul qiladi, keyin havola bekor qilinadi — qayta bosganda yoki boshqa odam bosganda kirib bo'lmaydi.
+
+## 👑 Bot egasi
+
+`OWNER_ID` (standart: `8823567005`) — yangi buyurtmalar va cheklar shu Telegram foydalanuvchisiga keladi,
+chek ostidagi **«✅ To'landi»** tugmasi bilan to'g'ridan-to'g'ri Telegram'dan tasdiqlash mumkin.
+Egasi botga kamida bir marta `/start` yuborgan bo'lishi kerak.

@@ -21,6 +21,32 @@
         "duration": "3 hafta",
         "level": "Boshlang'ich",
         "badge": "Hit",
+        "titleRu": "Макаронтерапия",
+        "titleEn": "Macaron Therapy",
+        "categoryRu": "Десерты",
+        "categoryEn": "Desserts",
+        "levelRu": "Начальный",
+        "levelEn": "Beginner",
+        "durationRu": "3 недели",
+        "durationEn": "3 weeks",
+        "descriptionRu": "Научитесь готовить французские макаруны с нуля: гладкие крышечки, «юбочка» и идеальные начинки. В конце курса вы соберёте свою подарочную коробку.",
+        "descriptionEn": "Learn French macarons from scratch: smooth shells, perfect \"feet\" and fillings. At the end of the course you will assemble your own gift box.",
+        "programRu": [
+          "Выбор миндальной муки и сахара",
+          "Итальянская и французская меренга",
+          "Макаронаж — правильное смешивание",
+          "Отсадка и выпекание крышечек",
+          "Ганаш, курд и фруктовые начинки",
+          "Окрашивание, декор и упаковка"
+        ],
+        "programEn": [
+          "Choosing almond flour and sugar",
+          "Italian and French meringue",
+          "Macaronage — mixing the batter right",
+          "Piping and baking the shells",
+          "Ganache, curd and fruit fillings",
+          "Colouring, decorating and packaging"
+        ],
         "rating": null,
         "reviewsCount": 0
       },
@@ -44,6 +70,32 @@
         "duration": "2 oy",
         "level": "Boshlang'ichdan professionalgacha",
         "badge": "Premium",
+        "titleRu": "Академия тортов",
+        "titleEn": "Cake Academy",
+        "categoryRu": "Торты",
+        "categoryEn": "Cakes",
+        "levelRu": "От новичка до профессионала",
+        "levelEn": "From beginner to professional",
+        "durationRu": "2 месяца",
+        "durationEn": "2 months",
+        "descriptionRu": "Кондитерское дело от А до Я: бисквиты, кремы, сборка торта, декор и расчёт себестоимости. Для тех, кто хочет начать бизнес из дома.",
+        "descriptionEn": "Pastry from A to Z: sponges, creams, cake assembly, decorating and costing. For those who want to start a home bakery business.",
+        "programRu": [
+          "Виды бисквитов и их секреты",
+          "Кремы: крем-чиз, ганаш, пломбирный",
+          "Сборка и выравнивание торта",
+          "Декор: цветы, шоколад, надписи",
+          "Праздничные и свадебные торты",
+          "Себестоимость, цены и поиск клиентов"
+        ],
+        "programEn": [
+          "Types of sponge and their secrets",
+          "Creams: cream cheese, ganache, ice-cream cream",
+          "Assembling and levelling a cake",
+          "Decorating: flowers, chocolate, lettering",
+          "Celebration and wedding cakes",
+          "Costing, pricing and finding customers"
+        ],
         "rating": null,
         "reviewsCount": 0
       },
@@ -66,6 +118,30 @@
         "duration": "2 hafta",
         "level": "Boshlang'ich",
         "badge": "Yangi",
+        "titleRu": "Бенто-торты",
+        "titleEn": "Bento Cakes",
+        "categoryRu": "Торты",
+        "categoryEn": "Cakes",
+        "levelRu": "Начальный",
+        "levelEn": "Beginner",
+        "durationRu": "2 недели",
+        "durationEn": "2 weeks",
+        "descriptionRu": "Самые популярные мини-торты в Instagram. Маленький размер — большой доход: рецепты, декор и секреты упаковки.",
+        "descriptionEn": "The most requested mini cakes on Instagram. Small size, big income: recipes, decorating and packaging secrets.",
+        "programRu": [
+          "Бисквит и крем для бенто",
+          "Сборка и ровное покрытие",
+          "Цвет и трендовый дизайн",
+          "Надписи и мини-декор",
+          "Упаковка и продажи"
+        ],
+        "programEn": [
+          "Sponge and cream for bento",
+          "Assembling and smooth coating",
+          "Colour and trendy designs",
+          "Lettering and mini decor",
+          "Packaging and selling"
+        ],
         "rating": null,
         "reviewsCount": 0
       },
@@ -88,6 +164,30 @@
         "duration": "3 hafta",
         "level": "O'rta",
         "badge": null,
+        "titleRu": "Муссовые десерты и зеркальная глазурь",
+        "titleEn": "Mousse Desserts and Mirror Glaze",
+        "categoryRu": "Десерты",
+        "categoryEn": "Desserts",
+        "levelRu": "Средний",
+        "levelEn": "Intermediate",
+        "durationRu": "3 недели",
+        "durationEn": "3 weeks",
+        "descriptionRu": "Современные французские десерты: мусс, конфи, кремю и глазурь с зеркальным блеском. Десерты ресторанного уровня у вас дома.",
+        "descriptionEn": "Modern French desserts: mousse, confit, cremeux and a mirror-shine glaze. Restaurant-level desserts at home.",
+        "programRu": [
+          "Структура муссового десерта и слои",
+          "Конфи, кремю и крамбл",
+          "Работа с силиконовыми формами",
+          "Зеркальная глазурь",
+          "Велюр и элементы декора"
+        ],
+        "programEn": [
+          "Mousse dessert structure and layers",
+          "Confit, cremeux and crumble",
+          "Working with silicone moulds",
+          "Mirror glaze",
+          "Velour and decor elements"
+        ],
         "rating": null,
         "reviewsCount": 0
       }
@@ -102,6 +202,10 @@
         "title": "Yangi oqim",
         "imageUrl": "https://images.unsplash.com/photo-1569864358642-9d1684040f43?auto=format&fit=crop&w=900&q=80",
         "text": "Makaronterapiya kursining yangi oqimiga qabul boshlandi! Joylar soni cheklangan.",
+        "titleRu": "Новый поток",
+        "titleEn": "New intake",
+        "textRu": "Открыт набор в новый поток курса «Макаронтерапия»! Количество мест ограничено.",
+        "textEn": "Enrolment for the new Macaron Therapy intake is open! Places are limited.",
         "sortOrder": 1,
         "isActive": true
       },
@@ -110,6 +214,10 @@
         "title": "Chegirmalar",
         "imageUrl": "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=900&q=80",
         "text": "Barcha kurslarga chegirmalar amalda. Shoshiling!",
+        "titleRu": "Скидки",
+        "titleEn": "Discounts",
+        "textRu": "На все курсы действуют скидки. Успейте!",
+        "textEn": "All courses are on sale. Hurry!",
         "sortOrder": 2,
         "isActive": true
       },
@@ -118,6 +226,10 @@
         "title": "Sertifikat",
         "imageUrl": "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=900&q=80",
         "text": "Kursni tugatgan har bir o'quvchiga shaxsiy sertifikat beriladi.",
+        "titleRu": "Сертификат",
+        "titleEn": "Certificate",
+        "textRu": "Каждый, кто завершит курс, получит именной сертификат.",
+        "textEn": "Everyone who completes a course receives a personal certificate.",
         "sortOrder": 3,
         "isActive": true
       },
@@ -126,6 +238,10 @@
         "title": "Qanday o'qiymiz?",
         "imageUrl": "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=900&q=80",
         "text": "Video darslar, retseptlar va kurator bilan yopiq guruh. Istalgan vaqtda, o'zingizga qulay tezlikda.",
+        "titleRu": "Как проходит обучение?",
+        "titleEn": "How do we learn?",
+        "textRu": "Видеоуроки, рецепты и закрытая группа с куратором. В любое время, в удобном темпе.",
+        "textEn": "Video lessons, recipes and a private group with a curator. Any time, at your own pace.",
         "sortOrder": 4,
         "isActive": true
       }
@@ -138,7 +254,14 @@
       "name": "Fatima Sadirkhanova",
       "tagline": "PATISSERIE",
       "phone": "+998 99 811 06 66",
-      "adminUsername": ""
+      "adminUsername": "",
+      "authorTelegram": "fatima_sadirkhanova",
+      "authorInstagram": "fatima_sadirkhanova"
+    },
+    "payment": {
+      "cardNumber": "",
+      "cardHolder": "",
+      "note": ""
     },
     "upsell": {
       "title": "Mualliflik retseptlar to'plami (PDF)",

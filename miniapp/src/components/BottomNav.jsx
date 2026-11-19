@@ -43,7 +43,7 @@ function buildPath(width, cx, depth) {
 }
 
 export default function BottomNav() {
-  const { tab, setTab, cart } = useStore();
+  const { tab, setTab, cart, t } = useStore();
   const wrapRef = useRef(null);
   const [width, setWidth] = useState(0);
   const activeIndex = Math.max(0, TABS.findIndex((t) => t.id === tab));
@@ -122,7 +122,7 @@ export default function BottomNav() {
   const ToIcon = TABS[anim.to]?.Icon;
 
   return (
-    <nav className="bottom-nav" aria-label="Asosiy menyu">
+    <nav className="bottom-nav" aria-label={t('mainMenu')}>
       <div className="nav-wrap" ref={wrapRef} style={{ height: BAR_H }}>
         {width > 0 && (
           <svg className="nav-shape" width={width} height={BAR_H} viewBox={`0 0 ${width} ${BAR_H}`} aria-hidden>
@@ -144,7 +144,8 @@ export default function BottomNav() {
         )}
 
         <div className="nav-items" style={{ padding: `0 ${PAD}px` }}>
-          {TABS.map(({ id, label, Icon }, i) => {
+          {TABS.map(({ id, Icon }, i) => {
+            const label = t(`nav_${id}`);
             const cx = width ? centerOf(i) : 0;
             const near = spacing ? clamp01(1 - Math.abs(x - cx) / (spacing * 0.55)) : 0;
             const hidden = near * (1 - anim.lift * 0.85);

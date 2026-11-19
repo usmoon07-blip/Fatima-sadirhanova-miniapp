@@ -7,7 +7,7 @@ const { webhookCallback } = require('grammy');
 const config = require('./config/default');
 const { connectDatabase, disconnectDatabase } = require('./database/connection');
 const { bot } = require('./core/bot');
-const { registerBotRoutes, setupBotUi } = require('./routes/bot.routes');
+const { registerBotRoutes, setupBotUi, ALLOWED_UPDATES } = require('./routes/bot.routes');
 const clientRoutes = require('./routes/client.routes');
 const adminRoutes = require('./routes/admin.routes');
 const Upload = require('./models/Upload');
@@ -100,13 +100,14 @@ async function startBot() {
       await bot.api.setWebhook(`${config.publicUrl}${webhookPath}`, {
         secret_token: webhookSecret,
         drop_pending_updates: true,
-        allowed_updates: ['message', 'callback_query'],
+        allowed_updates: ALLOWED_UPDATES,
       });
       console.log(`🤖 Bot webhook rejimida: @${bot.botInfo.username}`);
     } else {
       await bot.api.deleteWebhook({ drop_pending_updates: true });
       bot.start({
         drop_pending_updates: true,
+        allowed_updates: ALLOWED_UPDATES,
         onStart: (info) => console.log(`🤖 Bot ishga tushdi (polling): @${info.username}`),
       }).catch((err) => console.error("❌ Bot to'xtadi:", err.message));
     }
