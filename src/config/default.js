@@ -46,6 +46,26 @@ const config = {
 
 };
 
+// Multicard to'lov tizimi (kalitlar faqat .env da)
+config.multicard = {
+  baseUrl: (process.env.MULTICARD_BASE_URL || 'https://dev-mesh.multicard.uz').trim().replace(/\/+$/, ''),
+  applicationId: (process.env.MULTICARD_APPLICATION_ID || '').trim(),
+  secret: (process.env.MULTICARD_SECRET || '').trim(),
+  storeId: (process.env.MULTICARD_STORE_ID || '').trim(),
+  /** Callback qabul qilinadigan IP (hujjat bo'yicha). Bo'sh bo'lsa — faqat imzo tekshiriladi */
+  callbackIp: (process.env.MULTICARD_CALLBACK_IP || '').trim(),
+  /** Invoys amal qilish muddati (soniya) */
+  invoiceTtl: num(process.env.MULTICARD_INVOICE_TTL, 3600),
+  /** Fiskal chek uchun standart qiymatlar (kursda ko'rsatilmagan bo'lsa) */
+  ofd: {
+    mxik: (process.env.OFD_DEFAULT_MXIK || '').trim(),
+    packageCode: (process.env.OFD_DEFAULT_PACKAGE_CODE || '').trim(),
+    vat: process.env.OFD_DEFAULT_VAT === undefined || process.env.OFD_DEFAULT_VAT === '' ? null : num(process.env.OFD_DEFAULT_VAT, null),
+    tin: (process.env.OFD_TIN || '').trim(),
+  },
+};
+config.multicard.enabled = Boolean(config.multicard.applicationId && config.multicard.secret && config.multicard.storeId);
+
 config.webAppIsHttps = config.bot.webAppUrl.startsWith('https://');
 
 module.exports = config;

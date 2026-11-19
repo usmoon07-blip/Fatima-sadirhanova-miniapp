@@ -85,6 +85,8 @@ async function upload(path, file) {
 
 export const api = {
   uploadReceipt: (orderId, file) => upload(`/orders/${orderId}/receipt`, file),
+  payOrder: (id) => request(`/orders/${id}/pay`, { method: 'POST' }),
+  paymentStatus: (id) => request(`/orders/${id}/payment`),
   config: () => request('/config'),
   catalog: () => request('/catalog'),
   me: () => request('/me'),

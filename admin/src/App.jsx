@@ -29,6 +29,11 @@ const COURSE_FIELDS = [
   { name: 'channelId', label: 'Yopiq kanal', type: 'select', options: 'channels', placeholder: '— Kanal tanlanmagan —', full: true },
   { name: 'accessLink', label: "Ochiq havola (faqat kanal tanlanmagan bo'lsa — himoyasiz)", placeholder: 'https://t.me/+AbCdEf...', full: true },
 
+  { type: 'heading', label: "Fiskal chek (onlayn to'lov uchun)", hint: "MXIK (IKPU) va qadoq kodini tasnif.soliq.uz dan oling. Bo'sh qoldirilsa, standart (test) kodlar ishlatiladi." },
+  { name: 'mxik', label: 'MXIK (IKPU) kodi', placeholder: '06401004002000000' },
+  { name: 'packageCode', label: 'Qadoq kodi', placeholder: '1506113' },
+  { name: 'vat', label: 'QQS (%)', type: 'number', placeholder: "bo'sh — QQSsiz" },
+
   { type: 'heading', label: 'Rus tilida (ixtiyoriy)', hint: "Bo'sh qoldirsangiz, o'zbekcha matn ko'rsatiladi" },
   { name: 'titleRu', label: 'Название курса', full: true },
   { name: 'categoryRu', label: 'Категория' },

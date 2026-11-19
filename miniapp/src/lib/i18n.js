@@ -28,6 +28,10 @@ export function L(obj, field, lang) {
 
 const DICT = {
   uz: {
+    payOnline: "To'lash — {price}", payOnlineTitle: "Onlayn to'lov", payOnlineMethods: 'Uzcard, Humo, Visa, Payme, Click, Uzum va boshqalar',
+    payChecking: "To'lovni tekshirish", paySecure: "To'lov Multicard xavfsiz sahifasida amalga oshiriladi",
+    paySuccessTitle: "To'lov qabul qilindi!", paySuccessText: 'Kursga kirish havolasi botga yuborildi.',
+    payNowOnline: "Ariza #{id}. Endi onlayn to'lovni amalga oshiring", byOnline: 'Onlayn (karta, Payme, Click)',
     // umumiy
     currency: "so'm",
     nav_home: 'Bosh sahifa', nav_courses: 'Kurslar', nav_cart: 'Savatcha', nav_results: 'Natijalar', nav_profile: 'Profil',
@@ -105,6 +109,10 @@ const DICT = {
     serverError: "Server bilan bog'lanib bo'lmadi",
   },
   ru: {
+    payOnline: 'Оплатить — {price}', payOnlineTitle: 'Онлайн-оплата', payOnlineMethods: 'Uzcard, Humo, Visa, Payme, Click, Uzum и другие',
+    payChecking: 'Проверить оплату', paySecure: 'Оплата проходит на защищённой странице Multicard',
+    paySuccessTitle: 'Оплата получена!', paySuccessText: 'Ссылка на курс отправлена в бот.',
+    payNowOnline: 'Заявка #{id}. Теперь оплатите её онлайн', byOnline: 'Онлайн (карта, Payme, Click)',
     currency: 'сум',
     nav_home: 'Главная', nav_courses: 'Курсы', nav_cart: 'Корзина', nav_results: 'Результаты', nav_profile: 'Профиль',
     mainMenu: 'Главное меню',
@@ -171,6 +179,10 @@ const DICT = {
     serverError: 'Не удалось связаться с сервером',
   },
   en: {
+    payOnline: 'Pay — {price}', payOnlineTitle: 'Online payment', payOnlineMethods: 'Uzcard, Humo, Visa, Payme, Click, Uzum and more',
+    payChecking: 'Check payment', paySecure: 'Payment is processed on the secure Multicard page',
+    paySuccessTitle: 'Payment received!', paySuccessText: 'The course link has been sent to the bot.',
+    payNowOnline: 'Enrollment #{id}. Now please pay online', byOnline: 'Online (card, Payme, Click)',
     currency: 'UZS',
     nav_home: 'Home', nav_courses: 'Courses', nav_cart: 'Cart', nav_results: 'Results', nav_profile: 'Profile',
     mainMenu: 'Main menu',

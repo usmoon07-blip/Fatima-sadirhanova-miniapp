@@ -8,7 +8,12 @@ const Order = {
   },
 
   listByUser(userId) {
-    return prisma.order.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: 50 });
+    return prisma.order.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      include: { payments: { orderBy: { createdAt: 'desc' }, take: 1, select: { status: true, checkoutUrl: true, expiresAt: true, receiptUrl: true } } },
+    });
   },
 
   list({ status } = {}) {
@@ -16,7 +21,7 @@ const Order = {
       where: status && status !== 'ALL' ? { status } : {},
       orderBy: { createdAt: 'desc' },
       take: 300,
-      include: { user: { select: USER_SELECT } },
+      include: { user: { select: USER_SELECT }, payments: { orderBy: { createdAt: 'desc' }, take: 1 } },
     });
   },
 
@@ -41,7 +46,7 @@ const Order = {
   /** Foydalanuvchining chek yuborilmagan oxirgi kutilayotgan arizasi */
   latestAwaitingReceipt(userId) {
     return prisma.order.findFirst({
-      where: { userId, status: 'PENDING', receiptUrl: null }, orderBy: { createdAt: 'desc' },
+      where: { userId, status: 'PENDING', receiptUrl: null, paymentMethod: 'manual' }, orderBy: { createdAt: 'desc' },
     });
   },
 

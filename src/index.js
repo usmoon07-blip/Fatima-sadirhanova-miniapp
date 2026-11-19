@@ -10,6 +10,7 @@ const { bot } = require('./core/bot');
 const { registerBotRoutes, setupBotUi, ALLOWED_UPDATES } = require('./routes/bot.routes');
 const clientRoutes = require('./routes/client.routes');
 const adminRoutes = require('./routes/admin.routes');
+const paymentRoutes = require('./routes/payment.routes');
 const Upload = require('./models/Upload');
 
 // BOT_TOKEN hech qachon log'larga tushmasin
@@ -47,6 +48,7 @@ if (useWebhook) {
 app.use(express.json({ limit: '1mb' }));
 
 app.get('/api/health', (req, res) => res.json({ ok: true, bot: Boolean(bot), mode: useWebhook ? 'webhook' : 'polling' }));
+app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', clientRoutes);
 app.use('/api', (req, res) => res.status(404).json({ message: "Bunday yo'l topilmadi" }));

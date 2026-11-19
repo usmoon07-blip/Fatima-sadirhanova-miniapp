@@ -10,7 +10,9 @@ const User = require('../models/User');
 const Upload = require('../models/Upload');
 const Setting = require('../models/Setting');
 const { signAdminToken, safeEqual } = require('../middlewares/auth.middleware');
-const { changeOrderStatus } = require('./botController');
+const { changeOrderStatus, onOrderPaid } = require('./botController');
+const payments = require('../services/payments');
+const { prisma } = require('../database/connection');
 const Channel = require('../models/Channel');
 const { analytics } = require('../services/analytics');
 
@@ -42,6 +44,9 @@ const schemas = {
     levelRu: optText(60),
     levelEn: optText(60),
     channelId: optText(40),
+    mxik: optText(20),
+    packageCode: optText(20),
+    vat: z.union([z.number().int().min(0).max(100), z.null()]).optional(),
     imageUrl: z.string().trim().min(1, 'Rasm qo\'shing').max(1000),
     oldPrice: optInt,
     price: z.number().int().min(0, "Narx noto'g'ri"),
@@ -122,13 +127,46 @@ const adminController = {
   },
 
   async setOrderStatus(req, res) {
-    const order = await changeOrderStatus(req.id, req.body.status);
+    let order;
+    try {
+      order = await changeOrderStatus(req.id, req.body.status);
+    } catch (e) {
+      return res.status(e.status || 500).json({ message: e.message });
+    }
     if (!order) return res.status(404).json({ message: 'Ariza topilmadi' });
     return res.json(await Order.findById(req.id));
   },
 
   async analytics(req, res) {
     res.json(await analytics(String(req.query.period || '30')));
+  },
+
+  /** Multicard: to'lovni server orqali qayta tekshirish */
+  async syncPayment(req, res) {
+    const p = await payments.latestPayment(req.id);
+    if (!p) return res.status(404).json({ message: "To'lov topilmadi" });
+    try {
+      await payments.syncPayment(p.id, { onPaid: onOrderPaid });
+    } catch (e) {
+      return res.status(502).json({ message: e.message });
+    }
+    return res.json(await Order.findById(req.id));
+  },
+
+  /** Multicard: pulni qaytarish (DELETE /payment/{uuid}) va arizani bekor qilish */
+  async refundPayment(req, res) {
+    try {
+      await payments.refund(req.id);
+    } catch (e) {
+      return res.status(e.status || 502).json({ message: e.message });
+    }
+    await changeOrderStatus(req.id, 'CANCELLED');
+    return res.json(await Order.findById(req.id));
+  },
+
+  async paymentLogs(req, res) {
+    const p = await prisma.payment.findMany({ where: { orderId: req.id }, include: { logs: { orderBy: { createdAt: 'asc' } } }, orderBy: { createdAt: 'asc' } });
+    res.json(p);
   },
 
   async channels(req, res) {

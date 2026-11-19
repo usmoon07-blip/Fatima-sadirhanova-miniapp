@@ -154,3 +154,71 @@ faqat shu o'quvchidan qabul qiladi, keyin havola bekor qilinadi — qayta bosgan
 `OWNER_ID` (standart: `8823567005`) — yangi buyurtmalar va cheklar shu Telegram foydalanuvchisiga keladi,
 chek ostidagi **«✅ To'landi»** tugmasi bilan to'g'ridan-to'g'ri Telegram'dan tasdiqlash mumkin.
 Egasi botga kamida bir marta `/start` yuborgan bo'lishi kerak.
+
+---
+
+## 💳 Onlayn to'lov — Multicard
+
+Hujjat: https://docs.multicard.uz (bo'lim: «Оплата на платежной странице Multicard»).
+
+### Qanday ishlaydi
+1. O'quvchi Mini App'da «Kursga yozilish» ni bosadi → ariza **`PENDING` (to'lov kutilmoqda)** holatida yaratiladi.
+2. Server summani **bazadagi kurs narxlaridan** hisoblaydi (tiyinda) va `POST /payment/invoice` bilan invoys yaratadi.
+   Fiskal chek (`ofd`) uchun har bir kursning MXIK, qadoq kodi va QQS foizi yuboriladi.
+3. Mini App va bot «💳 To'lash» tugmasini ko'rsatadi → Multicard to'lov sahifasi (karta, Payme, Click, Uzum...).
+4. To'lovdan keyin Multicard **callback** yuboradi. Server tekshiradi: imzo
+   `md5(store_id + invoice_id + amount + secret)`, kassa, invoys borligi, summa bazadagi bilan bir xilligi, takroriy so'rov.
+   Hammasi to'g'ri bo'lsa → ariza **`PAID`**, bot o'quvchiga bir martalik kanal havolasini yuboradi.
+5. Mini App'dan kelgan «to'landi» xabariga ishonilmaydi; holat faqat Multicard tasdig'i bilan o'zgaradi.
+   Admin onlayn arizani qo'lda «To'landi» qila olmaydi.
+
+### Kerakli kalitlar (`.env` / Render → Environment)
+| Kalit | Izoh |
+|---|---|
+| `MULTICARD_BASE_URL` | Test: `https://dev-mesh.multicard.uz`, production: `https://mesh.multicard.uz` |
+| `MULTICARD_APPLICATION_ID` | Multicard bergan `application_id` |
+| `MULTICARD_SECRET` | Multicard bergan `secret` (imzo shu bilan tekshiriladi) |
+| `MULTICARD_STORE_ID` | Kassa ID (`store_id`) |
+| `OFD_DEFAULT_MXIK`, `OFD_DEFAULT_PACKAGE_CODE`, `OFD_DEFAULT_VAT` | Kursda kod ko'rsatilmasa ishlatiladi |
+
+Uchta asosiy kalit (`APPLICATION_ID`, `SECRET`, `STORE_ID`) bo'lmasa, onlayn to'lov o'chadi va eski usul (kartaga o'tkazma + chek) ishlaydi.
+
+### Webhook (callback) manzili
+```
+https://fatima-sadirhanova-api.onrender.com/api/payments/multicard/callback
+```
+Server uni invoys yaratishda `callback_url` sifatida o'zi yuboradi — Multicard kabinetida alohida sozlash shart emas.
+Multicard callback'ni `195.158.26.90` IP'dan yuboradi (xohlasangiz `MULTICARD_CALLBACK_IP` ga yozing).
+
+### Endpointlar
+| Yo'l | Kim uchun | Vazifasi |
+|---|---|---|
+| `POST /api/orders` | Mini App | Ariza + to'lov havolasi (`payment.checkoutUrl`) |
+| `POST /api/orders/:id/pay` | Mini App | To'lov havolasini qayta olish |
+| `GET /api/orders/:id/payment` | Mini App | Holat (kerak bo'lsa Multicard'dan server orqali tekshiriladi) |
+| `POST /api/payments/multicard/callback` | Multicard | To'lov tasdig'i |
+| `POST /api/admin/orders/:id/sync-payment` | Admin | Multicard'dan qayta tekshirish |
+| `POST /api/admin/orders/:id/refund` | Admin | Pulni qaytarish (`DELETE /payment/{uuid}`) |
+| `GET /api/admin/orders/:id/payment-logs` | Admin | Multicard bilan so'rov/javoblar logi |
+
+Jadvallar: `Payment` (summa tiyinda, holat `CREATED/PAID/CANCELLED/REFUNDED`), `PaymentLog` (har bir so'rov va javob).
+
+### Test rejimida tekshirish
+Test kartasi: `8600 5333 6409 8829`, muddati `06/28`, SMS kod: `112233` (hujjatda `111111` ham ko'rsatilgan).
+
+| Holat | Qanday tekshiriladi | Kutilgan natija |
+|---|---|---|
+| Muvaffaqiyatli to'lov | Botda kursga yoziling → «To'lash» → test karta | Ariza `PAID`, botda kanal havolasi, Admin'da «Onlayn to'landi» |
+| Noto'g'ri summa | Callback'ni boshqa `amount` bilan yuborish | `{"success":false,"message":"Summa mos emas"}`, ariza `PENDING` |
+| Mavjud bo'lmagan ariza | Callback'da noma'lum `invoice_id` | `{"success":false,"message":"Invoys topilmadi"}` |
+| Soxta imzo | Callback'da noto'g'ri `sign` | `{"success":false,"message":"Imzo noto'g'ri"}` |
+| Takroriy so'rov | Bir xil callback'ni 2 marta | Ikkalasiga `{"success":true}`, to'lov 1 marta hisoblanadi |
+| Bekor qilish | Admin arizani «Bekor qilindi» qiladi | Multicard'da invoys bekor (`DELETE /payment/invoice/{uuid}`), keyingi callback rad etiladi |
+
+Hujjat bo'yicha `success:false` javobida Multicard to'lovni bekor qiladi va pulni qaytaradi.
+
+### Testdan productionga o'tish
+1. Multicard'dan production kalitlarini oling (`application_id`, `secret`, `store_id`).
+2. Render → Environment: `MULTICARD_BASE_URL=https://mesh.multicard.uz` va yangi kalitlarni yozing → **Save** (server qayta ishga tushadi).
+3. Admin Panel → Kurslar: har bir kursga **haqiqiy MXIK, qadoq kodi va QQS** ni yozing (tasnif.soliq.uz / buxgalter).
+4. Kichik summali haqiqiy to'lov bilan sinab ko'ring va Admin Panelda «Fiskal chek» havolasini tekshiring.

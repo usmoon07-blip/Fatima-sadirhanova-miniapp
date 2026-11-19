@@ -304,3 +304,9 @@ tr.fresh { animation: freshRow 2.5s ease-out 3; }
 .install-ask-icon img { width: 100%; height: 100%; display: block; }
 .install-ask h3 { font-family: 'Cormorant Garamond', serif; font-size: 23px; line-height: 1.15; }
 .install-ask .modal-foot { border-top: 0; justify-content: center; padding-bottom: 22px; }
+
+.pay-cell { display: flex; flex-direction: column; gap: 4px; min-width: 150px; }
+.pay-cell small { color: var(--muted); font-size: 12px; }
+.pay-actions { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12.5px; }
+.pay-actions .link { color: var(--mauve-dark); font-weight: 800; text-decoration: underline; }
+.pay-actions .link.danger { color: var(--st-bad); }

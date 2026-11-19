@@ -58,9 +58,12 @@ export function StoreProvider({ children }) {
     toastTimer.current = setTimeout(() => setToastMsg(null), 2400);
   }, []);
 
+  // Serverdan yangi ro'yxat kelganmi (ichki nusxa bilan savatchani tozalamaslik uchun)
+  const [catalogFresh, setCatalogFresh] = useState(false);
   const refreshCatalog = useCallback(async () => {
     const data = await api.catalog();
     setCatalog(data);
+    setCatalogFresh(true);
     return data;
   }, []);
 
@@ -107,13 +110,13 @@ export function StoreProvider({ children }) {
 
   // Bazadan o'chirilgan kurslarni savatchadan olib tashlash
   useEffect(() => {
-    if (status !== 'ready') return;
+    if (status !== 'ready' || !catalogFresh) return;
     const ids = new Set(catalog.courses.map((c) => c.id));
     setCart((prev) => {
       const next = prev.filter((id) => ids.has(id) && !me.purchased.includes(id));
       return next.length === prev.length ? prev : next;
     });
-  }, [status, catalog.courses, me.purchased]);
+  }, [status, catalogFresh, catalog.courses, me.purchased]);
 
   const courseMap = useMemo(() => new Map(catalog.courses.map((c) => [c.id, c])), [catalog.courses]);
 

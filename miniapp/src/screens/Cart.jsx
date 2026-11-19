@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { CheckCircle2, CreditCard, Phone, Trash2 } from 'lucide-react';
 import Img from '../components/Img';
 import PaymentPanel from '../components/PaymentPanel';
+import OnlinePay from '../components/OnlinePay';
 import { PageTitle } from '../components/Header';
 import { useStore } from '../store/StoreContext';
 import { api } from '../lib/api';
@@ -10,7 +11,9 @@ import { closeApp, haptic, isTelegram, requestContact, tgUser } from '../lib/tel
 function Success({ order, onClose }) {
   const { t } = useStore();
   const [current, setCurrent] = useState(order);
-  const paid = Boolean(current.receiptUrl);
+  const online = current.paymentMethod === 'multicard';
+  const [paidOnline, setPaidOnline] = useState(false);
+  const paid = online ? paidOnline : Boolean(current.receiptUrl);
 
   const finish = () => {
     if (isTelegram) closeApp();
@@ -21,16 +24,20 @@ function Success({ order, onClose }) {
     <div className="page">
       <div className="success-head">
         <div className="success-badge small"><CheckCircle2 size={34} strokeWidth={1.8} /></div>
-        <h2 className="serif">{paid ? t('receiptAccepted') : t('orderAccepted')}</h2>
-        <p>{paid ? t('afterReceipt') : t('payNow', { id: current.id })}</p>
+        <h2 className="serif">{paid ? (online ? t('paySuccessTitle') : t('receiptAccepted')) : t('orderAccepted')}</h2>
+        <p>{paid ? (online ? t('paySuccessText') : t('afterReceipt')) : t(online ? 'payNowOnline' : 'payNow', { id: current.id })}</p>
       </div>
 
-      <PaymentPanel order={current} onUploaded={(o) => { setCurrent(o); if (isTelegram) setTimeout(closeApp, 2200); }} />
+      {online ? (
+        <OnlinePay order={current} initialPayment={order.payment} initialError={order.paymentError} onPaid={() => { setPaidOnline(true); if (isTelegram) setTimeout(closeApp, 2500); }} />
+      ) : (
+        <PaymentPanel order={current} onUploaded={(o) => { setCurrent(o); if (isTelegram) setTimeout(closeApp, 2200); }} />
+      )}
 
       <button type="button" className="btn btn-soft btn-block later-btn" onClick={finish}>
         {paid ? t('close') : t('payLater')}
       </button>
-      {!paid && <p className="muted small center">{t('payLaterHint')}</p>}
+      {!paid && !online && <p className="muted small center">{t('payLaterHint')}</p>}
     </div>
   );
 }
@@ -155,7 +162,7 @@ export default function Cart() {
       <section className="summary">
         <div><span>{t('sumCourses')}</span><span>{money(oldTotal)}</span></div>
         {savings > 0 && <div className="save"><span>{t('discount')}</span><span>−{money(savings)}</span></div>}
-        <div className="pay-method"><span>{t('payMethod')}</span><span><CreditCard size={15} /> {t('byCard')}</span></div>
+        <div className="pay-method"><span>{t('payMethod')}</span><span><CreditCard size={15} /> {t('byOnline')}</span></div>
         <div className="total"><span>{t('total')}</span><span>{money(total)}</span></div>
       </section>
 

@@ -29,6 +29,8 @@ router.post('/courses/:id/access', idParam, c.courseAccess);
 router.get('/orders', c.myOrders);
 router.post('/orders', validate(c.schemas.order), c.createOrder);
 router.post('/orders/:id/receipt', idParam, receiptUpload, c.uploadReceipt);
+router.post('/orders/:id/pay', idParam, c.payOrder);
+router.get('/orders/:id/payment', idParam, c.paymentStatus);
 router.post('/reviews', validate(c.schemas.review), c.addReview);
 
 module.exports = router;

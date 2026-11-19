@@ -51,6 +51,8 @@ export const api = {
   orders: (status = 'ALL') => request(`/orders?${new URLSearchParams({ status })}`),
   setOrderStatus: (id, status) => request(`/orders/${id}/status`, { method: 'PATCH', body: { status } }),
   deleteOrder: (id) => request(`/orders/${id}`, { method: 'DELETE' }),
+  syncPayment: (id) => request(`/orders/${id}/sync-payment`, { method: 'POST' }),
+  refundPayment: (id) => request(`/orders/${id}/refund`, { method: 'POST' }),
   courses: resource('courses'),
   results: resource('results'),
   stories: resource('stories'),

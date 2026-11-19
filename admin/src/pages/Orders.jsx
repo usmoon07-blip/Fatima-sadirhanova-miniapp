@@ -3,6 +3,29 @@ import { Bell, BellOff, ReceiptText, RefreshCw, Trash2, X } from 'lucide-react';
 import { api, dateTime, fullName, money, STATUSES, STATUS_MAP } from '../api';
 import { isSoundReady, playSignal, unlockSound } from '../sound';
 
+const PAY_LABEL = {
+  CREATED: { label: "To'lov kutilmoqda", tone: 'amber' },
+  PAID: { label: "Onlayn to'landi", tone: 'green' },
+  CANCELLED: { label: 'Bekor qilingan', tone: 'red' },
+  REFUNDED: { label: 'Pul qaytarilgan', tone: 'red' },
+};
+
+function PaymentCell({ order, onSync, onRefund }) {
+  const p = order.payments?.[0];
+  const st = PAY_LABEL[p?.status] || { label: 'Havola yaratilmagan', tone: 'amber' };
+  return (
+    <div className="pay-cell">
+      <span className={`tag ${st.tone === 'green' ? 'ok' : st.tone === 'red' ? 'bad' : 'warn'}`}>💳 {st.label}</span>
+      {p?.cardPan && <small>{p.cardPan} · {p.ps}</small>}
+      <div className="pay-actions">
+        {p?.receiptUrl && <a href={p.receiptUrl} target="_blank" rel="noreferrer">Fiskal chek</a>}
+        {order.status === 'PENDING' && p?.status === 'CREATED' && <button type="button" className="link" onClick={onSync}>Tekshirish</button>}
+        {p?.status === 'PAID' && order.status === 'PAID' && <button type="button" className="link danger" onClick={onRefund}>Pulni qaytarish</button>}
+      </div>
+    </div>
+  );
+}
+
 const FILTERS = [{ id: 'ALL', label: 'Hammasi' }, ...STATUSES];
 const POLL_MS = 8000;
 
@@ -71,6 +94,26 @@ export default function Orders() {
     }
   };
 
+  const syncPayment = async (order) => {
+    try {
+      const updated = await api.syncPayment(order.id);
+      setOrders((list) => list.map((x) => (x.id === order.id ? { ...x, ...updated } : x)));
+      load(true);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const refundPayment = async (order) => {
+    if (!window.confirm(`#${order.id}-ariza uchun pul mijozga qaytarilsinmi?\nAriza bekor qilinadi.`)) return;
+    try {
+      await api.refundPayment(order.id);
+      load(true);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   const remove = async (order) => {
     if (!window.confirm(`#${order.id}-ariza butunlay o'chirilsinmi?`)) return;
     try {
@@ -125,7 +168,7 @@ export default function Orders() {
               <th>Telefon</th>
               <th>Kurslar</th>
               <th>Jami</th>
-              <th>Chek</th>
+              <th>To'lov</th>
               <th>Holati</th>
               <th />
             </tr>
@@ -151,15 +194,19 @@ export default function Orders() {
                 </td>
                 <td className="nowrap"><b>{money(o.total)}</b></td>
                 <td>
-                  {o.receiptUrl ? (
+                  {o.paymentMethod === 'multicard' ? (
+                    <PaymentCell order={o} onSync={() => syncPayment(o)} onRefund={() => refundPayment(o)} />
+                  ) : o.receiptUrl ? (
                     <button type="button" className="receipt-thumb" onClick={() => setReceipt(o)} title="Chekni ko'rish">
                       <img src={o.receiptUrl} alt="Chek" />
                     </button>
-                  ) : <span className="muted small-text">{o.status === 'PENDING' ? 'kutilmoqda' : '—'}</span>}
+                  ) : <span className="muted small-text">{o.status === 'PENDING' ? 'chek kutilmoqda' : '—'}</span>}
                 </td>
                 <td>
                   <select className={`status-select ${STATUS_MAP[o.status]?.tone}`} value={o.status} onChange={(e) => changeStatus(o, e.target.value)}>
-                    {STATUSES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+                    {STATUSES.map((s) => (
+                      <option key={s.id} value={s.id} disabled={o.paymentMethod === 'multicard' && s.id === 'PAID' && o.status !== 'PAID'}>{s.label}</option>
+                    ))}
                   </select>
                 </td>
                 <td>

@@ -20,6 +20,10 @@ function loc(obj, field, lang) {
 const T = {
   uz: {
     langName: "O'zbekcha",
+    payOnlineHint: "💳 To'lash uchun quyidagi tugmani bosing: Uzcard, Humo, Visa, Payme, Click, Uzum va boshqa ilovalar orqali. To'lov tasdiqlanishi bilan kursga kirish havolasi shu yerga keladi.",
+    payBtn: "💳 To'lash",
+    payReturnPaid: "✅ #{id}-ariza bo'yicha to'lov qabul qilindi! Kursga kirish havolasi yuqoridagi xabarda.",
+    payReturnPending: "⏳ #{id}-ariza bo'yicha to'lov hali tasdiqlanmadi. To'lagan bo'lsangiz, bir oz kuting — tasdiqlanishi bilan xabar beramiz.",
     langChosen: "✅ O'zbek tili tanlandi.\n\nKursni tanlash va darsga yozilish uchun «Ochish» tugmasini bosing 👇\n\nSavollaringiz bo'lsa, shu yerga yozib qoldiring 💬",
     supportSent: "✅ Xabaringiz qabul qilindi! Tez orada javob beramiz.",
     supportReply: '💬 <b>{shop}</b> javobi:',
@@ -63,6 +67,10 @@ const T = {
   },
   ru: {
     langName: 'Русский',
+    payOnlineHint: '💳 Для оплаты нажмите кнопку ниже: Uzcard, Humo, Visa, Payme, Click, Uzum и другие приложения. Как только оплата подтвердится, ссылка на курс придёт сюда.',
+    payBtn: '💳 Оплатить',
+    payReturnPaid: '✅ Оплата по заявке #{id} получена! Ссылка на курс — в сообщении выше.',
+    payReturnPending: '⏳ Оплата по заявке #{id} ещё не подтверждена. Если вы оплатили — подождите немного, мы сообщим сразу после подтверждения.',
     langChosen: '✅ Выбран русский язык.\n\nЧтобы выбрать курс и записаться на урок, нажмите «Открыть» 👇\n\nЕсли есть вопросы — напишите их сюда 💬',
     supportSent: '✅ Ваше сообщение получено! Мы скоро ответим.',
     supportReply: '💬 Ответ <b>{shop}</b>:',
@@ -106,6 +114,10 @@ const T = {
   },
   en: {
     langName: 'English',
+    payOnlineHint: '💳 Tap the button below to pay: Uzcard, Humo, Visa, Payme, Click, Uzum and other apps. As soon as the payment is confirmed, the course link will arrive here.',
+    payBtn: '💳 Pay',
+    payReturnPaid: '✅ Payment for enrollment #{id} received! The course link is in the message above.',
+    payReturnPending: '⏳ Payment for enrollment #{id} is not confirmed yet. If you have paid, please wait a moment — we will notify you once it is confirmed.',
     langChosen: '✅ English selected.\n\nTo choose a course and sign up for a lesson, tap «Open» 👇\n\nIf you have questions, write them here 💬',
     supportSent: "✅ We've received your message! We'll reply soon.",
     supportReply: '💬 Reply from <b>{shop}</b>:',

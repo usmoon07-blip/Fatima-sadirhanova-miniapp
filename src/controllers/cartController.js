@@ -8,7 +8,9 @@ const Story = require('../models/Story');
 const User = require('../models/User');
 const Setting = require('../models/Setting');
 const Upload = require('../models/Upload');
-const { notifyOrderCreated, notifyReceiptReceived, setUserMenuButton } = require('./botController');
+const { notifyOrderCreated, notifyReceiptReceived, setUserMenuButton, onOrderPaid } = require('./botController');
+const payments = require('../services/payments');
+const { bot } = require('../core/bot');
 const { ensureAccess, accessMap } = require('../services/access');
 const { t, LANGS } = require('../utils/i18n');
 
@@ -144,11 +146,55 @@ const cartController = {
 
     if (!req.user.phone) await User.setPhone(req.user.id, phone);
 
+    const paymentMethod = config.multicard.enabled ? 'multicard' : 'manual';
     const order = await Order.create({
-      userId: req.user.id, items, total, customerName, phone, comment: comment || null,
+      userId: req.user.id, items, total, customerName, phone, comment: comment || null, paymentMethod,
     });
-    notifyOrderCreated(order).catch((e) => console.error('❌ Bot xabari yuborilmadi:', e.message));
-    return res.status(201).json(order);
+
+    // Onlayn to'lov havolasi darhol yaratiladi (xato bo'lsa — ariza saqlanadi, to'lovni keyin qayta urinish mumkin)
+    let payment = null;
+    let paymentError = null;
+    if (paymentMethod === 'multicard') {
+      try {
+        payment = await payments.createPayment(order.id, { lang: req.lang, botUsername: bot?.botInfo?.username });
+      } catch (e) {
+        paymentError = e.message;
+        console.error(`❌ To'lov havolasi yaratilmadi (ariza #${order.id}):`, e.message);
+      }
+    }
+    notifyOrderCreated(order, payment).catch((e) => console.error('❌ Bot xabari yuborilmadi:', e.message));
+    return res.status(201).json({
+      ...order,
+      payment: payment ? { status: payment.status, checkoutUrl: payment.checkoutUrl } : null,
+      paymentError,
+    });
+  },
+
+  /** Onlayn to'lov havolasi (summa serverda hisoblanadi) */
+  async payOrder(req, res) {
+    const order = await Order.findById(req.id);
+    if (!order || order.userId !== req.user.id) return res.status(404).json({ message: t(req.lang, 'err.orderNotFound') });
+    try {
+      const payment = await payments.createPayment(order.id, { lang: req.lang, botUsername: bot?.botInfo?.username });
+      return res.json({ status: payment.status, checkoutUrl: payment.checkoutUrl });
+    } catch (e) {
+      return res.status(e.status || 500).json({ message: e.message });
+    }
+  },
+
+  /** To'lov holati (kerak bo'lsa Multicard'dan server orqali tekshiriladi). Holatni o'zgartirmaydi — faqat tasdiq bilan */
+  async paymentStatus(req, res) {
+    const order = await Order.findById(req.id);
+    if (!order || order.userId !== req.user.id) return res.status(404).json({ message: t(req.lang, 'err.orderNotFound') });
+    let payment = await payments.latestPayment(order.id);
+    if (payment?.status === 'CREATED' && order.status === 'PENDING') {
+      try { payment = await payments.syncPayment(payment.id, { onPaid: onOrderPaid }); } catch (e) { console.warn('⚠️  To\'lov tekshirilmadi:', e.message); }
+    }
+    const fresh = await Order.findById(order.id);
+    return res.json({
+      orderStatus: fresh.status,
+      payment: payment ? { status: payment.status, checkoutUrl: payment.status === 'CREATED' ? payment.checkoutUrl : null, receiptUrl: payment.receiptUrl } : null,
+    });
   },
 
   async uploadReceipt(req, res) {

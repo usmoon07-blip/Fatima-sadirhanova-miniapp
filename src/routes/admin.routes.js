@@ -13,6 +13,9 @@ router.get('/analytics', a.analytics);
 router.get('/orders', a.orders);
 router.patch('/orders/:id/status', idParam, validate(a.schemas.status), a.setOrderStatus);
 router.delete('/orders/:id', idParam, a.deleteOrder);
+router.post('/orders/:id/sync-payment', idParam, a.syncPayment);
+router.post('/orders/:id/refund', idParam, a.refundPayment);
+router.get('/orders/:id/payment-logs', idParam, a.paymentLogs);
 
 const resource = (name, handlers, schema) => {
   router.get(`/${name}`, handlers.list);

@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import Img from '../components/Img';
 import AccessButton from '../components/AccessButton';
+import OnlinePay from '../components/OnlinePay';
 import { PageTitle } from '../components/Header';
 import { useStore } from '../store/StoreContext';
 import { LANGS } from '../lib/i18n';
@@ -37,7 +38,10 @@ function OrderCard({ order }) {
         <span className={`status ${STATUS_TONE[order.status] || 'amber'}`}>{t(`status_${order.status}`)}</span>
         <ChevronDown size={18} className="chev" />
       </button>
-      {order.status === 'PENDING' && (
+      {order.status === 'PENDING' && order.paymentMethod === 'multicard' && (
+        <div className="order-online"><OnlinePay order={order} initialPayment={order.payments?.[0]?.status === 'CREATED' ? order.payments[0] : null} /></div>
+      )}
+      {order.status === 'PENDING' && order.paymentMethod !== 'multicard' && (
         order.receiptUrl
           ? <div className="order-pay done"><ReceiptText size={15} /> {t('receiptSent')}</div>
           : (

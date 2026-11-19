@@ -8,6 +8,7 @@ const Setting = require('../models/Setting');
 const Upload = require('../models/Upload');
 const Channel = require('../models/Channel');
 const { ensureAccess, decideJoinRequest } = require('../services/access');
+const payments = require('../services/payments');
 const { money, escapeHtml, fullName } = require('../utils/format');
 const { t, loc, normalizeLang } = require('../utils/i18n');
 
@@ -105,6 +106,9 @@ const botController = {
   async start(ctx) {
     const user = ctx.from ? await User.upsertFromTelegram(ctx.from) : null;
     const lang = langOf(user, ctx.from);
+    // To'lov sahifasidan qaytish: /start paid_<arizaId>
+    const m = String(ctx.match || '').match(/^paid_(\d+)$/);
+    if (m && user) return botController.paymentReturn(ctx, user, Number(m[1]), lang);
     await setUserMenuButton(ctx.chat.id, lang);
     await ctx.reply(welcomeText(ctx.from?.first_name || 'Mehmon'), { parse_mode: 'HTML', reply_markup: welcomeKeyboard() });
     if (!config.webAppIsHttps) await ctx.reply(t(lang, 'appNotReady'));
@@ -223,11 +227,32 @@ const botController = {
     return undefined;
   },
 
+  /** Mijoz to'lov sahifasidan botga qaytganda: to'lov holatini server orqali tekshiradi */
+  async paymentReturn(ctx, user, orderId, lang) {
+    const order = await Order.findById(orderId);
+    if (!order || order.userId !== user.id) return ctx.reply(t(lang, 'noPendingOrder'), { reply_markup: appKeyboard(lang) });
+    let payment = await payments.latestPayment(orderId);
+    if (payment?.status === 'CREATED') {
+      try { payment = await payments.syncPayment(payment.id, { onPaid: onOrderPaid }); } catch (e) { console.warn('⚠️  To\'lov tekshirilmadi:', e.message); }
+    }
+    const fresh = await Order.findById(orderId);
+    if (fresh.status === 'PAID') return ctx.reply(t(lang, 'payReturnPaid', { id: orderId }), { reply_markup: appKeyboard(lang) });
+    const kb = new InlineKeyboard();
+    if (payment?.status === 'CREATED' && payment.checkoutUrl) kb.url(t(lang, 'payBtn'), payment.checkoutUrl).row();
+    if (config.webAppIsHttps) kb.webApp(t(lang, 'openApp'), config.bot.webAppUrl);
+    return ctx.reply(t(lang, 'payReturnPending', { id: orderId }), { reply_markup: kb });
+  },
+
   /** Egasi Telegram'dan arizani tasdiqlaydi / bekor qiladi */
   async ownerOrderAction(ctx) {
     if (!isOwner(ctx.from.id)) return ctx.answerCallbackQuery({ text: "Ruxsat yo'q", show_alert: true });
     const [, status, id] = ctx.match;
-    const order = await changeOrderStatus(Number(id), status);
+    let order;
+    try {
+      order = await changeOrderStatus(Number(id), status);
+    } catch (e) {
+      return ctx.answerCallbackQuery({ text: e.message, show_alert: true });
+    }
     if (!order) return ctx.answerCallbackQuery({ text: 'Ariza topilmadi', show_alert: true });
     await ctx.answerCallbackQuery({ text: status === 'PAID' ? "To'landi — kurs ochildi" : 'Bekor qilindi' });
     const mark = status === 'PAID' ? "\n\n✅ To'landi deb belgilandi. Mijozga kursga kirish havolasi yuborildi." : '\n\n❌ Bekor qilindi.';
@@ -273,20 +298,52 @@ const botController = {
 };
 
 /** Ariza holatini o'zgartiradi va mijozga xabar yuboradi (Admin Panel va Telegram tugmalari uchun) */
-async function changeOrderStatus(id, status) {
+async function changeOrderStatus(id, status, { byPaymentSystem = false } = {}) {
   const before = await Order.findById(id);
   if (!before) return null;
   if (before.status === status) return before;
+  // Onlayn (Multicard) arizani «To'landi» qilish — faqat to'lov tizimining tasdig'i bilan
+  if (status === 'PAID' && before.paymentMethod === 'multicard' && !byPaymentSystem) {
+    throw Object.assign(new Error("Bu ariza onlayn to'lanadi — holati Multicard tasdig'i bilan avtomatik o'zgaradi"), { status: 400 });
+  }
+  if (status === 'CANCELLED' && before.paymentMethod === 'multicard') await payments.cancelOpenPayments(id);
   const order = await Order.setStatus(id, status);
   notifyOrderStatus(order).catch((e) => console.error('❌ Bot xabari yuborilmadi:', e.message));
   return order;
 }
 
+/** To'lov tizimi tasdiqlagan ariza: holat PAID, o'quvchiga kanal havolalari, egaga xabar */
+async function onOrderPaid(orderId) {
+  const order = await changeOrderStatus(orderId, 'PAID', { byPaymentSystem: true });
+  const p = await payments.latestPayment(orderId);
+  if (order) {
+    await toOwner(`${ownerOrderText(order, "✅ Onlayn to'landi — ariza")}${p?.cardPan ? `\nKarta: ${escapeHtml(p.cardPan)} (${escapeHtml(p.ps || '')})` : ''}${p?.receiptUrl ? `\nChek: ${escapeHtml(p.receiptUrl)}` : ''}`);
+  }
+  return order;
+}
+
 /** Mini App'dan kursga yozilish arizasi tushganda mijozga va egasiga xabar */
-async function notifyOrderCreated(order) {
+async function notifyOrderCreated(order, payment = null) {
   if (!bot) return;
   const user = await User.findById(order.userId);
   const lang = langOf(user);
+  if (order.paymentMethod === 'multicard') {
+    const lines = [
+      t(lang, 'orderAccepted'),
+      '',
+      `<b>${t(lang, 'order')} #${order.id}</b>`,
+      itemsText(order.items),
+      '',
+      `${t(lang, 'total')}: <b>${money(order.total)}</b>`,
+      '',
+      t(lang, 'payOnlineHint'),
+    ];
+    const kb = new InlineKeyboard();
+    if (payment?.checkoutUrl) kb.url(t(lang, 'payBtn'), payment.checkoutUrl);
+    await bot.api.sendMessage(order.user.telegramId, lines.join('\n'), { parse_mode: 'HTML', reply_markup: payment?.checkoutUrl ? kb : undefined });
+    await toOwner(`${ownerOrderText(order, 'Kursga yangi ariza')}\n\nOnlayn to'lov (Multicard) kutilmoqda.`);
+    return;
+  }
   const lines = [
     t(lang, 'orderAccepted'),
     '',
@@ -371,5 +428,5 @@ async function notifyOrderStatus(order) {
 }
 
 module.exports = {
-  botController, notifyOrderCreated, notifyOrderStatus, notifyReceiptReceived, changeOrderStatus, setUserMenuButton,
+  botController, notifyOrderCreated, notifyOrderStatus, notifyReceiptReceived, changeOrderStatus, setUserMenuButton, onOrderPaid,
 };
