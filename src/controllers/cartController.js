@@ -23,7 +23,6 @@ const schemas = {
     courseIds: z.array(z.number().int().positive()).min(1, 'err.cartEmpty').max(30),
     /** Mini App'dagi kurs nomlari — eski nusxadan noto'g'ri kursga yozilmaslik uchun */
     titles: z.record(z.string(), z.string().max(200)).optional(),
-    upsell: z.boolean().optional().default(false),
     customerName: z.string().trim().min(2, 'err.name').max(80),
     phone: z.string().trim().regex(PHONE_RE, 'err.phone'),
     comment: z.string().trim().max(500).optional().nullable(),
@@ -49,7 +48,6 @@ const cartController = {
         authorTelegram: config.shop.authorTelegram,
         authorInstagram: config.shop.authorInstagram,
       },
-      upsell: config.upsell.enabled ? { title: config.upsell.title, price: config.upsell.price } : null,
     });
   },
 
@@ -122,7 +120,7 @@ const cartController = {
   },
 
   async createOrder(req, res) {
-    const { courseIds, titles, upsell, customerName, phone, comment } = req.body;
+    const { courseIds, titles, customerName, phone, comment } = req.body;
     const ids = [...new Set(courseIds)];
     const courses = await Course.findManyActive(ids);
     if (courses.length !== ids.length) {
@@ -142,9 +140,6 @@ const cartController = {
     const items = courses.map((c) => ({
       courseId: c.id, title: c.title, imageUrl: c.imageUrl, price: c.price, oldPrice: c.oldPrice, type: 'course',
     }));
-    if (upsell && config.upsell.enabled) {
-      items.push({ courseId: null, title: config.upsell.title, imageUrl: null, price: config.upsell.price, oldPrice: null, type: 'extra' });
-    }
     const total = items.reduce((s, i) => s + i.price, 0);
 
     if (!req.user.phone) await User.setPhone(req.user.id, phone);

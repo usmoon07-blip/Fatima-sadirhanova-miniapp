@@ -125,7 +125,7 @@ export default function App() {
         brand={<span className="brand-logo"><img src={`${import.meta.env.BASE_URL}fs-logo.png`} alt="FS" /></span>}
         actions={(
           <>
-            <InstallButton compact />
+            <InstallButton variant="compact" />
             <button type="button" className="icon-btn" onClick={logout} aria-label="Chiqish"><LogOut size={17} /></button>
           </>
         )}

@@ -44,13 +44,8 @@ const config = {
     cardHolder: process.env.CARD_HOLDER || '',
   },
 
-  upsell: {
-    title: process.env.UPSELL_TITLE || '',
-    price: num(process.env.UPSELL_PRICE, 0),
-  },
 };
 
 config.webAppIsHttps = config.bot.webAppUrl.startsWith('https://');
-config.upsell.enabled = Boolean(config.upsell.title && config.upsell.price > 0);
 
 module.exports = config;

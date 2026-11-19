@@ -306,9 +306,6 @@ export default function Analytics() {
             <section className="panel">
               <div className="panel-head"><h3>Arizalar holati</h3><small className="muted">{data.summary.orders} ta ariza</small></div>
               <StatusBar s={data.summary} />
-              <div className="mini-kpis">
-                <div><small>Qo'shimcha taklif (PDF) olingan</small><b>{data.upsell.takeRate}%</b><span>{data.upsell.paid} ta sotuv · {money(data.upsell.revenue)}</span></div>
-              </div>
             </section>
 
             <section className="panel">

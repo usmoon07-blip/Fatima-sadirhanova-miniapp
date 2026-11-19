@@ -13,19 +13,17 @@ import { haptic, openLink, tgUser } from '../lib/telegram';
 const STATUS_TONE = { PENDING: 'amber', PAID: 'green', CANCELLED: 'red' };
 
 function OrderCard({ order }) {
-  const { courseMap, me, setCart, setUpsell, setTab, toast, openPayment, t, lang, loc, money } = useStore();
+  const { courseMap, me, setCart, setTab, toast, openPayment, t, lang, loc, money } = useStore();
   const [open, setOpen] = useState(false);
   const items = Array.isArray(order.items) ? order.items : [];
 
   const reorder = () => {
     const ids = items.map((i) => i.courseId).filter((id) => id && courseMap.has(id) && !me.purchased.includes(id));
-    const hadExtra = items.some((i) => i.type === 'extra');
-    if (!ids.length && !hadExtra) {
+    if (!ids.length) {
       toast(t('ownedAll'));
       return;
     }
     setCart((prev) => [...new Set([...prev, ...ids])]);
-    if (hadExtra) setUpsell(true);
     setTab('cart');
   };
 

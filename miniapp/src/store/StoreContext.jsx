@@ -29,7 +29,6 @@ export function StoreProvider({ children }) {
   const [error, setError] = useState('');
 
   const [cart, setCart] = useState(() => storage.get('cart', []));
-  const [upsell, setUpsell] = useState(false);
   const [tab, setTabState] = useState('home');
   const [filter, setFilter] = useState({ category: 'all', query: '' });
   const [courseId, setCourseId] = useState(null);
@@ -137,7 +136,6 @@ export function StoreProvider({ children }) {
 
   const clearCart = useCallback(() => {
     setCart([]);
-    setUpsell(false);
   }, []);
 
   const cartCourses = useMemo(() => cart.map((id) => courseMap.get(id)).filter(Boolean), [cart, courseMap]);
@@ -145,7 +143,7 @@ export function StoreProvider({ children }) {
   const value = {
     lang, setLang, t, loc, money,
     config, catalog, me, orders, status, error, load, refreshMe, refreshCatalog,
-    cart, cartCourses, addToCart, removeFromCart, clearCart, setCart, upsell, setUpsell,
+    cart, cartCourses, addToCart, removeFromCart, clearCart, setCart,
     tab, setTab, filter, setFilter,
     courseId, openCourse: setCourseId, courseMap,
     reviewCourseId, openReview: setReviewCourseId,

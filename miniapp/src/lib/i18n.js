@@ -76,7 +76,6 @@ const DICT = {
     // cart
     cartTitle: 'Savatcha', cartCount: '{n} ta kurs', cartEmpty: "Savatchangiz bo'sh", cartEmptySub: "Kurslardan birini tanlab, savatchaga qo'shing",
     remove: "O'chirish",
-    upsell: "Bunga qo'shimcha ravishda <b>{title}</b>ni atigi <b>{price}</b>ga qo'shasizmi?",
     yourInfo: "Ma'lumotlaringiz", name: 'Ismingiz', namePh: 'Ism va familiya', phone: 'Telefon raqam', send: 'Yuborish',
     comment: 'Izoh (ixtiyoriy)', commentPh: "Qulay bog'lanish vaqti va h.k.",
     sumCourses: 'Kurslar', discount: 'Chegirma', extra: "Qo'shimcha", payMethod: "To'lov usuli", byCard: 'Karta orqali', total: 'Jami',
@@ -146,7 +145,6 @@ const DICT = {
     stars: '{n} звёзд',
     cartTitle: 'Корзина', cartCount: 'Курсов: {n}', cartEmpty: 'Корзина пуста', cartEmptySub: 'Выберите курс и добавьте его в корзину',
     remove: 'Удалить',
-    upsell: 'Добавить к курсу <b>{title}</b> всего за <b>{price}</b>?',
     yourInfo: 'Ваши данные', name: 'Ваше имя', namePh: 'Имя и фамилия', phone: 'Номер телефона', send: 'Отправить',
     comment: 'Комментарий (необязательно)', commentPh: 'Удобное время для связи и т.д.',
     sumCourses: 'Курсы', discount: 'Скидка', extra: 'Дополнительно', payMethod: 'Способ оплаты', byCard: 'Картой', total: 'Итого',
@@ -213,7 +211,6 @@ const DICT = {
     stars: '{n} stars',
     cartTitle: 'Cart', cartCount: '{n} courses', cartEmpty: 'Your cart is empty', cartEmptySub: 'Choose a course and add it to your cart',
     remove: 'Remove',
-    upsell: 'Add <b>{title}</b> to your course for just <b>{price}</b>?',
     yourInfo: 'Your details', name: 'Your name', namePh: 'First and last name', phone: 'Phone number', send: 'Share',
     comment: 'Comment (optional)', commentPh: 'Best time to contact you, etc.',
     sumCourses: 'Courses', discount: 'Discount', extra: 'Extra', payMethod: 'Payment method', byCard: 'By card', total: 'Total',

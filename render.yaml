@@ -57,7 +57,3 @@ services:
         value: ""
       - key: CARD_HOLDER
         value: ""
-      - key: UPSELL_TITLE
-        value: Mualliflik retseptlar to'plami (PDF)
-      - key: UPSELL_PRICE
-        value: "49000"

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BookOpenText, CheckCircle2, CreditCard, Phone, Trash2 } from 'lucide-react';
+import { CheckCircle2, CreditCard, Phone, Trash2 } from 'lucide-react';
 import Img from '../components/Img';
 import PaymentPanel from '../components/PaymentPanel';
 import { PageTitle } from '../components/Header';
@@ -37,7 +37,7 @@ function Success({ order, onClose }) {
 
 export default function Cart() {
   const {
-    cartCourses, removeFromCart, clearCart, config, upsell, setUpsell, me, refreshMe, setTab, openCourse, t, loc, money,
+    cartCourses, removeFromCart, clearCart, me, refreshMe, setTab, openCourse, t, loc, money,
   } = useStore();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -71,12 +71,10 @@ export default function Cart() {
     );
   }
 
-  const offer = config?.upsell;
   const subtotal = cartCourses.reduce((s, c) => s + c.price, 0);
   const oldTotal = cartCourses.reduce((s, c) => s + (c.oldPrice > c.price ? c.oldPrice : c.price), 0);
   const savings = oldTotal - subtotal;
-  const extra = offer && upsell ? offer.price : 0;
-  const total = subtotal + extra;
+  const total = subtotal;
 
   const askContact = async () => {
     const p = await requestContact();
@@ -93,7 +91,6 @@ export default function Cart() {
       const order = await api.createOrder({
         courseIds: cartCourses.map((c) => c.id),
         titles: Object.fromEntries(cartCourses.map((c) => [c.id, c.title])),
-        upsell: Boolean(offer && upsell),
         customerName: name.trim(),
         phone: phone.trim(),
         comment: comment.trim() || null,
@@ -133,15 +130,6 @@ export default function Cart() {
         ))}
       </div>
 
-      {offer && (
-        <label className={`upsell ${upsell ? 'on' : ''}`}>
-          <span className="upsell-icon"><BookOpenText size={22} /></span>
-          {/* eslint-disable-next-line react/no-danger */}
-          <span className="upsell-text" dangerouslySetInnerHTML={{ __html: t('upsell', { title: offer.title, price: money(offer.price) }) }} />
-          <input type="checkbox" checked={upsell} onChange={(e) => { haptic.select(); setUpsell(e.target.checked); }} />
-          <span className="switch" aria-hidden />
-        </label>
-      )}
 
       <section className="form-card">
         <h4>{t('yourInfo')}</h4>
@@ -167,7 +155,6 @@ export default function Cart() {
       <section className="summary">
         <div><span>{t('sumCourses')}</span><span>{money(oldTotal)}</span></div>
         {savings > 0 && <div className="save"><span>{t('discount')}</span><span>−{money(savings)}</span></div>}
-        {extra > 0 && <div><span>{t('extra')}</span><span>{money(extra)}</span></div>}
         <div className="pay-method"><span>{t('payMethod')}</span><span><CreditCard size={15} /> {t('byCard')}</span></div>
         <div className="total"><span>{t('total')}</span><span>{money(total)}</span></div>
       </section>

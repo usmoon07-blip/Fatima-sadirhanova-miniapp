@@ -284,7 +284,16 @@ tr.fresh { animation: freshRow 2.5s ease-out 3; }
 .install-btn { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 12px; font-weight: 800; color: var(--mauve-dark); background: var(--blush-soft); text-align: left; }
 .install-btn:hover { background: var(--blush); }
 .install-compact { background: var(--blush-soft); color: var(--mauve-dark); }
-.ios-steps p { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; line-height: 1.5; }
+.ios-steps { text-align: left; }
+.ios-steps p { display: block; margin-bottom: 12px; line-height: 1.6; }
+.ios-steps p svg { display: inline-block; vertical-align: -3px; margin: 0 2px; }
 @media (display-mode: standalone) {
   .mobile-top { padding-top: calc(10px + env(safe-area-inset-top)); }
 }
+
+.install-card { display: flex; align-items: center; gap: 12px; margin-top: 8px; padding: 12px 14px; border-radius: 14px; background: var(--blush-soft); color: var(--mauve-dark); text-align: left; border: 1px dashed var(--rose); }
+.install-card span { display: flex; flex-direction: column; line-height: 1.25; }
+.install-card small { color: #8D7A7E; font-size: 12px; font-weight: 600; }
+.ios-steps .btn { margin: 6px 0; text-decoration: none; }
+.ios-steps a.btn-primary { color: #fff; }
+.btn-block { width: 100%; }

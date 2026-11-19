@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { LoaderCircle, LogIn } from 'lucide-react';
 import { api, auth } from '../api';
+import InstallButton from '../components/InstallButton';
 
 export default function Login({ onSuccess }) {
   const [password, setPassword] = useState('');
@@ -33,6 +34,7 @@ export default function Login({ onSuccess }) {
         <button type="submit" className="btn btn-primary" disabled={loading || !password}>
           {loading ? <LoaderCircle size={18} className="spin" /> : <LogIn size={18} />} Kirish
         </button>
+        <InstallButton variant="card" />
       </form>
     </div>
   );

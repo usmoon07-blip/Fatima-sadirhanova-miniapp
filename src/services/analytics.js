@@ -88,18 +88,8 @@ async function analytics(periodParam) {
     id: c.id, title: c.title, price: c.price, isActive: c.isActive,
     orders: 0, paid: 0, pending: 0, cancelled: 0, revenue: 0, buyers: new Set(),
   }]));
-  let upsellOrders = 0;
-  let upsellPaid = 0;
-  let upsellRevenue = 0;
   for (const o of orders) {
     const items = Array.isArray(o.items) ? o.items : [];
-    if (items.some((i) => i.type === 'extra')) {
-      upsellOrders += 1;
-      if (o.status === 'PAID') {
-        upsellPaid += 1;
-        upsellRevenue += items.filter((i) => i.type === 'extra').reduce((s, i) => s + i.price, 0);
-      }
-    }
     for (const it of items) {
       if (!it.courseId) continue;
       let cs = courseStats.get(it.courseId);
@@ -119,7 +109,7 @@ async function analytics(periodParam) {
       id: c.id, title: c.title, price: c.price, isActive: c.isActive,
       orders: c.orders, paid: c.paid, pending: c.pending, cancelled: c.cancelled, revenue: c.revenue,
       conversion: pct(c.paid, c.orders), cancelRate: pct(c.cancelled, c.orders),
-      revenueShare: pct(c.revenue, summary.revenue - upsellRevenue),
+      revenueShare: pct(c.revenue, summary.revenue),
       rating: r ? Math.round(r._avg.rating * 10) / 10 : null, reviews: r ? r._count._all : 0,
     };
   }).sort((a, b) => b.paid - a.paid || b.orders - a.orders || b.revenue - a.revenue);
@@ -162,7 +152,6 @@ async function analytics(periodParam) {
     summary,
     daily,
     courses: courseList,
-    upsell: { orders: upsellOrders, paid: upsellPaid, revenue: upsellRevenue, takeRate: pct(upsellOrders, orders.length) },
     audience,
     funnel,
     hours,
