@@ -47,7 +47,21 @@ if (useWebhook) {
 
 app.use(express.json({ limit: '1mb' }));
 
-app.get('/api/health', (req, res) => res.json({ ok: true, bot: Boolean(bot), mode: useWebhook ? 'webhook' : 'polling' }));
+app.get('/api/health', (req, res) => res.json({
+  ok: true,
+  bot: Boolean(bot),
+  mode: useWebhook ? 'webhook' : 'polling',
+  // Qaysi to'lov usuli faol (kalitlar ko'rsatilmaydi — faqat bor/yo'qligi)
+  payments: config.multicard.enabled ? 'multicard' : 'manual',
+  multicard: {
+    baseUrl: config.multicard.baseUrl,
+    applicationId: Boolean(config.multicard.applicationId),
+    secret: Boolean(config.multicard.secret),
+    storeId: Boolean(config.multicard.storeId),
+    callbackUrl: config.publicUrl ? `${config.publicUrl}/api/payments/multicard/callback` : null,
+  },
+  version: process.env.RENDER_GIT_COMMIT ? process.env.RENDER_GIT_COMMIT.slice(0, 7) : null,
+}));
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', clientRoutes);
