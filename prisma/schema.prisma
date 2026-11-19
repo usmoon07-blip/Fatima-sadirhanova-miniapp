@@ -61,6 +61,10 @@ model Course {
   channelId    String?
   /// Ochiq havola — kanal tanlanmagan bo'lsa yuboriladi (himoyasiz, eski usul)
   accessLink   String?
+  /// Fiskal chek (OFD): MXIK (IKPU) kodi, qadoq kodi va QQS foizi — tasnif.soliq.uz dan
+  mxik         String?
+  packageCode  String?
+  vat          Int?
   isActive     Boolean  @default(true)
   sortOrder    Int      @default(0)
   createdAt    DateTime @default(now())
@@ -75,7 +79,10 @@ model Order {
   user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   /// [{ courseId, title, imageUrl, price, oldPrice, type: "course" | "extra" }]
   items        Json
+  /// Jami summa (so'm). To'lov tizimiga tiyinda yuboriladi va Payment jadvalida tiyinda saqlanadi
   total        Int
+  /// To'lov usuli: "multicard" (onlayn) yoki "manual" (eski: kartaga o'tkazma + chek)
+  paymentMethod String     @default("multicard")
   customerName String
   phone        String
   comment      String?
@@ -85,9 +92,66 @@ model Order {
   status       OrderStatus @default(PENDING)
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
+  payments     Payment[]
 
   @@index([status])
   @@index([userId])
+  @@index([createdAt])
+}
+
+/// To'lov holati. PAID ga faqat to'lov tizimining tasdiqlangan (imzosi to'g'ri) callback'i bilan o'tadi
+enum PaymentStatus {
+  CREATED
+  PAID
+  CANCELLED
+  REFUNDED
+}
+
+/// Bitta to'lov urinishi (bitta arizaga bir nechta bo'lishi mumkin, masalan muddati o'tib qayta yaratilsa)
+model Payment {
+  id              Int           @id @default(autoincrement())
+  orderId         Int
+  order           Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider        String        @default("multicard")
+  /// To'lov tizimiga yuborilgan bizning identifikator (invoice_id) — noyob
+  invoiceId       String        @unique
+  /// Summa TIYINDA (1 so'm = 100 tiyin)
+  amount          Int
+  status          PaymentStatus @default(CREATED)
+  /// Multicard'dagi invoys uuid (yaratilganda qaytadi)
+  invoiceUuid     String?       @unique
+  /// Multicard'dagi tranzaksiya uuid (callback'da keladi) — takroriy callback'ni aniqlash uchun
+  transactionUuid String?       @unique
+  checkoutUrl     String?
+  receiptUrl      String?
+  cardPan         String?
+  ps              String?
+  billingId       String?
+  paidAt          DateTime?
+  expiresAt       DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  logs            PaymentLog[]
+
+  @@index([orderId])
+  @@index([status])
+}
+
+/// To'lov tizimi bilan har bir so'rov va javob (out — biz yuborgan, in — bizga kelgan)
+model PaymentLog {
+  id         Int      @id @default(autoincrement())
+  provider   String   @default("multicard")
+  direction  String
+  endpoint   String
+  paymentId  Int?
+  payment    Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  httpStatus Int?
+  request    Json?
+  response   Json?
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([paymentId])
   @@index([createdAt])
 }
 
