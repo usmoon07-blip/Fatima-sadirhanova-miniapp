@@ -11,14 +11,14 @@ export const TABS = [
   { id: 'profile', Icon: UserRound },
 ];
 
-/* Videodagi uslub: to'q panel, chuqur U shaklidagi o'yiq, ichida panel rangidagi doira.
+/* Videodagi uslub: oq panel, chuqur U shaklidagi o'yiq, ichida gradient doira; ikonkalar ostida yozuvlar.
    Bo'lim almashganda doira va o'yiq birga yonga suriladi (oxirida yengil prujina). */
-const BAR_H = 62;
+const BAR_H = 72;
 const RADIUS = 22;
 const PAD = 26;
-const BALL_R = 25;
-const GAP = 6; // doira va o'yiq orasidagi bo'shliq
-const DEPTH = 50; // o'yiq chuqurligi
+const BALL_R = 24;
+const GAP = 5; // doira va o'yiq orasidagi bo'shliq
+const DEPTH = 44; // o'yiq chuqurligi (pastda yozuvlar uchun joy qoladi)
 const NOTCH_R = BALL_R + GAP;
 const BALL_CY = DEPTH - NOTCH_R; // doira markazi (panel tepasidan)
 const WALL = 2.1; // o'yiq devorlari qiyaligi
@@ -139,8 +139,8 @@ export default function BottomNav() {
             style={{ width: BALL_R * 2, height: BALL_R * 2, left: x - BALL_R, top: BALL_CY - BALL_R }}
             aria-hidden
           >
-            {FromIcon && fromOp > 0 && <FromIcon size={22} strokeWidth={2.2} style={{ opacity: fromOp }} />}
-            {ToIcon && <ToIcon size={22} strokeWidth={2.2} style={{ opacity: toOp }} />}
+            {FromIcon && fromOp > 0 && <FromIcon size={21} strokeWidth={2.2} style={{ opacity: fromOp }} />}
+            {ToIcon && <ToIcon size={21} strokeWidth={2.2} style={{ opacity: toOp }} />}
             {TABS[anim.to]?.id === 'cart' && cartCount > 0 && toOp > 0.5 && <span className="nav-badge on-ball">{cartCount}</span>}
           </div>
         )}
@@ -161,9 +161,10 @@ export default function BottomNav() {
                 aria-current={isActive ? 'page' : undefined}
               >
                 <span className="nav-icon" style={{ opacity: 1 - hide, transform: `scale(${1 - hide * 0.35})` }}>
-                  <Icon size={23} strokeWidth={2} />
+                  <Icon size={22} strokeWidth={1.9} />
                   {id === 'cart' && cartCount > 0 && <span className="nav-badge">{cartCount}</span>}
                 </span>
+                <span className="nav-label">{label}</span>
               </button>
             );
           })}

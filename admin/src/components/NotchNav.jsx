@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 /* Bo'limlar menyusi — Mini App'dagi videodagi uslubning vertikal ko'rinishi:
-   chapda to'q tasma, faol bo'lim qarshisida chuqur U shaklidagi o'yiq va ichida tasma rangidagi doira.
+   chapda och pushti tasma, faol bo'lim qarshisida chuqur U shaklidagi o'yiq va ichida gradient doira.
    Bo'lim almashganda doira va o'yiq birga yuqoriga/pastga suriladi (oxirida yengil prujina).
    Kompyuterda — chap panel, telefonda — tepadagi ☰ tugmasi bilan ochiladigan ro'yxat. */
 

@@ -160,7 +160,14 @@ export default function Profile() {
         </div>
       </section>
 
-      <button type="button" className="made-by" onClick={() => openLink('https://t.me/usmoai')}>{t('madeBy')}</button>
+      <p className="made-by">
+        {t('madeBy').split('usmoai').map((part, i) => (i === 0 ? part : (
+          <span key={part + i}>
+            <button type="button" className="made-by-link" onClick={() => openLink('https://t.me/usmoai')}>@usmoai<Send size={10} /></button>
+            {part}
+          </span>
+        )))}
+      </p>
     </div>
   );
 }

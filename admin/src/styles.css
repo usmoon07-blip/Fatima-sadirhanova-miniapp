@@ -165,11 +165,13 @@ tr.fresh { animation: freshRow 2.5s ease-out 3; }
 
 /* ============ Bo'limlar menyusi (Mini App uslubidagi animatsiya) ============ */
 :root { --chart: #B4536A; --st-good: #3F8C65; --st-warn: #C98A3A; --st-bad: #C23B52; }
-:root { --rail: #7E4652; --rail-icon: #F2D3CB; --rail-active: #F6C77D; }
+:root { --rail: #F8E4DE; --rail-icon: #A9878D; }
 .section-list { position: relative; display: flex; flex-direction: column; gap: 4px; flex: 1; padding: 6px 0; }
-.rail-shape { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; filter: drop-shadow(0 8px 16px rgba(126, 70, 82, .22)); }
+.rail-shape { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
 .rail-shape path { fill: var(--rail); }
-.rail-ball { position: absolute; z-index: 2; border-radius: 50%; display: grid; place-items: center; color: var(--rail-active); background: var(--rail); pointer-events: none; box-shadow: 0 5px 12px rgba(126, 70, 82, .3); }
+.rail-ball { position: absolute; z-index: 2; border-radius: 50%; display: grid; place-items: center; color: #fff; pointer-events: none;
+  background: radial-gradient(circle at 30% 25%, #E9BFB3 0%, #C98E8F 45%, #9C5F68 100%);
+  box-shadow: 0 8px 16px rgba(156, 95, 104, .4), inset 0 -2px 5px rgba(0,0,0,.12), inset 0 2px 4px rgba(255,255,255,.35); }
 .rail-ball > svg { position: absolute; }
 .rail-ball.landed { animation: railLand .4s cubic-bezier(.3,1.5,.5,1); }
 @keyframes railLand { 0% { scale: 0.94 1.06; } 60% { scale: 1.03 0.98; } 100% { scale: 1 1; } }
