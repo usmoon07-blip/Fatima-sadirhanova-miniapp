@@ -30,6 +30,11 @@ function ensureEnv() {
   }
 }
 
+function readEnvValue(key) {
+  const m = fs.readFileSync(ENV_PATH, 'utf8').match(new RegExp(`^${key}=(.*)$`, 'm'));
+  return m ? m[1].trim().replace(/^["']|["']$/g, '') : '';
+}
+
 function setEnvValue(key, value) {
   let text = fs.readFileSync(ENV_PATH, 'utf8');
   const line = `${key}="${value}"`;
@@ -79,7 +84,10 @@ async function startNgrok() {
   let url = await getNgrokUrl();
   if (!url) {
     log('ngrok ishga tushirilmoqda...');
-    const child = spawn('ngrok', ['http', '5173', '--log', 'stdout'], { cwd: ROOT, shell: isWin, stdio: ['ignore', 'pipe', 'pipe'] });
+    const token = readEnvValue('NGROK_AUTHTOKEN');
+    const args = ['http', '5173', '--log', 'stdout'];
+    if (token) args.push('--authtoken', token);
+    const child = spawn('ngrok', args, { cwd: ROOT, shell: isWin, stdio: ['ignore', 'pipe', 'pipe'] });
     let errText = '';
     child.stdout.on('data', (d) => { errText += d; });
     child.stderr.on('data', (d) => { errText += d; });
@@ -91,7 +99,7 @@ async function startNgrok() {
     if (!url) {
       console.warn('\n⚠️  ngrok manzilini olib bo\'lmadi.');
       if (/authtoken|ERR_NGROK_4018/i.test(errText)) {
-        console.warn("   ngrok tokeni qo'shilmagan. Bir marta shu buyruqni bajaring:");
+        console.warn("   ngrok tokeni noto'g'ri yoki yo'q. .env dagi NGROK_AUTHTOKEN ni tekshiring yoki shu buyruqni bajaring:");
         console.warn('   ngrok config add-authtoken SIZNING_TOKENINGIZ');
         console.warn('   (token: https://dashboard.ngrok.com/get-started/your-authtoken)');
       }
