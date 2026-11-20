@@ -8,7 +8,7 @@ import { haptic } from '../lib/telegram';
 const img = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=800&q=80`;
 
 const SLIDES = [
-  { image: img('1464349095431-e9a21285b5f3'), emoji: '🎂', key: 'ob1' },
+  { image: img('1488477181946-6428a0291777'), emoji: '🍓', key: 'ob1' },
   { image: img('1569864358642-9d1684040f43'), emoji: '🧁', key: 'ob2' },
   { image: img('1606313564200-e75d5e30476c'), emoji: '🌸', key: 'ob3' },
 ];
