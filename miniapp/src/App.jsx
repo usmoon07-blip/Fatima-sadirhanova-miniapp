@@ -19,7 +19,7 @@ import { setBackButton, tgUser } from './lib/telegram';
 
 // Bir martalik ko'rib chiqish: bot egasiga onboarding yana bir marta ko'rsatiladi (mijozlarga ta'sir qilmaydi)
 const OWNER_ID = 8823567005;
-const PREVIEW_KEY = 'onboarding_preview_1';
+const PREVIEW_KEY = 'onboarding_preview_2';
 const ownerPreview = () => tgUser()?.id === OWNER_ID && !storage.get(PREVIEW_KEY, false);
 
 const SCREENS = { home: Home, courses: Catalog, cart: Cart, results: Results, profile: Profile };
