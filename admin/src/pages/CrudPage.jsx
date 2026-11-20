@@ -174,9 +174,11 @@ export default function CrudPage({ title, subtitle, resource, fields, columns, i
                   </td>
                 ))}
                 <td><Toggle checked={item.isActive} onChange={() => toggleActive(item)} /></td>
-                <td className="nowrap actions">
-                  <button type="button" className="icon-btn" onClick={() => openEdit(item)} aria-label="Tahrirlash"><Pencil size={16} /></button>
-                  <button type="button" className="icon-btn danger" onClick={() => remove(item)} aria-label="O'chirish"><Trash2 size={16} /></button>
+                <td className="nowrap actions-cell">
+                  <div className="actions">
+                    <button type="button" className="icon-btn" onClick={() => openEdit(item)} aria-label="Tahrirlash"><Pencil size={16} /></button>
+                    <button type="button" className="icon-btn danger" onClick={() => remove(item)} aria-label="O'chirish"><Trash2 size={16} /></button>
+                  </div>
                 </td>
               </tr>
             ))}

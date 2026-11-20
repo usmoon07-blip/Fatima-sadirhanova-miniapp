@@ -80,7 +80,8 @@ td s { display: block; font-size: 12.5px; }
 td b { display: block; }
 .price-red { color: var(--red); }
 .nowrap { white-space: nowrap; }
-.actions { display: flex; gap: 6px; }
+.actions { display: flex; align-items: center; gap: 6px; }
+.actions-cell { vertical-align: middle; width: 1%; }
 tr.dim td { opacity: .55; }
 tr.fresh { animation: freshRow 2.5s ease-out 3; }
 @keyframes freshRow { 0%, 100% { background: transparent; } 30% { background: #FBEAE5; } }
