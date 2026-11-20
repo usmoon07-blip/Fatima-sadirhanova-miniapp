@@ -36,8 +36,8 @@ const COURSE_TR = {
     categoryRu: 'Торты', categoryEn: 'Cakes',
     levelRu: 'От новичка до профессионала', levelEn: 'From beginner to professional',
     durationRu: '2 месяца', durationEn: '2 months',
-    descriptionRu: 'Кондитерское дело от А до Я: бисквиты, кремы, сборка торта, декор и расчёт себестоимости. Для тех, кто хочет начать бизнес из дома.',
-    descriptionEn: 'Pastry from A to Z: sponges, creams, cake assembly, decorating and costing. For those who want to start a home bakery business.',
+    descriptionRu: 'Кондитерское дело от А до Я: бисквиты, авторский крем, сборка и декор торта. Научитесь печь вкусные и красивые торты дома — для себя и своих близких.',
+    descriptionEn: 'Pastry from A to Z: sponges, signature cream, cake assembly and decorating. Learn to bake delicious, beautiful cakes at home for yourself and your loved ones.',
     programRu: ['Виды бисквитов и их секреты', 'Кремы: крем-чиз, ганаш, пломбирный', 'Сборка и выравнивание торта', 'Декор: цветы, шоколад, надписи', 'Праздничные и свадебные торты'],
     programEn: ['Types of sponge and their secrets', 'Creams: cream cheese, ganache, ice-cream cream', 'Assembling and levelling a cake', 'Decorating: flowers, chocolate, lettering', 'Celebration and wedding cakes'],
   },
@@ -100,7 +100,7 @@ const courses = [
     lessonsCount: 40,
     price: 2490000,
     imageUrl: IMG.celebration,
-    description: "Qandolatchilikni boshidan oxirigacha: biskvitlar, kremlar, tortni yig'ish, bezash va tannarxni hisoblash. Uydan biznes boshlamoqchi bo'lganlar uchun.",
+    description: "Qandolatchilikni boshidan oxirigacha: biskvitlar, mualliflik kremi, tortni yig'ish va bezash. Uyda o'zingiz va yaqinlaringiz uchun mazali, chiroyli tortlar pishirishni o'rganing.",
     program: [
       'Biskvit turlari va ularning sirlari',
       'Kremlar: krem-chiz, ganash, plombir kremi',
@@ -191,6 +191,7 @@ async function main() {
   await catalogV2();
   await noDiscounts();
   await creamPrograms();
+  await academyDescription();
 }
 
 /* Katalog v2 (bir marta): har bir desert alohida kurs; Bento va Muss yashiriladi.
@@ -235,6 +236,22 @@ async function creamPrograms() {
   }
   await prisma.setting.create({ data: { key: FLAG, value: new Date().toISOString() } });
   console.log(`✅ ${n} ta kurs dasturi yangilandi (Mualliflik kremi).`);
+}
+
+/* Tortlar akademiyasi tavsifi (bir marta): tannarx va biznes haqidagi gaplar olib tashlandi — kurs uyda pishirish uchun.
+   Faqat eski matn o'zgarmagan bo'lsa yangilanadi (Admin Panelda tahrirlangan matnga tegmaydi). */
+const ACADEMY_OLD = {"description": "Qandolatchilikni boshidan oxirigacha: biskvitlar, kremlar, tortni yig'ish, bezash va tannarxni hisoblash. Uydan biznes boshlamoqchi bo'lganlar uchun.", "descriptionRu": "Кондитерское дело от А до Я: бисквиты, кремы, сборка торта, декор и расчёт себестоимости. Для тех, кто хочет начать бизнес из дома.", "descriptionEn": "Pastry from A to Z: sponges, creams, cake assembly, decorating and costing. For those who want to start a home bakery business."};
+const ACADEMY_NEW = {"description": "Qandolatchilikni boshidan oxirigacha: biskvitlar, mualliflik kremi, tortni yig'ish va bezash. Uyda o'zingiz va yaqinlaringiz uchun mazali, chiroyli tortlar pishirishni o'rganing.", "descriptionRu": "Кондитерское дело от А до Я: бисквиты, авторский крем, сборка и декор торта. Научитесь печь вкусные и красивые торты дома — для себя и своих близких.", "descriptionEn": "Pastry from A to Z: sponges, signature cream, cake assembly and decorating. Learn to bake delicious, beautiful cakes at home for yourself and your loved ones."};
+async function academyDescription() {
+  const FLAG = 'academy_desc_done';
+  if (await prisma.setting.findUnique({ where: { key: FLAG } })) return;
+  let n = 0;
+  for (const field of Object.keys(ACADEMY_OLD)) {
+    const r = await prisma.course.updateMany({ where: { [field]: ACADEMY_OLD[field] }, data: { [field]: ACADEMY_NEW[field] } });
+    n += r.count;
+  }
+  await prisma.setting.create({ data: { key: FLAG, value: new Date().toISOString() } });
+  console.log(`✅ Tortlar akademiyasi tavsifi yangilandi (${n} ta maydon).`);
 }
 
 main()

@@ -6,7 +6,7 @@
         "title": "Makaronterapiya",
         "description": "Fransuz makaronlarini noldan o'rganing: silliq qopqoqlar, «yubka» va mukammal to'ldirmalar. Kurs oxirida o'z sovg'a qutingizni tayyorlaysiz.",
         "imageUrl": "https://images.unsplash.com/photo-1569864358642-9d1684040f43?auto=format&fit=crop&w=900&q=80",
-        "oldPrice": 990000,
+        "oldPrice": null,
         "price": 790000,
         "category": "Desertlar",
         "program": [
@@ -53,18 +53,17 @@
       {
         "id": 2,
         "title": "Tortlar akademiyasi",
-        "description": "Qandolatchilikni boshidan oxirigacha: biskvitlar, kremlar, tortni yig'ish, bezash va tannarxni hisoblash. Uydan biznes boshlamoqchi bo'lganlar uchun.",
+        "description": "Qandolatchilikni boshidan oxirigacha: biskvitlar, mualliflik kremi, tortni yig'ish va bezash. Uyda o'zingiz va yaqinlaringiz uchun mazali, chiroyli tortlar pishirishni o'rganing.",
         "imageUrl": "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=900&q=80",
-        "oldPrice": 2990000,
+        "oldPrice": null,
         "price": 2490000,
         "category": "Tortlar",
         "program": [
           "Biskvit turlari va ularning sirlari",
-          "Kremlar: krem-chiz, ganash, plombir kremi",
+          "Mualliflik kremi",
           "Tortni yig'ish va tekislash",
           "Bezash: gullar, shokolad dekor, yozuvlar",
-          "Bayram va to'y tortlari",
-          "Tannarx, narx qo'yish va mijoz topish"
+          "Bayram va to'y tortlari"
         ],
         "lessonsCount": 40,
         "duration": "2 oy",
@@ -78,23 +77,21 @@
         "levelEn": "From beginner to professional",
         "durationRu": "2 месяца",
         "durationEn": "2 months",
-        "descriptionRu": "Кондитерское дело от А до Я: бисквиты, кремы, сборка торта, декор и расчёт себестоимости. Для тех, кто хочет начать бизнес из дома.",
-        "descriptionEn": "Pastry from A to Z: sponges, creams, cake assembly, decorating and costing. For those who want to start a home bakery business.",
+        "descriptionRu": "Кондитерское дело от А до Я: бисквиты, авторский крем, сборка и декор торта. Научитесь печь вкусные и красивые торты дома — для себя и своих близких.",
+        "descriptionEn": "Pastry from A to Z: sponges, signature cream, cake assembly and decorating. Learn to bake delicious, beautiful cakes at home for yourself and your loved ones.",
         "programRu": [
           "Виды бисквитов и их секреты",
-          "Кремы: крем-чиз, ганаш, пломбирный",
+          "Авторский крем",
           "Сборка и выравнивание торта",
           "Декор: цветы, шоколад, надписи",
-          "Праздничные и свадебные торты",
-          "Себестоимость, цены и поиск клиентов"
+          "Праздничные и свадебные торты"
         ],
         "programEn": [
           "Types of sponge and their secrets",
-          "Creams: cream cheese, ganache, ice-cream cream",
+          "Signature cream",
           "Assembling and levelling a cake",
           "Decorating: flowers, chocolate, lettering",
-          "Celebration and wedding cakes",
-          "Costing, pricing and finding customers"
+          "Celebration and wedding cakes"
         ],
         "rating": null,
         "reviewsCount": 0
@@ -104,11 +101,11 @@
         "title": "Bento tortlar",
         "description": "Instagramda eng ko'p so'raladigan mini tortlar. Kichik hajm, katta daromad: retseptlar, bezash va qadoqlash sirlari.",
         "imageUrl": "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=900&q=80",
-        "oldPrice": 690000,
+        "oldPrice": null,
         "price": 490000,
         "category": "Tortlar",
         "program": [
-          "Bento uchun biskvit va krem",
+          "Mualliflik kremi",
           "Tortni yig'ish va silliq qoplash",
           "Rang berish va trend dizaynlar",
           "Yozuvlar va mini dekor",
@@ -129,14 +126,14 @@
         "descriptionRu": "Самые популярные мини-торты в Instagram. Маленький размер — большой доход: рецепты, декор и секреты упаковки.",
         "descriptionEn": "The most requested mini cakes on Instagram. Small size, big income: recipes, decorating and packaging secrets.",
         "programRu": [
-          "Бисквит и крем для бенто",
+          "Авторский крем",
           "Сборка и ровное покрытие",
           "Цвет и трендовый дизайн",
           "Надписи и мини-декор",
           "Упаковка и продажи"
         ],
         "programEn": [
-          "Sponge and cream for bento",
+          "Signature cream",
           "Assembling and smooth coating",
           "Colour and trendy designs",
           "Lettering and mini decor",
@@ -150,12 +147,12 @@
         "title": "Muss desertlar va zerkalo glazur",
         "description": "Zamonaviy fransuz desertlari: muss, konfi, kremyu va oynadek yaltiroq glazur. Restoran darajasidagi desertlarni uyda tayyorlang.",
         "imageUrl": "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=900&q=80",
-        "oldPrice": 1290000,
+        "oldPrice": null,
         "price": 990000,
         "category": "Desertlar",
         "program": [
           "Muss desert tuzilishi va qatlamlar",
-          "Konfi, kremyu va krambl",
+          "Mualliflik kremi",
           "Silikon qoliplar bilan ishlash",
           "Zerkalo (oyna) glazur",
           "Velur va dekor elementlari"
@@ -176,14 +173,14 @@
         "descriptionEn": "Modern French desserts: mousse, confit, cremeux and a mirror-shine glaze. Restaurant-level desserts at home.",
         "programRu": [
           "Структура муссового десерта и слои",
-          "Конфи, кремю и крамбл",
+          "Авторский крем",
           "Работа с силиконовыми формами",
           "Зеркальная глазурь",
           "Велюр и элементы декора"
         ],
         "programEn": [
           "Mousse dessert structure and layers",
-          "Confit, cremeux and crumble",
+          "Signature cream",
           "Working with silicone moulds",
           "Mirror glaze",
           "Velour and decor elements"
@@ -207,18 +204,6 @@
         "textRu": "Открыт набор в новый поток курса «Макаронтерапия»! Количество мест ограничено.",
         "textEn": "Enrolment for the new Macaron Therapy intake is open! Places are limited.",
         "sortOrder": 1,
-        "isActive": true
-      },
-      {
-        "id": 2,
-        "title": "Chegirmalar",
-        "imageUrl": "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=900&q=80",
-        "text": "Barcha kurslarga chegirmalar amalda. Shoshiling!",
-        "titleRu": "Скидки",
-        "titleEn": "Discounts",
-        "textRu": "На все курсы действуют скидки. Успейте!",
-        "textEn": "All courses are on sale. Hurry!",
-        "sortOrder": 2,
         "isActive": true
       },
       {
