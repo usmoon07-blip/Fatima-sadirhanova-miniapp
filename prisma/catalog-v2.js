@@ -186,7 +186,7 @@ const COURSES = [
 ];
 
 /* Dastur bandlarini tozalash (3 tilda, bir xil tartibda):
-   - «Saqlash, qadoqlash va tannarxni hisoblash» bandi olib tashlanadi;
+   - «Saqlash, qadoqlash va tannarxni hisoblash» va «Tannarx, narx qo'yish...» bandlari olib tashlanadi;
    - «krem» so'zi bor har bir band — «Mualliflik kremi» bo'ladi
      (agar bandda shokolad glazur ham bo'lsa — u o'z holicha qoladi: «Mualliflik kremi va shokolad glazur»);
    - takrorlangan bandlar bitta qoldiriladi. */
@@ -197,7 +197,7 @@ function fixProgram({ program = [], programRu = [], programEn = [] }) {
   const out = { program: [], programRu: [], programEn: [] };
   const seen = new Set();
   program.forEach((uz, i) => {
-    if (/^saqlash, qadoqlash/i.test(uz)) return;
+    if (/^saqlash, qadoqlash|^tannarx/i.test(uz)) return;
     let item = { uz, ru: aligned ? programRu[i] : null, en: aligned ? programEn[i] : null };
     if (/krem/i.test(uz)) {
       const glaze = /glazur/i.test(uz);

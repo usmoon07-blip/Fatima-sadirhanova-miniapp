@@ -38,8 +38,8 @@ const COURSE_TR = {
     durationRu: '2 месяца', durationEn: '2 months',
     descriptionRu: 'Кондитерское дело от А до Я: бисквиты, кремы, сборка торта, декор и расчёт себестоимости. Для тех, кто хочет начать бизнес из дома.',
     descriptionEn: 'Pastry from A to Z: sponges, creams, cake assembly, decorating and costing. For those who want to start a home bakery business.',
-    programRu: ['Виды бисквитов и их секреты', 'Кремы: крем-чиз, ганаш, пломбирный', 'Сборка и выравнивание торта', 'Декор: цветы, шоколад, надписи', 'Праздничные и свадебные торты', 'Себестоимость, цены и поиск клиентов'],
-    programEn: ['Types of sponge and their secrets', 'Creams: cream cheese, ganache, ice-cream cream', 'Assembling and levelling a cake', 'Decorating: flowers, chocolate, lettering', 'Celebration and wedding cakes', 'Costing, pricing and finding customers'],
+    programRu: ['Виды бисквитов и их секреты', 'Кремы: крем-чиз, ганаш, пломбирный', 'Сборка и выравнивание торта', 'Декор: цветы, шоколад, надписи', 'Праздничные и свадебные торты'],
+    programEn: ['Types of sponge and their secrets', 'Creams: cream cheese, ganache, ice-cream cream', 'Assembling and levelling a cake', 'Decorating: flowers, chocolate, lettering', 'Celebration and wedding cakes'],
   },
   'Bento tortlar': {
     titleRu: 'Бенто-торты', titleEn: 'Bento Cakes',
@@ -107,7 +107,6 @@ const courses = [
       "Tortni yig'ish va tekislash",
       'Bezash: gullar, shokolad dekor, yozuvlar',
       'Bayram va to\'y tortlari',
-      "Tannarx, narx qo'yish va mijoz topish",
     ],
     sortOrder: 2,
   },
@@ -224,7 +223,7 @@ async function noDiscounts() {
 
 /* Dasturlar (bir marta): «Saqlash, qadoqlash...» bandi olib tashlanadi, krem bandlari — «Mualliflik kremi». */
 async function creamPrograms() {
-  const FLAG = 'cream_programs_done';
+  const FLAG = 'programs_v2_done'; // tannarx bandi ham olib tashlanadi (qayta ishlatish xavfsiz)
   if (await prisma.setting.findUnique({ where: { key: FLAG } })) return;
   let n = 0;
   for (const c of await prisma.course.findMany({ select: { id: true, program: true, programRu: true, programEn: true } })) {
