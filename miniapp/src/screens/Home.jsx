@@ -69,7 +69,7 @@ export default function Home() {
       </section>
 
       <section className="stats-strip">
-        <div><b>10 000+</b><span>{t('statStudents')}</span></div>
+        <div><b>2 000+</b><span>{t('statStudents')}</span></div>
         <div><b>{courses.length || '—'}</b><span>{t('statCourses')}</span></div>
         <div><b>24/7</b><span>{t('statAccess')}</span></div>
       </section>
