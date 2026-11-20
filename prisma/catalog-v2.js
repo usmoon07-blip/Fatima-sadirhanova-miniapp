@@ -25,9 +25,9 @@ const DURATION = {
 
 // Har bir kurs oxirida — umumiy mavzular
 const COMMON = {
-  uz: ["Yig'ish, bezash va chiroyli taqdim etish", 'Saqlash, qadoqlash va tannarxni hisoblash'],
-  ru: ['Сборка, декор и красивая подача', 'Хранение, упаковка и расчёт себестоимости'],
-  en: ['Assembly, decorating and presentation', 'Storage, packaging and costing'],
+  uz: ["Yig'ish, bezash va chiroyli taqdim etish"],
+  ru: ['Сборка, декор и красивая подача'],
+  en: ['Assembly, decorating and presentation'],
 };
 
 const S = (uz, ru, en) => ({ uz, ru, en });
@@ -185,6 +185,35 @@ const COURSES = [
   ]],
 ];
 
+/* Dastur bandlarini tozalash (3 tilda, bir xil tartibda):
+   - «Saqlash, qadoqlash va tannarxni hisoblash» bandi olib tashlanadi;
+   - «krem» so'zi bor har bir band — «Mualliflik kremi» bo'ladi
+     (agar bandda shokolad glazur ham bo'lsa — u o'z holicha qoladi: «Mualliflik kremi va shokolad glazur»);
+   - takrorlangan bandlar bitta qoldiriladi. */
+const CREAM = { uz: 'Mualliflik kremi', ru: 'Авторский крем', en: 'Signature cream' };
+const GLAZE = { uz: 'shokolad glazur', ru: 'шоколадная глазурь', en: 'chocolate glaze' };
+function fixProgram({ program = [], programRu = [], programEn = [] }) {
+  const aligned = programRu.length === program.length && programEn.length === program.length;
+  const out = { program: [], programRu: [], programEn: [] };
+  const seen = new Set();
+  program.forEach((uz, i) => {
+    if (/^saqlash, qadoqlash/i.test(uz)) return;
+    let item = { uz, ru: aligned ? programRu[i] : null, en: aligned ? programEn[i] : null };
+    if (/krem/i.test(uz)) {
+      const glaze = /glazur/i.test(uz);
+      item = glaze
+        ? { uz: `${CREAM.uz} va ${GLAZE.uz}`, ru: `${CREAM.ru} и ${GLAZE.ru}`, en: `${CREAM.en} and ${GLAZE.en}` }
+        : { ...CREAM };
+    }
+    if (seen.has(item.uz)) return;
+    seen.add(item.uz);
+    out.program.push(item.uz);
+    if (aligned) { out.programRu.push(item.ru); out.programEn.push(item.en); }
+  });
+  if (!aligned) { out.programRu = programRu; out.programEn = programEn; }
+  return out;
+}
+
 function buildCourses() {
   return COURSES.map(([uz, ru, en, cat, level, specific], i) => ({
     title: uz,
@@ -206,12 +235,14 @@ function buildCourses() {
     description: `«${uz}» — retseptdan tortib bezashgacha. Har bir bosqichni video darslarda ko'rsatamiz: xamir, krem, yig'ish va saqlash sirlari.`,
     descriptionRu: `«${ru}» — от рецепта до декора. Показываем каждый этап в видеоуроках: тесто, крем, сборка и секреты хранения.`,
     descriptionEn: `"${en}" — from recipe to decoration. Every step is shown in video lessons: dough, cream, assembly and storage tips.`,
-    program: [...specific.map((x) => x.uz), ...COMMON.uz],
-    programRu: [...specific.map((x) => x.ru), ...COMMON.ru],
-    programEn: [...specific.map((x) => x.en), ...COMMON.en],
+    ...fixProgram({
+      program: [...specific.map((x) => x.uz), ...COMMON.uz],
+      programRu: [...specific.map((x) => x.ru), ...COMMON.ru],
+      programEn: [...specific.map((x) => x.en), ...COMMON.en],
+    }),
     sortOrder: 10 + i,
     isActive: true,
   }));
 }
 
-module.exports = { buildCourses, REMOVE_TITLES: ['Bento tortlar', 'Muss desertlar va zerkalo glazur'] };
+module.exports = { buildCourses, fixProgram, REMOVE_TITLES: ['Bento tortlar', 'Muss desertlar va zerkalo glazur'] };

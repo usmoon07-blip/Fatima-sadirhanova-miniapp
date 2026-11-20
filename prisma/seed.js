@@ -5,7 +5,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
-const { buildCourses, REMOVE_TITLES } = require('./catalog-v2');
+const { buildCourses, fixProgram, REMOVE_TITLES } = require('./catalog-v2');
 const img = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=900&q=80`;
 
 // Rasmlar vaqtinchalik: Admin Panel > Kurslar bo'limidan haqiqiy suratlarni yuklang.
@@ -191,6 +191,7 @@ async function main() {
 
   await catalogV2();
   await noDiscounts();
+  await creamPrograms();
 }
 
 /* Katalog v2 (bir marta): har bir desert alohida kurs; Bento va Muss yashiriladi.
@@ -219,6 +220,22 @@ async function noDiscounts() {
   await prisma.story.updateMany({ where: { title: 'Chegirmalar' }, data: { isActive: false } });
   await prisma.setting.create({ data: { key: FLAG, value: new Date().toISOString() } });
   console.log(`✅ ${r.count} ta kursdan eski narx (chegirma) olib tashlandi, «Chegirmalar» hikoyasi yashirildi.`);
+}
+
+/* Dasturlar (bir marta): «Saqlash, qadoqlash...» bandi olib tashlanadi, krem bandlari — «Mualliflik kremi». */
+async function creamPrograms() {
+  const FLAG = 'cream_programs_done';
+  if (await prisma.setting.findUnique({ where: { key: FLAG } })) return;
+  let n = 0;
+  for (const c of await prisma.course.findMany({ select: { id: true, program: true, programRu: true, programEn: true } })) {
+    const fixed = fixProgram(c);
+    if (JSON.stringify(fixed) !== JSON.stringify({ program: c.program, programRu: c.programRu, programEn: c.programEn })) {
+      await prisma.course.update({ where: { id: c.id }, data: fixed });
+      n += 1;
+    }
+  }
+  await prisma.setting.create({ data: { key: FLAG, value: new Date().toISOString() } });
+  console.log(`✅ ${n} ta kurs dasturi yangilandi (Mualliflik kremi).`);
 }
 
 main()
