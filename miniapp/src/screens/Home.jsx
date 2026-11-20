@@ -29,17 +29,15 @@ export default function Home() {
 
       <StoriesRow />
 
-      <section className="hero" onClick={() => openCategory('all')}>
-        <div className="hero-text">
-          <span className="chip-light"><Sparkles size={12} /> {t('heroTag')}</span>
-          <h2 className="serif">{t('heroTitle')}</h2>
-          <p>{t('heroText')}</p>
-          <button type="button" className="btn btn-light btn-sm">
-            {t('heroBtn')} <ArrowRight size={16} />
-          </button>
-        </div>
-        <GraduationCap className="hero-icon" size={64} strokeWidth={1.2} />
-      </section>
+      {courses.length > 0 && (
+        <section className="block">
+          <div className="section-row">
+            <h3 className="serif">{t('popular')}</h3>
+            <button type="button" className="link-btn" onClick={() => openCategory('all')}>{t('all')}</button>
+          </div>
+          <PopularCarousel courses={courses.slice(0, 8)} />
+        </section>
+      )}
 
       {categories.length > 1 && (
         // Bo'limlar to'xtovsiz sekin suzib turadi (ro'yxat ikki marta takrorlanadi — uzluksiz aylanish uchun)
@@ -58,15 +56,17 @@ export default function Home() {
         </div>
       )}
 
-      {courses.length > 0 && (
-        <section className="block">
-          <div className="section-row">
-            <h3 className="serif">{t('popular')}</h3>
-            <button type="button" className="link-btn" onClick={() => openCategory('all')}>{t('all')}</button>
-          </div>
-          <PopularCarousel courses={courses.slice(0, 8)} />
-        </section>
-      )}
+      <section className="hero" onClick={() => openCategory('all')}>
+        <div className="hero-text">
+          <span className="chip-light"><Sparkles size={12} /> {t('heroTag')}</span>
+          <h2 className="serif">{t('heroTitle')}</h2>
+          <p>{t('heroText')}</p>
+          <button type="button" className="btn btn-light btn-sm">
+            {t('heroBtn')} <ArrowRight size={16} />
+          </button>
+        </div>
+        <GraduationCap className="hero-icon" size={64} strokeWidth={1.2} />
+      </section>
 
       <section className="stats-strip">
         <div><b>10 000+</b><span>{t('statStudents')}</span></div>
