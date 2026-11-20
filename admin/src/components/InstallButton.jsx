@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Copy, Download, ExternalLink, MoreVertical, Share, SquarePlus, X } from 'lucide-react';
-import { canPrompt, isIOS, isStandalone, promptInstall, subscribe } from '../pwa';
+import { canPrompt, isAndroid, isAndroidChrome, isIOS, isStandalone, openInChrome, promptInstall, subscribe } from '../pwa';
 
 /** Brauzer turini aniqlash: qaysi yo'l bilan o'rnatish mumkinligi shunga bog'liq */
 function detectBrowser() {
@@ -26,6 +26,7 @@ function detectBrowser() {
 
 function chromeIntentUrl() {
   const url = new URL(window.location.href);
+  url.searchParams.set('install', '1');
   return `intent://${url.host}${url.pathname}${url.search}#Intent;scheme=https;package=com.android.chrome;end`;
 }
 
@@ -118,6 +119,7 @@ export default function InstallButton({ variant = 'side', onClose }) {
       if (!ok) setHelp(true);
       return;
     }
+    if (isAndroid() && !isAndroidChrome() && await openInChrome()) return;
     setHelp(true);
   };
 

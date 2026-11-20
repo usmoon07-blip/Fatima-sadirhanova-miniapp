@@ -3,6 +3,7 @@ import { Award, BarChart3, Clapperboard, GraduationCap, LogOut, MessageSquareHea
 import NotchNav from './components/NotchNav';
 import InstallButton from './components/InstallButton';
 import InstallPrompt from './components/InstallPrompt';
+import { cameForInstall } from './pwa';
 import Analytics from './pages/Analytics';
 import Login from './pages/Login';
 import Orders from './pages/Orders';
@@ -104,7 +105,7 @@ const PAGES = [
 
 export default function App() {
   const [authed, setAuthed] = useState(Boolean(auth.token));
-  const [askInstall, setAskInstall] = useState(false);
+  const [askInstall, setAskInstall] = useState(() => cameForInstall() && Boolean(auth.token));
   const [page, setPage] = useState(() => {
     const h = window.location.hash.slice(1);
     return PAGES.some((p) => p.id === h) ? h : 'analytics';
