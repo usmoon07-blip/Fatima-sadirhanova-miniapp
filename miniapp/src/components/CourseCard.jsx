@@ -1,13 +1,11 @@
 import { Check, Plus, PlayCircle, Star } from 'lucide-react';
 import Img from './Img';
 import { useStore } from '../store/StoreContext';
-import { discountPercent } from '../lib/format';
 
 export function PriceBlock({ course, large = false }) {
   const { money } = useStore();
   return (
     <div className={`price ${large ? 'large' : ''}`}>
-      {course.oldPrice > course.price && <s>{money(course.oldPrice)}</s>}
       <b>{money(course.price)}</b>
     </div>
   );
@@ -38,20 +36,17 @@ function CardAction({ course }) {
 }
 
 export default function CourseCard({ course, wide = false }) {
-  const { openCourse, loc, t } = useStore();
-  const off = discountPercent(course.oldPrice, course.price);
+  const { openCourse, loc } = useStore();
   const title = loc(course, 'title');
   return (
     <article className={`course-card ${wide ? 'wide' : ''}`} onClick={() => openCourse(course.id)}>
       <div className="course-media">
         <Img src={course.imageUrl} alt={title} />
         {course.badge && <span className="badge">{course.badge}</span>}
-        {off > 0 && <span className="badge off">−{off}%</span>}
       </div>
       <div className="course-body">
         <h3>{title}</h3>
         <div className="course-meta">
-          {course.lessonsCount > 0 && <span>{t('lessons', { n: course.lessonsCount })}</span>}
           {course.rating && (
             <span className="rating"><Star size={12} fill="currentColor" /> {course.rating.toFixed(1)}</span>
           )}

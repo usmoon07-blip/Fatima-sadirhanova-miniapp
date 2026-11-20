@@ -16,9 +16,7 @@ const COURSE_FIELDS = [
   { name: 'title', label: 'Kurs nomi', required: true, full: true },
   { name: 'category', label: 'Kategoriya', placeholder: 'Tortlar, Desertlar...', default: 'Tortlar', datalist: 'categories' },
   { name: 'badge', label: 'Belgi (ixtiyoriy)', placeholder: 'Hit, New, Premium' },
-  { name: 'oldPrice', label: "Eski narx (so'm)", type: 'number', placeholder: 'Chizilgan narx' },
   { name: 'price', label: "Yangi narx (so'm)", type: 'number', required: true },
-  { name: 'lessonsCount', label: 'Darslar soni', type: 'number', default: 0 },
   { name: 'duration', label: 'Davomiyligi', placeholder: '3 hafta' },
   { name: 'level', label: 'Daraja', placeholder: "Boshlang'ich" },
   { name: 'sortOrder', label: 'Tartib raqami', type: 'number', default: 0 },
@@ -56,8 +54,7 @@ const COURSE_FIELDS = [
 const COURSE_COLUMNS = [
   { key: 'imageUrl', label: '', type: 'image' },
   { key: 'title', label: 'Nomi', render: (c) => <><b>{c.title}</b><small>{c.category}{c.badge ? ` · ${c.badge}` : ''}</small></> },
-  { key: 'price', label: 'Narx', render: (c) => <>{c.oldPrice ? <s className="muted">{money(c.oldPrice)}</s> : null}<b className="price-red">{money(c.price)}</b></> },
-  { key: 'lessonsCount', label: 'Darslar', render: (c) => c.lessonsCount || '—' },
+  { key: 'price', label: 'Narx', render: (c) => <><b className="price-red">{money(c.price)}</b></> },
   { key: 'channelId', label: 'Kirish', render: (c) => (c.channelId ? <span className="tag ok">Bir martalik</span> : c.accessLink ? <span className="tag warn">Ochiq havola</span> : <span className="muted">yo'q</span>) },
   { key: 'titleRu', label: 'RU / EN', render: (c) => `${c.titleRu ? '✓' : '—'} / ${c.titleEn ? '✓' : '—'}` },
 ];

@@ -79,8 +79,6 @@ export default function Cart() {
   }
 
   const subtotal = cartCourses.reduce((s, c) => s + c.price, 0);
-  const oldTotal = cartCourses.reduce((s, c) => s + (c.oldPrice > c.price ? c.oldPrice : c.price), 0);
-  const savings = oldTotal - subtotal;
   const total = subtotal;
 
   const askContact = async () => {
@@ -126,9 +124,8 @@ export default function Cart() {
             <button type="button" className="cart-thumb" onClick={() => openCourse(c.id)}><Img src={c.imageUrl} alt={loc(c, 'title')} /></button>
             <div className="cart-info" onClick={() => openCourse(c.id)}>
               <b>{loc(c, 'title')}</b>
-              <small>{[c.lessonsCount ? t('lessons', { n: c.lessonsCount }) : '', loc(c, 'duration')].filter(Boolean).join(' · ')}</small>
+              <small>{[loc(c, 'duration')].filter(Boolean).join(' · ')}</small>
               <div className="price">
-                {c.oldPrice > c.price && <s>{money(c.oldPrice)}</s>}
                 <b>{money(c.price)}</b>
               </div>
             </div>
@@ -160,8 +157,7 @@ export default function Cart() {
       </section>
 
       <section className="summary">
-        <div><span>{t('sumCourses')}</span><span>{money(oldTotal)}</span></div>
-        {savings > 0 && <div className="save"><span>{t('discount')}</span><span>−{money(savings)}</span></div>}
+        <div><span>{t('sumCourses')}</span><span>{money(subtotal)}</span></div>
         <div className="pay-method"><span>{t('payMethod')}</span><span><CreditCard size={15} /> {t('byOnline')}</span></div>
         <div className="total"><span>{t('total')}</span><span>{money(total)}</span></div>
       </section>

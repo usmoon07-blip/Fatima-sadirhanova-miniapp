@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BarChart3, CheckCircle2, Clock3, MessageSquareHeart, PlaySquare, ShoppingBag } from 'lucide-react';
+import { BarChart3, CheckCircle2, Clock3, MessageSquareHeart, ShoppingBag } from 'lucide-react';
 import BottomSheet from './BottomSheet';
 import Img from './Img';
 import Stars from './Stars';
@@ -7,7 +7,7 @@ import AccessButton from './AccessButton';
 import { PriceBlock } from './CourseCard';
 import { useStore } from '../store/StoreContext';
 import { api } from '../lib/api';
-import { discountPercent, shortDate } from '../lib/format';
+import { shortDate } from '../lib/format';
 
 export function ReviewItem({ review, showCourse = false }) {
   const { lang, loc } = useStore();
@@ -44,7 +44,6 @@ export default function CourseSheet() {
   const pending = me.pending.includes(course.id);
   const inCart = cart.includes(course.id);
   const myReview = me.reviews.find((r) => r.courseId === course.id);
-  const off = discountPercent(course.oldPrice, course.price);
   const title = loc(course, 'title');
   const program = loc(course, 'program') || [];
   const duration = loc(course, 'duration');
@@ -76,7 +75,6 @@ export default function CourseSheet() {
         <div className="sheet-hero">
           <Img src={course.imageUrl} alt={title} eager />
           {course.badge && <span className="badge">{course.badge}</span>}
-          {off > 0 && <span className="badge off">−{off}%</span>}
         </div>
       )}
     >
@@ -94,7 +92,6 @@ export default function CourseSheet() {
         </div>
 
         <div className="info-chips">
-          {course.lessonsCount > 0 && <span><PlaySquare size={15} /> {t('lessons', { n: course.lessonsCount })}</span>}
           {duration && <span><Clock3 size={15} /> {duration}</span>}
           {level && <span><BarChart3 size={15} /> {level}</span>}
         </div>

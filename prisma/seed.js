@@ -78,7 +78,6 @@ const courses = [
     level: "Boshlang'ich",
     duration: '3 hafta',
     lessonsCount: 12,
-    oldPrice: 990000,
     price: 790000,
     imageUrl: IMG.macarons,
     description: "Fransuz makaronlarini noldan o'rganing: silliq qopqoqlar, «yubka» va mukammal to'ldirmalar. Kurs oxirida o'z sovg'a qutingizni tayyorlaysiz.",
@@ -99,7 +98,6 @@ const courses = [
     level: "Boshlang'ichdan professionalgacha",
     duration: '2 oy',
     lessonsCount: 40,
-    oldPrice: 2990000,
     price: 2490000,
     imageUrl: IMG.celebration,
     description: "Qandolatchilikni boshidan oxirigacha: biskvitlar, kremlar, tortni yig'ish, bezash va tannarxni hisoblash. Uydan biznes boshlamoqchi bo'lganlar uchun.",
@@ -120,7 +118,6 @@ const courses = [
     level: "Boshlang'ich",
     duration: '2 hafta',
     lessonsCount: 10,
-    oldPrice: 690000,
     price: 490000,
     imageUrl: IMG.bento,
     description: "Instagramda eng ko'p so'raladigan mini tortlar. Kichik hajm, katta daromad: retseptlar, bezash va qadoqlash sirlari.",
@@ -139,7 +136,6 @@ const courses = [
     level: "O'rta",
     duration: '3 hafta',
     lessonsCount: 14,
-    oldPrice: 1290000,
     price: 990000,
     imageUrl: IMG.mousse,
     description: "Zamonaviy fransuz desertlari: muss, konfi, kremyu va oynadek yaltiroq glazur. Restoran darajasidagi desertlarni uyda tayyorlang.",
@@ -156,7 +152,6 @@ const courses = [
 
 const stories = [
   { title: 'Yangi oqim', imageUrl: IMG.macarons, text: "Makaronterapiya kursining yangi oqimiga qabul boshlandi! Joylar soni cheklangan.", sortOrder: 1 },
-  { title: 'Chegirmalar', imageUrl: IMG.celebration, text: "Barcha kurslarga chegirmalar amalda. Shoshiling!", sortOrder: 2 },
   { title: 'Sertifikat', imageUrl: IMG.cheesecake, text: 'Kursni tugatgan har bir o\'quvchiga shaxsiy sertifikat beriladi.', sortOrder: 3 },
   { title: "Qanday o'qiymiz?", imageUrl: IMG.berry, text: "Video darslar, retseptlar va kurator bilan yopiq guruh. Istalgan vaqtda, o'zingizga qulay tezlikda.", sortOrder: 4 },
 ];
@@ -195,6 +190,7 @@ async function main() {
   if (filled) console.log(`✅ ${filled} ta yozuvga rus/ingliz tarjimasi qo'shildi.`);
 
   await catalogV2();
+  await noDiscounts();
 }
 
 /* Katalog v2 (bir marta): har bir desert alohida kurs; Bento va Muss yashiriladi.
@@ -213,6 +209,16 @@ async function catalogV2() {
   }
   await prisma.setting.create({ data: { key: FLAG, value: new Date().toISOString() } });
   console.log(`✅ Katalog v2: ${added} ta yangi kurs qo'shildi, ${hidden.count} ta kurs yashirildi.`);
+}
+
+/* Chegirmalar olib tashlandi (bir marta): barcha kurslarning eski narxi tozalanadi. */
+async function noDiscounts() {
+  const FLAG = 'no_discounts_done';
+  if (await prisma.setting.findUnique({ where: { key: FLAG } })) return;
+  const r = await prisma.course.updateMany({ where: { oldPrice: { not: null } }, data: { oldPrice: null } });
+  await prisma.story.updateMany({ where: { title: 'Chegirmalar' }, data: { isActive: false } });
+  await prisma.setting.create({ data: { key: FLAG, value: new Date().toISOString() } });
+  console.log(`✅ ${r.count} ta kursdan eski narx (chegirma) olib tashlandi, «Chegirmalar» hikoyasi yashirildi.`);
 }
 
 main()
