@@ -7,20 +7,17 @@ const DESCRIPTION = {
   uz: "🌸 Fatima Sadirkhanova qandolatchilik kurslariga xush kelibsiz!\n\n"
     + "🎂 Uyda turib tortlar, desertlar va makaronlar pishirishni o'rganing\n"
     + "🎥 Darslarni istalgan vaqtda, o'zingizga qulay tezlikda ko'ring\n"
-    + "💬 Savollaringizga kurator javob beradi\n"
-    + "💳 Karta orqali qulay to'lov\n\n"
+    + "💬 Savollaringizga kurator javob beradi\n\n"
     + "👇 «Boshlash» tugmasini bosing va o'zingizga mos kursni tanlang!",
   ru: '🌸 Добро пожаловать на кондитерские курсы Фатимы Садирхановой!\n\n'
     + '🎂 Научитесь печь торты, десерты и макаруны не выходя из дома\n'
     + '🎥 Смотрите уроки в любое время, в удобном темпе\n'
-    + '💬 Куратор ответит на ваши вопросы\n'
-    + '💳 Удобная оплата картой\n\n'
+    + '💬 Куратор ответит на ваши вопросы\n\n'
     + '👇 Нажмите «Старт» и выберите подходящий курс!',
   en: "🌸 Welcome to Fatima Sadirkhanova's pastry courses!\n\n"
     + '🎂 Learn to bake cakes, desserts and macarons at home\n'
     + '🎥 Watch the lessons any time, at your own pace\n'
-    + '💬 Our curator will answer your questions\n'
-    + '💳 Easy payment by card\n\n'
+    + '💬 Our curator will answer your questions\n\n'
     + '👇 Tap «Start» and choose the course that suits you!',
 };
 
