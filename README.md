@@ -121,7 +121,7 @@ admin/   React Admin Panel
 | Baza | **Neon** | mavjud baza |
 
 Kodda tayyor: `render.yaml` (Blueprint), `miniapp/vercel.json`, `miniapp/.env.production`,
-`.github/workflows/keepalive.yml` (ish vaqtida har 10 daqiqada serverni uyg'otadi).
+`.github/workflows/keepalive.yml` — zaxira turtki (har 10 daqiqada). Asosiy uyg'oq tutish serverning o'zida: `src/index.js` → `keepAwake()`.
 
 **1. Render:** https://dashboard.render.com → GitHub bilan kiring → **New → Blueprint** →
 `fatima-sadirhanova-miniapp` omborini tanlang → so'ralgan 3 ta qiymatni kiriting

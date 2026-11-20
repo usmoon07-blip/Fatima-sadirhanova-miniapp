@@ -1,10 +1,10 @@
-# Bepul Render 15 daqiqa jimlikdan keyin uxlaydi. Ish vaqtida har 10 daqiqada turtki beramiz.
-# UTC 04–21 = Toshkent 09:00–02:00 (oyiga ~540 soat, Render'ning 750 soatlik chegarasiga sig'adi)
+# Zaxira: asosiy uyg'oq tutish serverning o'zida (src/index.js → keepAwake).
+# Agar server qayta ishga tushib, biror sabab bilan uxlab qolsa — bu turtki uni uyg'otadi. Kecha-kunduz.
 name: Serverni uyg'oq tutish
 
 on:
   schedule:
-    - cron: '*/10 4-21 * * *'
+    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 jobs:

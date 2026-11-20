@@ -145,12 +145,26 @@ async function startBot() {
   }
 }
 
+/* Uyg'oq tutish: bepul Render 15 daqiqa so'rov bo'lmasa uxlaydi va keyingi kirishda
+   «uyg'onmoqda» sahifasini ko'rsatadi. Server o'z ommaviy manziliga har 10 daqiqada
+   so'rov yuboradi — Render buni tashqi so'rov deb hisoblaydi va server uxlamaydi.
+   /api/health bazaga murojaat qilmaydi, shuning uchun Neon bazasi bekorga uyg'onmaydi. */
+function keepAwake() {
+  if (!process.env.RENDER || !config.publicUrl.startsWith('https://')) return;
+  const url = `${config.publicUrl}/api/health?keepalive=1`;
+  const ping = () => fetch(url, { signal: AbortSignal.timeout(30000) })
+    .catch((err) => console.warn('⚠️ Keep-alive so\'rovi o\'tmadi:', err.message));
+  setInterval(ping, 10 * 60 * 1000).unref();
+  console.log("⏰ Keep-alive yoqildi: server uxlamaydi (har 10 daqiqada).");
+}
+
 async function main() {
   await connectDatabase();
   const server = app.listen(config.port, () => {
     console.log(`🚀 API ishlayapti: port ${config.port}`);
   });
   await startBot();
+  keepAwake();
 
   const shutdown = async () => {
     console.log("\n⏹  To'xtatilmoqda...");
