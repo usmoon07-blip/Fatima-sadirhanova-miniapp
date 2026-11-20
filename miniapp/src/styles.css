@@ -362,11 +362,9 @@ h1, h2, h3, h4, p { margin: 0; }
 .ob-glow { position: absolute; inset: 8% -8% -6% -8%; border-radius: 50%; background: radial-gradient(circle, var(--blush) 0%, transparent 70%); }
 .ob-arch { position: absolute; inset: 0; border-radius: 999px 999px 32px 32px; overflow: hidden; border: 6px solid #fff; box-shadow: 0 24px 50px rgba(156,95,104,.28); transform: scale(.92); opacity: .4; transition: all .6s cubic-bezier(.2,.9,.25,1); }
 .ob-arch .img { width: 100%; height: 100%; }
-.ob-float { position: absolute; right: -8px; bottom: 18%; width: 62px; height: 62px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-size: 30px; box-shadow: var(--shadow); transform: scale(0); transition: transform .5s .25s cubic-bezier(.3,1.6,.5,1); }
 .ob-slide h1 { font-size: 31px; line-height: 1.08; max-width: 320px; opacity: 0; transform: translateY(14px); transition: all .5s .15s; }
 .ob-slide p { color: var(--ink-soft); margin-top: 12px; max-width: 300px; opacity: 0; transform: translateY(14px); transition: all .5s .25s; }
 .ob-slide.active .ob-arch { transform: none; opacity: 1; }
-.ob-slide.active .ob-float { transform: scale(1); }
 .ob-slide.active h1, .ob-slide.active p { opacity: 1; transform: none; }
 .ob-bottom { padding: 10px 24px calc(24px + var(--tg-bottom)); }
 .dots { display: flex; justify-content: center; gap: 7px; margin-bottom: 20px; }

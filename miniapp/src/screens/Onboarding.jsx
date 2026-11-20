@@ -51,7 +51,6 @@ export default function Onboarding({ onDone }) {
             <div className="ob-visual">
               <span className="ob-glow" />
               <div className="ob-arch"><Img src={s.image} alt="" eager emoji={s.emoji} /></div>
-              <span className="ob-float">{s.emoji}</span>
             </div>
             <h1 className="serif">{t(`${s.key}Title`)}</h1>
             <p>{t(`${s.key}Text`)}</p>
