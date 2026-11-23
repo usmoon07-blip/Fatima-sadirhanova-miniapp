@@ -192,6 +192,7 @@ async function main() {
   await noDiscounts();
   await creamPrograms();
   await academyDescription();
+  await readyCoursesOnly();
 }
 
 /* Katalog v2 (bir marta): har bir desert alohida kurs; Bento va Muss yashiriladi.
@@ -252,6 +253,21 @@ async function academyDescription() {
   }
   await prisma.setting.create({ data: { key: FLAG, value: new Date().toISOString() } });
   console.log(`✅ Tortlar akademiyasi tavsifi yangilandi (${n} ta maydon).`);
+}
+
+/* Tayyor darslar (bir marta): faqat darsi tayyor 10 ta kurs ko'rinadi, qolganlari yashiriladi.
+   Yashirilgan kursni sotib olganlar unga kirishni yo'qotmaydi. Keyin Admin Panelda istalgan kursni yoqish mumkin. */
+const READY_TITLES = [
+  'Lastochka klassik', 'Lastochka choco', 'Spartak', 'Muraveynik', 'Ptiche moloko klassik',
+  'Ptiche moloko choco', 'Snikers tort', 'Maxroviy', 'Napoleon', 'Medovik',
+];
+async function readyCoursesOnly() {
+  const FLAG = 'ready_courses_v1_done';
+  if (await prisma.setting.findUnique({ where: { key: FLAG } })) return;
+  const on = await prisma.course.updateMany({ where: { title: { in: READY_TITLES } }, data: { isActive: true } });
+  const off = await prisma.course.updateMany({ where: { title: { notIn: READY_TITLES }, isActive: true }, data: { isActive: false } });
+  await prisma.setting.create({ data: { key: FLAG, value: new Date().toISOString() } });
+  console.log(`✅ Tayyor darslar: ${on.count} ta kurs ochiq, ${off.count} ta kurs yashirildi.`);
 }
 
 main()
