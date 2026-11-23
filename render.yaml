@@ -39,7 +39,7 @@ services:
         value: "false"
       # Bot egasi: yangi buyurtma va cheklar shu Telegram foydalanuvchiga keladi
       - key: OWNER_ID
-        value: "8823567005"
+        value: "816069987"
       - key: AUTHOR_TELEGRAM
         value: fatima_sadirkhanova
       - key: AUTHOR_INSTAGRAM

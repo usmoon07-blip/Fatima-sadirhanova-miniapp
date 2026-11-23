@@ -48,6 +48,7 @@ if (useWebhook) {
 app.use(express.json({ limit: '1mb' }));
 
 app.get('/api/health', (req, res) => res.json({
+  ownerIdEnding: config.bot.ownerId ? `…${config.bot.ownerId.slice(-3)}` : null,
   ok: true,
   bot: Boolean(bot),
   mode: useWebhook ? 'webhook' : 'polling',

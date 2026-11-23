@@ -15,12 +15,7 @@ import Results from './screens/Results';
 import Profile from './screens/Profile';
 import { useStore } from './store/StoreContext';
 import { storage } from './lib/storage';
-import { setBackButton, tgUser } from './lib/telegram';
-
-// Bir martalik ko'rib chiqish: bot egasiga onboarding yana bir marta ko'rsatiladi (mijozlarga ta'sir qilmaydi)
-const OWNER_ID = 8823567005;
-const PREVIEW_KEY = 'onboarding_preview_2';
-const ownerPreview = () => tgUser()?.id === OWNER_ID && !storage.get(PREVIEW_KEY, false);
+import { setBackButton } from './lib/telegram';
 
 const SCREENS = { home: Home, courses: Catalog, cart: Cart, results: Results, profile: Profile };
 
@@ -37,7 +32,7 @@ function Splash() {
 
 export default function App() {
   const { status, error, load, tab, setTab, courseId, reviewCourseId, storyIndex, paymentOrder, openPayment, toast, t, lang } = useStore();
-  const [onboarded, setOnboarded] = useState(() => storage.get('onboarded', false) && !ownerPreview());
+  const [onboarded, setOnboarded] = useState(() => storage.get('onboarded', false));
 
   // Telegram "Orqaga" tugmasi: boshqa tabdan bosh sahifaga
   const overlayOpen = courseId != null || reviewCourseId != null || storyIndex != null || paymentOrder != null;
@@ -47,7 +42,7 @@ export default function App() {
   }, [tab, overlayOpen, onboarded, setTab]);
 
   if (!onboarded) {
-    return <Onboarding onDone={() => { storage.set('onboarded', true); storage.set(PREVIEW_KEY, true); setOnboarded(true); }} />;
+    return <Onboarding onDone={() => { storage.set('onboarded', true); setOnboarded(true); }} />;
   }
 
   if (status === 'loading') return <Splash />;

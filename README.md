@@ -151,7 +151,7 @@ faqat shu o'quvchidan qabul qiladi, keyin havola bekor qilinadi — qayta bosgan
 
 ## 👑 Bot egasi
 
-`OWNER_ID` (standart: `8823567005`) — yangi buyurtmalar va cheklar shu Telegram foydalanuvchisiga keladi,
+`OWNER_ID` (standart: `816069987`) — yangi buyurtmalar va cheklar shu Telegram foydalanuvchisiga keladi,
 chek ostidagi **«✅ To'landi»** tugmasi bilan to'g'ridan-to'g'ri Telegram'dan tasdiqlash mumkin.
 Egasi botga kamida bir marta `/start` yuborgan bo'lishi kerak.
 
